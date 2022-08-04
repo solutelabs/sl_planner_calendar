@@ -14,8 +14,10 @@ class Timetable<T> extends StatefulWidget {
     this.controller,
     this.cellBuilder,
     this.headerCellBuilder,
-    this.items = const <TimetableItem<T>>[],
+    // ignore: always_specify_types
+    this.items = const [],
     this.itemBuilder,
+    this.fullWeek = false,
     this.hourLabelBuilder,
     this.nowIndicatorColor,
     this.cornerBuilder,
@@ -52,7 +54,10 @@ class Timetable<T> extends StatefulWidget {
   ///  Default is `Theme.indicatorColor`.
   final Color? nowIndicatorColor;
 
-  ///
+  /// Full week only
+
+  final bool fullWeek;
+
   ///ontapt
   final Function(DateTime dateTime, Period, TimetableItem<T>?)? onTap;
 
@@ -80,6 +85,8 @@ class _TimetableState<T> extends State<Timetable<T>> {
       widget.nowIndicatorColor ?? Theme.of(context).indicatorColor;
   int? _listenerId;
 
+  List<DateTime> daterange = <DateTime>[];
+
   @override
   void initState() {
     controller = widget.controller ?? controller;
@@ -89,8 +96,26 @@ class _TimetableState<T> extends State<Timetable<T>> {
           a.start.compareTo(b.start));
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => adjustColumnWidth());
-
+    initDate();
     super.initState();
+  }
+
+  ///get initial list of dates
+  void initDate() {
+    final int diff = controller.end.difference(controller.start).inDays;
+
+    for (int i = 0; i < diff; i++) {
+      final DateTime date = controller.start.add(Duration(days: i));
+      if (widget.fullWeek) {
+        daterange.add(date);
+      } else {
+        if (date.weekday > 5) {
+        } else {
+          daterange.add(date);
+        }
+      }
+    }
+    setState(() {});
   }
 
   @override
@@ -246,18 +271,16 @@ class _TimetableState<T> extends State<Timetable<T>> {
                           scrollDirection: Axis.horizontal,
                           controller: _dayHeadingScrollController,
                           itemExtent: columnWidth,
-                          itemBuilder: (BuildContext context, int i) {
-                            final DateTime date =
-                                controller.start.add(Duration(days: i));
-                            if (date.weekday > 5) {
-                              return const SizedBox(
-                                width: 0,
-                                height: 0,
-                              );
-                            }
+                          itemCount: daterange.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            // final DateTime date =
+                            //     controller.start.add(Duration(days: i));
+
+                            final DateTime date = daterange[index];
+
                             return SizedBox(
                               width: columnWidth,
-                              child: _buildHeaderCell(i),
+                              child: _buildHeaderCell(date),
                             );
                           },
                         ),
@@ -310,11 +333,12 @@ class _TimetableState<T> extends State<Timetable<T>> {
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               // cacheExtent: 10000.0,
+
+                              itemCount: daterange.length,
                               itemExtent: columnWidth,
                               controller: _dayScrollController,
                               itemBuilder: (BuildContext context, int index) {
-                                final DateTime date =
-                                    controller.start.add(Duration(days: index));
+                                final DateTime date = daterange[index];
                                 final List<TimetableItem<T>> events = widget
                                     .items
                                     .where((TimetableItem<T> event) =>
@@ -362,16 +386,8 @@ class _TimetableState<T> extends State<Timetable<T>> {
                                       for (final TimetableItem<T> event
                                           in events)
                                         Positioned(
-                                          // top: (event.start.hour +
-                                          //         (event.start.minute / 60)) *
-                                          //     controller.cellHeight,
-                                          // top: controller.cellHeight,
-
                                           top: getTopMargin(event.start),
                                           width: columnWidth,
-                                          // height: event.duration.inMinutes *
-                                          //     controller.cellHeight /
-                                          //     60,
                                           height: controller.cellHeight,
                                           child: GestureDetector(
                                               onTap: () {
@@ -428,8 +444,8 @@ class _TimetableState<T> extends State<Timetable<T>> {
 
   final DateFormat _dateFormatter = DateFormat('MMM\nd');
 
-  Widget _buildHeaderCell(int i) {
-    final DateTime date = controller.start.add(Duration(days: i));
+  Widget _buildHeaderCell(DateTime date) {
+    // final DateTime date = controller.start.add(Duration(days: i));
     if (widget.headerCellBuilder != null) {
       return widget.headerCellBuilder!(date);
     }

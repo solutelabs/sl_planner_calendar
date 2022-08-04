@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:example/features/calendar/data/event_model.dart';
 import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
 import 'package:example/features/calendar/presentation/bloc/event_state.dart';
 import 'package:example/features/calendar/presentation/pages/add_plan.dart';
@@ -10,54 +11,60 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
+///planner
 class Planner extends StatefulWidget {
-  const Planner({Key? key}) : super(key: key);
+  final String? id;
+
+  ///
+  const Planner({Key? key, this.id}) : super(key: key);
 
   @override
   State<Planner> createState() => _PlannerState();
 }
 
+///current date time
 DateTime now = DateTime.now().subtract(const Duration(days: 1));
-double ceilHeight = 80;
-List<Period> customeTilenes = [
+
+///custom t
+List<Period> customPeriods = <Period>[
   Period(
-      starttime: const TimeOfDay(hour: 9, minute: 30),
-      endTime: const TimeOfDay(hour: 9, minute: 45),
-      height: ceilHeight),
+    starttime: const TimeOfDay(hour: 9, minute: 30),
+    endTime: const TimeOfDay(hour: 9, minute: 45),
+  ),
   Period(
-      starttime: const TimeOfDay(hour: 9, minute: 45),
-      endTime: const TimeOfDay(hour: 10, minute: 30),
-      height: ceilHeight),
+    starttime: const TimeOfDay(hour: 9, minute: 45),
+    endTime: const TimeOfDay(hour: 10, minute: 30),
+  ),
   Period(
-      starttime: const TimeOfDay(hour: 10, minute: 30),
-      endTime: const TimeOfDay(hour: 11, minute: 0),
-      isBreak: true,
-      title: "Recess",
-      height: 45),
+    starttime: const TimeOfDay(hour: 10, minute: 30),
+    endTime: const TimeOfDay(hour: 11, minute: 0),
+    isBreak: true,
+    title: 'Recess',
+  ),
   Period(
-      starttime: const TimeOfDay(hour: 11, minute: 0),
-      endTime: const TimeOfDay(hour: 11, minute: 45),
-      height: ceilHeight),
+    starttime: const TimeOfDay(hour: 11, minute: 0),
+    endTime: const TimeOfDay(hour: 11, minute: 45),
+  ),
   Period(
-      starttime: const TimeOfDay(hour: 11, minute: 45),
-      endTime: const TimeOfDay(hour: 12, minute: 30),
-      height: ceilHeight),
+    starttime: const TimeOfDay(hour: 11, minute: 45),
+    endTime: const TimeOfDay(hour: 12, minute: 30),
+  ),
   Period(
       starttime: const TimeOfDay(hour: 12, minute: 30),
       endTime: const TimeOfDay(hour: 13, minute: 30),
-      height: 45,
       isBreak: true,
-      title: "Lunch"),
+      title: 'Lunch'),
   Period(
-      starttime: const TimeOfDay(hour: 13, minute: 30),
-      endTime: const TimeOfDay(hour: 14, minute: 15),
-      height: ceilHeight),
+    starttime: const TimeOfDay(hour: 13, minute: 30),
+    endTime: const TimeOfDay(hour: 14, minute: 15),
+  ),
   Period(
-      starttime: const TimeOfDay(hour: 14, minute: 15),
-      endTime: const TimeOfDay(hour: 15, minute: 0),
-      height: ceilHeight),
+    starttime: const TimeOfDay(hour: 14, minute: 15),
+    endTime: const TimeOfDay(hour: 15, minute: 0),
+  ),
 ];
 
+///return true if date is same
 bool isSameDate(DateTime date) {
   if (now.year == date.year && now.month == date.month && now.day == date.day) {
     return true;
@@ -71,6 +78,7 @@ class _PlannerState extends State<Planner> {
       start:
           DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
       timelineWidth: 60,
+      breakHeight: 35,
       cellHeight: 120);
 
   @override
@@ -79,7 +87,7 @@ class _PlannerState extends State<Planner> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       currentMonth = simpleController.visibleDateStart;
       setState(() {});
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future<dynamic>.delayed(const Duration(milliseconds: 100), () {
         simpleController.jumpTo(now);
       });
     });
@@ -103,9 +111,16 @@ class _PlannerState extends State<Planner> {
               Icons.menu,
               color: Colors.black,
             ),
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        title: const Text("Your id is"),
+                        content: Text(widget.id??"No  id recived"),
+                      ));
+            },
           ),
-          actions: [
+          actions: <Widget>[
             IconButton(
               icon: const Icon(
                 Icons.search,
@@ -155,13 +170,14 @@ class _PlannerState extends State<Planner> {
             //   return SizedBox.shrink();
             // }
             return Column(
-              children: [
+              children: <Widget>[
                 state is LoadingState
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
                   child: Timetable<Event>(
-                    timelines: customeTilenes,
+                    fullWeek: true,
+                    timelines: customPeriods,
                     items: state is LoadedState
                         ? state.events
                         : <TimetableItem<Event>>[],
@@ -173,16 +189,16 @@ class _PlannerState extends State<Planner> {
 
                       Navigator.push<Widget>(
                           context,
-                          CupertinoPageRoute(
+                          CupertinoPageRoute<Widget>(
                               builder: (BuildContext context) => AddPlan(
                                     date: date,
-                                    periods: customeTilenes,
+                                    periods: customPeriods,
                                     period: period,
                                     timetableItem: event,
                                   )));
                     },
                     headerCellBuilder: (DateTime date) => Column(
-                      children: [
+                      children: <Widget>[
                         Text(
                           DateFormat('E').format(date),
                         ),
@@ -205,22 +221,22 @@ class _PlannerState extends State<Planner> {
                       ],
                     ),
                     hourLabelBuilder: (Period period) {
-                      TimeOfDay start = period.starttime;
+                      final TimeOfDay start = period.starttime;
 
-                      TimeOfDay end = period.endTime;
+                      final TimeOfDay end = period.endTime;
                       return Container(
                         decoration: const BoxDecoration(color: Colors.white),
                         child: period.isBreak
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(period.title ?? "",
+                                children: <Widget>[
+                                  Text(period.title ?? '',
                                       style: const TextStyle(fontSize: 10)),
                                 ],
                               )
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                children: <Widget>[
                                   Text(start.format(context),
                                       style: const TextStyle(fontSize: 10)),
                                   const SizedBox(
@@ -236,45 +252,58 @@ class _PlannerState extends State<Planner> {
                     itemBuilder: (TimetableItem<Event> item) => Container(
                       margin: const EdgeInsets.all(4),
                       padding: const EdgeInsets.all(4),
-                      height: simpleController.cellHeight,
+                      height: item.data!.period.isBreak
+                          ? simpleController.breakHeight
+                          : simpleController.cellHeight,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
                           color: item.data!.color),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.circle,
-                                color: Colors.black,
-                                size: 10,
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              Text(item.data!.title),
-                            ],
-                          ),
-                          Text(item.data!.description),
-                          Center(
-                            child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 2),
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: Text(
-                                  item.data!.documents.first,
-                                  style: const TextStyle(fontSize: 12),
-                                )),
-                          ),
-                        ],
-                      ),
+                      child: item.data!.period.isBreak
+                          ? Container(
+                              height: simpleController.breakHeight,
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    const Icon(
+                                      Icons.circle,
+                                      color: Colors.black,
+                                      size: 10,
+                                    ),
+                                    const SizedBox(
+                                      width: 4,
+                                    ),
+                                    Text(item.data!.title),
+                                  ],
+                                ),
+                                Text(item.data!.description),
+                                item.data!.documents.isNotEmpty
+                                    ? Center(
+                                        child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 4, vertical: 2),
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Text(
+                                              item.data!.documents.first,
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            )),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ],
+                            ),
                     ),
-                    cellBuilder: (Period datetime) => Container(
+                    cellBuilder: (Period period) => Container(
+                      height: period.isBreak
+                          ? simpleController.breakHeight
+                          : simpleController.cellHeight,
                       decoration: BoxDecoration(
                         border: Border.all(
                             color: Colors.grey.withOpacity(0.5), width: 0.2),
@@ -301,34 +330,4 @@ class _PlannerState extends State<Planner> {
           }
         }),
       );
-}
-
-/// Generates some random items for the timetable.
-// List<TimetableItem<String>> generateItems() {
-//   final random = Random();
-//   final items = <TimetableItem<String>>[];
-//   final today = DateUtils.dateOnly(DateTime.now());
-//   for (var i = 0; i < 100; i++) {
-//     int hourOffset = random.nextInt(56 * 24) - (7 * 24);
-//     final date = today.add(Duration(hours: hourOffset));
-//     items.add(TimetableItem(
-//       date,
-//       date.add(Duration(minutes: (random.nextInt(8) * 15) + 15)),
-//       data: "item $i",
-//     ));
-//   }
-//   return items;
-// }
-
-class Event {
-  String title;
-  String description;
-  List<String> documents;
-  Color color;
-
-  Event(
-      {required this.title,
-      required this.description,
-      required this.documents,
-      required this.color});
 }

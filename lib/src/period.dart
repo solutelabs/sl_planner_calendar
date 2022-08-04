@@ -6,8 +6,7 @@ class Period {
   Period(
       {required this.starttime,
       required this.endTime,
-      this.title,
-      this.height,
+      this.title, 
       this.isBreak = false});
 
   ///starttime
@@ -18,12 +17,7 @@ class Period {
   TimeOfDay endTime;
 
   /// String title
-  String? title;
-
-  //double tileHeight
-
-  ///height of the cell
-  double? height;
+  String? title; 
 
   /// if this period is break then make this variable true
   /// and pass title of the breack
@@ -34,8 +28,7 @@ class Period {
   Map<String, dynamic> get toMap => <String, dynamic>{
         'startTime': starttime,
         'endTime': endTime,
-        'title': title,
-        'height': height,
+        'title': title, 
         'isBreak': isBreak
       };
 }

@@ -14,6 +14,9 @@ class TimetableController {
     /// The start date (first column) of the timetable. Default is today.
     DateTime? start,
 
+    /// the end of the last date in time table
+    DateTime? end,
+
     /// The height of each cell in the timetable. Default is 50.
     double? cellHeight,
 
@@ -31,6 +34,9 @@ class TimetableController {
   }) {
     _columns = initialColumns;
     _start = DateUtils.dateOnly(start ?? DateTime.now());
+
+    _end = DateUtils.dateOnly(
+        end ?? DateTime.now().add(const Duration(days: 180)));
     _cellHeight = cellHeight ?? 50;
     _headerHeight = headerHeight ?? 50;
     _timelineWidth = timelineWidth ?? 50;
@@ -43,12 +49,21 @@ class TimetableController {
 
   late DateTime _start;
 
+  late DateTime _end;
+
   /// The [start] date (first column) of the timetable.
   DateTime get start => _start;
 
+  /// The [end] date (first column) of the timetable.
+  DateTime get end => _end;
   set start(DateTime value) {
     _start = DateUtils.dateOnly(value);
     dispatch(TimetableStartChanged(_start));
+  }
+
+  set end(DateTime value) {
+    _end = DateUtils.dateOnly(value);
+    dispatch(TimetableStartChanged(_end));
   }
 
   int _columns = 3;
