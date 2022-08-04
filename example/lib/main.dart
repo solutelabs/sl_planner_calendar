@@ -1,7 +1,6 @@
-import 'dart:math';
-import 'package:example/bloc/event_cubit.dart';
-import 'package:example/planner.dart';
-import 'package:example/timetable.dart';
+import 'dart:math'; 
+import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
+import 'package:example/features/calendar/presentation/pages/planner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart'; 
@@ -17,11 +16,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           routes: {
-            '/': (context) => Planner(),
-            // '/timetable': (context) => const TimetableScreen(),
-            // '/custom': (context) => const CustomTimetableScreen(),
-            '/timetable': (context) => const Planner(),
-            '/custom': (context) => const Planner(),
+            '/': (context) => const Planner(), 
           },
         ),
       );

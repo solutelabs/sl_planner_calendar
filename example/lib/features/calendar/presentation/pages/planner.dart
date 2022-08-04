@@ -1,8 +1,6 @@
-import 'dart:developer';
-
-import 'package:example/addPlan.dart';
-import 'package:example/bloc/event_cubit.dart';
-import 'package:example/bloc/event_state.dart';
+import 'dart:developer'; import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
+import 'package:example/features/calendar/presentation/bloc/event_state.dart';
+import 'package:example/features/calendar/presentation/pages/add_plan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,7 +18,7 @@ class Planner extends StatefulWidget {
 
 DateTime now = DateTime.now().subtract(const Duration(days: 1));
 double ceilHeight = 80;
-List<Period> customeTilenes = [
+List<Period > customeTilenes = [
   Period(
       starttime: const TimeOfDay(hour: 9, minute: 30),
       endTime: const TimeOfDay(hour: 9, minute: 45),
@@ -68,10 +66,9 @@ bool isSameDate(DateTime date) {
 }
 
 class _PlannerState extends State<Planner> {
-  final simpleController = TimetableController(
+  final TimetableController simpleController = TimetableController(
       start:
           DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
-      initialColumns: 3,
       timelineWidth: 60,
       cellHeight: 120);
   @override
@@ -103,7 +100,7 @@ class _PlannerState extends State<Planner> {
               Icons.menu,
               color: Colors.black,
             ),
-            onPressed: () => {},
+            onPressed: () {},
           ),
           actions: [
             IconButton(
@@ -111,14 +108,14 @@ class _PlannerState extends State<Planner> {
                 Icons.search,
                 color: Colors.black,
               ),
-              onPressed: () => {},
+              onPressed: () {},
             ),
             IconButton(
               icon: const Icon(
                 Icons.calendar_month,
                 color: Colors.black,
               ),
-              onPressed: () => {},
+              onPressed: () {},
             ),
             // TextButton(
             //   onPressed: () async => Navigator.pushNamed(context, '/custom'),
@@ -138,7 +135,8 @@ class _PlannerState extends State<Planner> {
             // ),
           ],
         ),
-        body: BlocBuilder<EventCubit, EventState>(builder: (context, state) {
+        body: BlocBuilder<EventCubit, EventState>(
+            builder: (BuildContext context, EventState state) {
           // if (state is LoadingState) {
           //   return const Center(
           //     child: CircularProgressIndicator(),
@@ -159,27 +157,28 @@ class _PlannerState extends State<Planner> {
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
-                 child: Timetable<Event>(
+                  child: Timetable<Event>(
                     timelines: customeTilenes,
                     items: state is LoadedState
                         ? state.events
                         : <TimetableItem<Event>>[],
-                    onTap: (date, period, event) {
+                    onTap: (DateTime date, Period period,
+                        TimetableItem<Event>? event) {
                       log(date.toString());
                       log(period.toMap.toString());
                       log(event.toString());
 
-                      Navigator.push(
+                      Navigator.push<Widget>(
                           context,
                           CupertinoPageRoute(
-                              builder: (context) => AddPlan(
+                              builder: (BuildContext context) => AddPlan(
                                     date: date,
                                     periods: customeTilenes,
                                     period: period,
                                     timetableItem: event,
                                   )));
                     },
-                    headerCellBuilder: (date) => Column(
+                    headerCellBuilder: (DateTime date) => Column(
                       children: [
                         Text(
                           DateFormat('E').format(date),
@@ -202,17 +201,15 @@ class _PlannerState extends State<Planner> {
                             ))
                       ],
                     ),
-                    hourLabelBuilder: (period) {
-                      var start = period.starttime;
+                    hourLabelBuilder: (Period period) {
+                      TimeOfDay start = period.starttime;
 
-                      var end = period.endTime;
+                      TimeOfDay end = period.endTime;
                       return Container(
                         decoration: const BoxDecoration(color: Colors.white),
                         child: period.isBreak
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text(period.title ?? "",
                                       style: const TextStyle(fontSize: 10)),
@@ -233,8 +230,7 @@ class _PlannerState extends State<Planner> {
                       );
                     },
                     controller: simpleController,
-                    itemBuilder: (item) {
-                      return Container(
+                    itemBuilder: (TimetableItem<Event> item) => Container(
                       margin: const EdgeInsets.all(4),
                       padding: const EdgeInsets.all(4),
                       height: simpleController.cellHeight,
@@ -274,8 +270,8 @@ class _PlannerState extends State<Planner> {
                           ),
                         ],
                       ),
-                    );},
-                    cellBuilder: (datetime) => Container(
+                    ),
+                    cellBuilder: (Period datetime) => Container(
                       decoration: BoxDecoration(
                         border: Border.all(
                             color: Colors.grey.withOpacity(0.5), width: 0.2),

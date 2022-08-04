@@ -22,13 +22,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  calendar_view:
-    dependency: transitive
-    description:
-      path: "/Users/Jemis/Desktop/plugins/flutter_calendar_view"
-      relative: false
-    source: path
-    version: "0.0.5"
   characters:
     dependency: transitive
     description:
