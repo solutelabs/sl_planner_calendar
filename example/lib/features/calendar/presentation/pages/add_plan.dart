@@ -3,10 +3,10 @@ import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
 import 'package:example/features/calendar/presentation/bloc/event_state.dart';
 import 'package:example/features/calendar/presentation/pages/planner.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multiple_search_selection/multiple_search_selection.dart';
-import 'package:sl_planner_calendar/sl_planner_calendar.dart'; 
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 class AddPlan extends StatefulWidget {
   ////
@@ -46,6 +46,7 @@ class _AddPlanState extends State<AddPlan> {
     'ovrview.png'
   ];
   List<String> mydocs = <String>[];
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
@@ -124,7 +125,8 @@ class _AddPlanState extends State<AddPlan> {
                     );
                   }),
               MultipleSearchSelection<String>(
-                items: documents, // List<Country>
+                items: documents,
+                // List<Country>
                 fieldToCheck: (String c) => c,
                 itemBuilder: (String doc) => Padding(
                     padding: const EdgeInsets.all(6),

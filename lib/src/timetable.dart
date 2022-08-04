@@ -4,30 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
-/// The [Timetable] widget displays calendar like view of the events that scrolls
-/// horizontally through the days and vertical through the hours.
-/// <img src="https://github.com/yourfriendken/flutter_timetable/raw/main/images/default.gif" width="400" />
+/// The [Timetable] widget displays calendar like view of the events
+/// that scrolls
 class Timetable<T> extends StatefulWidget {
   ///
-  Timetable(
-      {Key? key,
-      this.controller,
-      this.cellBuilder,
-      this.headerCellBuilder,
-      this.items = const [],
-      this.itemBuilder,
-      this.hourLabelBuilder,
-      this.nowIndicatorColor,
-      this.cornerBuilder,
-      this.snapToDay = true,
-      this.onTap,
-      required this.timelines})
-      : super(key: key);
+  const Timetable({
+    required this.timelines,
+    Key? key,
+    this.controller,
+    this.cellBuilder,
+    this.headerCellBuilder,
+    this.items = const <TimetableItem<T>>[],
+    this.itemBuilder,
+    this.hourLabelBuilder,
+    this.nowIndicatorColor,
+    this.cornerBuilder,
+    this.snapToDay = true,
+    this.onTap,
+  }) : super(key: key);
 
-  /// [TimetableController] is the controller that also initialize the timetable.
+  /// [TimetableController] is the controller that also initialize the timetable
   final TimetableController? controller;
 
-  /// Renders for the cells the represent each hour that provides that [DateTime] for that hour
+  /// Renders for the cells the represent each hour that provides
+  /// that [DateTime] for that hour
   final Widget Function(Period)? cellBuilder;
 
   /// Renders for the header that provides the [DateTime] for the day
@@ -48,19 +48,19 @@ class Timetable<T> extends StatefulWidget {
   /// Snap to hour column. Default is `true`.
   final bool snapToDay;
 
-  /// Color of indicator line that shows the current time. Default is `Theme.indicatorColor`.
+  /// Color of indicator line that shows the current time.
+  ///  Default is `Theme.indicatorColor`.
   final Color? nowIndicatorColor;
 
   ///
   ///ontapt
-  Function(DateTime dateTime, Period, TimetableItem<T>?)? onTap;
+  final Function(DateTime dateTime, Period, TimetableItem<T>?)? onTap;
 
-  /// The [Timetable] widget displays calendar like view of the events that scrolls
-  /// horizontally through the days and vertical through the hours.
-  /// <img src="https://github.com/yourfriendken/flutter_timetable/raw/main/images/default.gif" width="400" />
+  /// The [Timetable] widget displays calendar like view
+  /// of the events that scrollsn
 
   /// list of the timeline
-  List<Period> timelines = [];
+  final List<Period> timelines;
 
   /// show only mon to friday
 
@@ -72,12 +72,14 @@ class _TimetableState<T> extends State<Timetable<T>> {
   final ScrollController _dayScrollController = ScrollController();
   final ScrollController _dayHeadingScrollController = ScrollController();
   final ScrollController _timeScrollController = ScrollController();
-  double columnWidth = 50.0;
+  double columnWidth = 50;
   TimetableController controller = TimetableController();
   final GlobalKey<State<StatefulWidget>> _key = GlobalKey();
+
   Color get nowIndicatorColor =>
       widget.nowIndicatorColor ?? Theme.of(context).indicatorColor;
   int? _listenerId;
+
   @override
   void initState() {
     controller = widget.controller ?? controller;
@@ -116,13 +118,17 @@ class _TimetableState<T> extends State<Timetable<T>> {
       return;
     }
 
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  Future adjustColumnWidth() async {
+  Future<dynamic> adjustColumnWidth() async {
     final RenderBox? box =
         _key.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
+    if (box == null) {
+      return;
+    }
     if (box.hasSize) {
       final Size size = box.size;
       final double layoutWidth = size.width;
@@ -130,7 +136,7 @@ class _TimetableState<T> extends State<Timetable<T>> {
           (layoutWidth - controller.timelineWidth) / controller.columns;
       if (width != columnWidth) {
         columnWidth = width;
-        await Future.microtask(() => null);
+        await Future<dynamic>.microtask(() => null);
         setState(() {});
       }
     }
@@ -209,11 +215,11 @@ class _TimetableState<T> extends State<Timetable<T>> {
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
       builder: (BuildContext context, BoxConstraints contraints) => Column(
-            children: [
+            children: <Widget>[
               SizedBox(
                 height: controller.headerHeight,
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     SizedBox(
                       width: controller.timelineWidth,
                       height: controller.headerHeight,
@@ -222,7 +228,9 @@ class _TimetableState<T> extends State<Timetable<T>> {
                     Expanded(
                       child: NotificationListener<ScrollNotification>(
                         onNotification: (ScrollNotification notification) {
-                          if (_isTableScrolling) return false;
+                          if (_isTableScrolling) {
+                            return false;
+                          }
                           if (notification is ScrollEndNotification) {
                             _snapToCloset();
                             _updateVisibleDate();
@@ -261,7 +269,9 @@ class _TimetableState<T> extends State<Timetable<T>> {
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification notification) {
-                    if (_isHeaderScrolling) return false;
+                    if (_isHeaderScrolling) {
+                      return false;
+                    }
 
                     if (notification is ScrollEndNotification) {
                       _snapToCloset();
@@ -436,7 +446,9 @@ class _TimetableState<T> extends State<Timetable<T>> {
   }
 
   Widget _buildCell(Period period) {
-    if (widget.cellBuilder != null) return widget.cellBuilder!(period);
+    if (widget.cellBuilder != null) {
+      return widget.cellBuilder!(period);
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -449,8 +461,9 @@ class _TimetableState<T> extends State<Timetable<T>> {
   }
 
   Widget _buildHour(Period period) {
-    if (widget.hourLabelBuilder != null)
+    if (widget.hourLabelBuilder != null) {
       return widget.hourLabelBuilder!(period);
+    }
 
     final TimeOfDay start = TimeOfDay(
       hour: period.starttime.hour,
@@ -463,7 +476,7 @@ class _TimetableState<T> extends State<Timetable<T>> {
     );
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+      children: <Widget>[
         Text(start.format(context), style: const TextStyle(fontSize: 11)),
         Text(end.format(context), style: const TextStyle(fontSize: 11)),
       ],
@@ -483,8 +496,11 @@ class _TimetableState<T> extends State<Timetable<T>> {
   }
 
   final DateFormat _hmma = DateFormat('h:mm a');
+
   Widget _buildEvent(TimetableItem<T> event) {
-    if (widget.itemBuilder != null) return widget.itemBuilder!(event);
+    if (widget.itemBuilder != null) {
+      return widget.itemBuilder!(event);
+    }
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
@@ -508,10 +524,14 @@ class _TimetableState<T> extends State<Timetable<T>> {
   bool _isSnapping = false;
   final Duration _animationDuration = const Duration(milliseconds: 300);
   final Curve _animationCurve = Curves.bounceOut;
-  Future _snapToCloset() async {
-    if (_isSnapping || !widget.snapToDay) return;
+
+  Future<dynamic> _snapToCloset() async {
+    if (_isSnapping || !widget.snapToDay) {
+      return;
+    }
+
     _isSnapping = true;
-    await Future.microtask(() => null);
+    await Future<dynamic>.microtask(() => null);
     final double snapPosition =
         ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
     await _dayScrollController.animateTo(
@@ -527,7 +547,7 @@ class _TimetableState<T> extends State<Timetable<T>> {
     _isSnapping = false;
   }
 
-  void _updateVisibleDate() async {
+  Future<dynamic> _updateVisibleDate() async {
     final DateTime date = controller.start.add(Duration(
       days: _dayHeadingScrollController.position.pixels ~/ columnWidth,
     ));
@@ -537,12 +557,12 @@ class _TimetableState<T> extends State<Timetable<T>> {
     }
   }
 
-  Future _jumpTo(DateTime date) async {
+  Future<dynamic> _jumpTo(DateTime date) async {
     final double datePosition =
         (date.difference(controller.start).inDays) * columnWidth;
     final double hourPosition =
         ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
-    await Future.wait([
+    await Future.wait<void>(<Future<void>>[
       _dayScrollController.animateTo(
         datePosition,
         duration: _animationDuration,

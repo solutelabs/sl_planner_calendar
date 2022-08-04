@@ -1,11 +1,12 @@
-import 'dart:developer'; import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
+import 'dart:developer';
+
+import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
 import 'package:example/features/calendar/presentation/bloc/event_state.dart';
 import 'package:example/features/calendar/presentation/pages/add_plan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; 
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -18,7 +19,7 @@ class Planner extends StatefulWidget {
 
 DateTime now = DateTime.now().subtract(const Duration(days: 1));
 double ceilHeight = 80;
-List<Period > customeTilenes = [
+List<Period> customeTilenes = [
   Period(
       starttime: const TimeOfDay(hour: 9, minute: 30),
       endTime: const TimeOfDay(hour: 9, minute: 45),
@@ -71,6 +72,7 @@ class _PlannerState extends State<Planner> {
           DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
       timelineWidth: 60,
       cellHeight: 120);
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +86,7 @@ class _PlannerState extends State<Planner> {
   }
 
   DateTime currentMonth = DateTime.now();
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
@@ -322,6 +325,7 @@ class Event {
   String description;
   List<String> documents;
   Color color;
+
   Event(
       {required this.title,
       required this.description,

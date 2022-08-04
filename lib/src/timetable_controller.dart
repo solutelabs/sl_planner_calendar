@@ -36,13 +36,16 @@ class TimetableController {
     _timelineWidth = timelineWidth ?? 50;
     _breakHeight = breakHeight ?? 35;
     _visibleDateStart = _start;
-    if (onEvent != null) addListener(onEvent);
+    if (onEvent != null) {
+      addListener(onEvent);
+    }
   }
 
   late DateTime _start;
 
   /// The [start] date (first column) of the timetable.
   DateTime get start => _start;
+
   set start(DateTime value) {
     _start = DateUtils.dateOnly(value);
     dispatch(TimetableStartChanged(_start));
@@ -58,12 +61,17 @@ class TimetableController {
   /// break height
   double _breakHeight = 35;
 
+  /// get breakHeight of the timetable
   double get breakHeight => _breakHeight;
 
   /// The current height of each cell in the timetable.
   double get cellHeight => _cellHeight;
 
-  final Map<int, Function(TimetableControllerEvent)> _listeners = {};
+  /// list of the listner
+  final Map<int, Function(TimetableControllerEvent)> _listeners =
+      <int, Function(TimetableControllerEvent)>{};
+
+  /// if  table has listner
   bool get hasListeners => _listeners.isNotEmpty;
 
   double _headerHeight = 50;
@@ -83,7 +91,9 @@ class TimetableController {
 
   /// Allows listening to events dispatched from the timetable
   int addListener(Function(TimetableControllerEvent)? listener) {
-    if (listener == null) return -1;
+    if (listener == null) {
+      return -1;
+    }
     final int id = _listeners.isEmpty ? 0 : _listeners.keys.reduce(max) + 1;
     _listeners[id] = listener;
     return id;
@@ -97,7 +107,8 @@ class TimetableController {
 
   /// Dispatches an event to all listeners
   void dispatch(TimetableControllerEvent event) {
-    for (Function(TimetableControllerEvent p1) listener in _listeners.values) {
+    for (final Function(TimetableControllerEvent p1) listener
+        in _listeners.values) {
       listener(event);
     }
   }
@@ -109,15 +120,21 @@ class TimetableController {
 
   /// Updates the number of columns in the timetable
   void setColumns(int i) {
-    if (i == _columns) return;
-    _columns = i;
+    if (i == _columns) {
+      return;
+      // _columns = i;
+    }
     dispatch(TimetableColumnsChanged(i));
   }
 
   /// Updates the height of each cell in the timetable
   void setCellHeight(double height) {
-    if (height == _cellHeight) return;
-    if (height <= 0) return;
+    if (height == _cellHeight) {
+      return;
+    }
+    if (height <= 0) {
+      return;
+    }
     _cellHeight = min(height, 1000);
     dispatch(TimetableCellHeightChanged(height));
   }
@@ -134,30 +151,45 @@ abstract class TimetableControllerEvent {}
 
 /// Event used to change the cell height of the timetable
 class TimetableCellHeightChanged extends TimetableControllerEvent {
+  /// cell height change evemt
   TimetableCellHeightChanged(this.height);
+
+  ///cell height
   final double height;
 }
 
 /// Event used to change the number of columns in the timetable
 class TimetableColumnsChanged extends TimetableControllerEvent {
+  /// column height change evemt
   TimetableColumnsChanged(this.columns);
+
+  ///no of columns
   final int columns;
 }
 
 /// Event used to scroll the timetable to a given date and time
 class TimetableJumpToRequested extends TimetableControllerEvent {
+  /// jump to specific date requested
   TimetableJumpToRequested(this.date);
+
+  ///jump to this date
   final DateTime date;
 }
 
 /// Event dispatched when the start date of the timetable changes
 class TimetableStartChanged extends TimetableControllerEvent {
+  ///table start change event
   TimetableStartChanged(this.start);
+
+  ///start of the table
   final DateTime start;
 }
 
 /// Event dispatched when the visible date of the timetable changes
 class TimetableVisibleDateChanged extends TimetableControllerEvent {
+  ///visible date changed event
   TimetableVisibleDateChanged(this.start);
+
+  ///start of the visible date
   final DateTime start;
 }

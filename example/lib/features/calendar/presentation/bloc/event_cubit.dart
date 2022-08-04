@@ -1,19 +1,22 @@
 import 'package:bloc/bloc.dart';
 import 'package:example/features/calendar/presentation/bloc/event_state.dart';
-import 'package:example/features/calendar/presentation/pages/planner.dart'; 
-
+import 'package:example/features/calendar/presentation/pages/planner.dart';
 import 'package:flutter/material.dart';
-import 'package:sl_planner_calendar/sl_planner_calendar.dart'; 
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+
 ///
 class EventCubit extends Cubit<EventState> {
   ///
   EventCubit() : super(InitialState()) {
     getTrendingMovies();
   }
-///
+
+  ///
   List<TimetableItem<Event>> get events => _events;
+
   ///
   List<TimetableItem<Event>> _events = [];
+
   ///
   Future<void> getTrendingMovies() async {
     try {
@@ -26,7 +29,7 @@ class EventCubit extends Cubit<EventState> {
                 title: 'Lession 1',
                 description: 'Description 1',
                 color: const Color(0xFF123CBB).withOpacity(0.30),
-                documents:<String> ['documents.pdf'])),
+                documents: <String>['documents.pdf'])),
         TimetableItem<Event>(DateTime(now.year, now.month, now.day, 9, 45),
             DateTime(now.year, now.month, now.day, 10, 30),
             data: Event(

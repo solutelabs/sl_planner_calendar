@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:example/features/calendar/presentation/pages/planner.dart';
-import 'package:sl_planner_calendar/sl_planner_calendar.dart'; 
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 abstract class EventState extends Equatable {}
 
