@@ -1,6 +1,12 @@
 library sl_planner_calendar;
 
-export 'src/timetable.dart';
-export 'src/timetable_controller.dart';
-export 'src/timetable_item.dart';
-export 'src/period.dart';
+export 'src/core/utils.dart';
+export 'src/models/event_model.dart';
+export 'src/models/period_model.dart';
+export 'src/view/timetable.dart';
+export 'src/view/timetable_controller.dart';
+export 'src/view/timetable_item.dart';
+export 'src/core/enum.dart';
+export 'src/view/schedule_view.dart';
+export 'src/view/three_day_view.dart';
+export 'src/view/day_view.dart';

@@ -1,29 +1,26 @@
 import 'dart:developer';
 
 import 'package:example/core/date_extension.dart';
-import 'package:example/core/month_picker.dart';
 import 'package:example/features/calendar/data/event_model.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:example/features/calendar/presentation/pages/add_plan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///planner
-class Planner extends StatefulWidget {
+class DAyPlanner extends StatefulWidget {
   ///
-  const Planner({Key? key, this.id}) : super(key: key);
+  const DAyPlanner({Key? key, this.id}) : super(key: key);
 
   ///id that we will recived from native ios
   final String? id;
 
   @override
-  State<Planner> createState() => _PlannerState();
+  State<DAyPlanner> createState() => _DAyPlannerState();
 }
 
 ///current date time
@@ -78,7 +75,7 @@ bool isSameDate(DateTime date) {
   }
 }
 
-class _PlannerState extends State<Planner> {
+class _DAyPlannerState extends State<DAyPlanner> {
   TimetableController simpleController = TimetableController(
       start:
           DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
@@ -105,77 +102,10 @@ class _PlannerState extends State<Planner> {
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0, 
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        centerTitle: true,
-        title: GestureDetector(
-          onTap: () {
-            DatePicker.showPicker(context,
-                    pickerModel: CustomMonthPicker(
-                        minTime: DateTime(
-                          2020,
-                        ),
-                        maxTime: DateTime.now(),
-                        currentTime: dateTime))
-                .then((DateTime? value) {
-              if (value != null) {
-                log(dateTime.toString());
-                dateTime = value;
-
-                setState(() {});
-                simpleController.changeDate(
-                    DateTime(dateTime.year, dateTime.month),
-                    dateTime.lastDayOfMonth);
-              }
-            });
-          },
-          child: Text(
-            DateFormat('MMMM-y').format(dateTime),
-            style: const TextStyle(color: Colors.black),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.menu,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            showDialog<Widget>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                      title: const Text('Your id is'),
-                      content: Text(BlocProvider.of<TimeTableCubit>(context,
-                                  listen: false)
-                              .id ??
-                          'No  id recived'),
-                    ));
-          },
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(
-              Icons.search,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              simpleController.setColumns(5);
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.calendar_month,
-              color: Colors.black,
-            ),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body:
+  Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
         final bool isMobile = value.maxWidth < 600;
+        // Size size = value.biggest;
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {
           if (state is ErrorState) {
@@ -189,7 +119,7 @@ class _PlannerState extends State<Planner> {
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
-                  child: SlCalendar<Event>(
+                  child: SlDayView<Event>(
                     timelines: customPeriods,
                     onEventDragged: (CalendarEvent<Event> old,
                         CalendarEvent<Event> newEvent) {
@@ -197,6 +127,7 @@ class _PlannerState extends State<Planner> {
                           .updateEvent(old, newEvent);
                     },
                     onWillAccept: (CalendarEvent<Event>? event) {
+                      log(event!.toMap.toString());
                       if (event != null) {
                         if (state is LoadingState) {
                           final List<CalendarEvent<dynamic>> ovelapingEvents =
@@ -251,31 +182,42 @@ class _PlannerState extends State<Planner> {
                     },
                     headerHeight: isMobile ? 38 : 40,
                     headerCellBuilder: (DateTime date) => isMobile
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                        ? Row(
                             children: <Widget>[
-                              Text(
-                                DateFormat('E').format(date),
-                                style: const TextStyle(fontSize: 10),
+                              SizedBox(
+                                width: simpleController.timelineWidth,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      Text(
+                                        DateFormat('E').format(date),
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                      Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12.5),
+                                              color: isSameDate(date)
+                                                  ? Colors.pink
+                                                  : Colors.transparent),
+                                          child: Center(
+                                            child: Text(
+                                              date.day.toString(),
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: isSameDate(date)
+                                                      ? Colors.white
+                                                      : null),
+                                            ),
+                                          ))
+                                    ],
+                                  ),
+                                ),
                               ),
-                              Container(
-                                  width: 25,
-                                  height: 25,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.5),
-                                      color: isSameDate(date)
-                                          ? Colors.pink
-                                          : Colors.transparent),
-                                  child: Center(
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          color: isSameDate(date)
-                                              ? Colors.white
-                                              : null),
-                                    ),
-                                  ))
                             ],
                           )
                         : Column(
@@ -453,7 +395,7 @@ class _PlannerState extends State<Planner> {
                               color: Colors.grey.withOpacity(0.5), width: 0.5),
                           color: period.isBreak
                               ? Colors.grey.withOpacity(0.2)
-                              : Colors.transparent),
+                              : Colors.red),
                     ),
                   ),
                 ),

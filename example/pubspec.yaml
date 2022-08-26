@@ -42,6 +42,12 @@ dependencies:
   flutter_bloc: ^8.0.1
   equatable: ^2.0.3
   intl: ^0.17.0
+  flutter_datetime_picker: ^1.5.1
+  screenshot: ^1.2.3
+  pdf: ^3.8.3
+  path: ^1.8.1
+  path_provider: ^2.0.11
+  file_saver: ^0.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,7 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:sl_planner_calendar/src/core/enum.dart';
 
 /// A controller for the timetable.
 ///
@@ -10,6 +12,9 @@ class TimetableController {
   TimetableController({
     /// The number of day columns to show.
     int initialColumns = 3,
+
+    /// Max number of day columns to show.
+    int maxColumns = 5,
 
     /// The start date (first column) of the timetable. Default is today.
     DateTime? start,
@@ -29,10 +34,14 @@ class TimetableController {
     ///height of the breakcell
     double? breakHeight,
 
+    /// type of the calendar view
+    CalendarViewType? viewType,
+
     /// Controller event listener.
     Function(TimetableControllerEvent)? onEvent,
   }) {
     _columns = initialColumns;
+    _maxColumns = maxColumns;
     _start = DateUtils.dateOnly(start ?? DateTime.now());
 
     _end = DateUtils.dateOnly(
@@ -42,6 +51,7 @@ class TimetableController {
     _timelineWidth = timelineWidth ?? 50;
     _breakHeight = breakHeight ?? 35;
     _visibleDateStart = _start;
+    _viewType = viewType ?? CalendarViewType.shecduleView;
     if (onEvent != null) {
       addListener(onEvent);
     }
@@ -56,6 +66,7 @@ class TimetableController {
 
   /// The [end] date (first column) of the timetable.
   DateTime get end => _end;
+
   set start(DateTime value) {
     _start = DateUtils.dateOnly(value);
     dispatch(TimetableStartChanged(_start));
@@ -68,9 +79,13 @@ class TimetableController {
 
   int _columns = 3;
 
+  int _maxColumns = 3;
+
   /// The current number of [columns] in the timetable.
   int get columns => _columns;
 
+  ///get nax column
+  int get maxColumn => _maxColumns;
   double _cellHeight = 50;
 
   /// break height
@@ -78,6 +93,13 @@ class TimetableController {
 
   /// get breakHeight of the timetable
   double get breakHeight => _breakHeight;
+
+  /// calendar view type
+
+  CalendarViewType _viewType = CalendarViewType.shecduleView;
+
+  ///get current view type
+  CalendarViewType get viewType => _viewType;
 
   /// The current height of each cell in the timetable.
   double get cellHeight => _cellHeight;
@@ -89,6 +111,7 @@ class TimetableController {
   /// if  table has listner
   bool get hasListeners => _listeners.isNotEmpty;
 
+  ///
   double _headerHeight = 50;
 
   /// The current height of the header in the timetable.
@@ -142,6 +165,15 @@ class TimetableController {
     dispatch(TimetableColumnsChanged(i));
   }
 
+  /// Updates the number of columns in the timetable
+  void setMaxColumns(int i) {
+    if (i == _columns) {
+      return;
+      // _columns = i;
+    }
+    dispatch(TimetableMaxColumnsChanged(i));
+  }
+
   /// Updates the height of each cell in the timetable
   void setCellHeight(double height) {
     if (height == _cellHeight) {
@@ -158,6 +190,26 @@ class TimetableController {
   void updateVisibleDate(DateTime date) {
     _visibleDateStart = date;
     dispatch(TimetableVisibleDateChanged(date));
+  }
+
+  /// This allows the timetable to update the current visible date.
+  void changeDate(DateTime start, DateTime end) {
+    _start = start;
+    _end = end;
+
+    dispatch(TimetableDateChanged(start, end));
+  }
+
+  ///change claendar view
+  void changeView(CalendarViewType viewType) {
+    _viewType = viewType;
+    dispatch(TimetableViewChanged(viewType));
+  }
+
+  ///save image
+
+  void saveToImage(double pixelRatio) {
+    dispatch(TimeTableSave(pixelRatio));
   }
 }
 
@@ -177,6 +229,15 @@ class TimetableCellHeightChanged extends TimetableControllerEvent {
 class TimetableColumnsChanged extends TimetableControllerEvent {
   /// column height change evemt
   TimetableColumnsChanged(this.columns);
+
+  ///no of columns
+  final int columns;
+}
+
+/// Event used to change the number of columns in the timetable
+class TimetableMaxColumnsChanged extends TimetableControllerEvent {
+  /// column height change evemt
+  TimetableMaxColumnsChanged(this.columns);
 
   ///no of columns
   final int columns;
@@ -207,4 +268,35 @@ class TimetableVisibleDateChanged extends TimetableControllerEvent {
 
   ///start of the visible date
   final DateTime start;
+}
+
+///timetable date change event
+///
+class TimetableDateChanged extends TimetableControllerEvent {
+  ///visible date changed event
+  TimetableDateChanged(this.start, this.end);
+
+  ///start of the visible date
+  final DateTime start;
+
+  ///start of the visible date
+  final DateTime end;
+}
+
+/// Event dispatched when the visible date of the timetable changes
+class TimetableViewChanged extends TimetableControllerEvent {
+  ///visible date changed event
+  TimetableViewChanged(this.viewType);
+
+  ///start of the visible date
+  final CalendarViewType viewType;
+}
+
+///timetablesave
+class TimeTableSave extends TimetableControllerEvent {
+  ///pixel ratio
+  double pixelRatio;
+
+  ///
+  TimeTableSave(this.pixelRatio);
 }

@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+
+///
+class TimeIndicator extends StatelessWidget {
+  ///timeindicator
+  const TimeIndicator({
+    required this.controller,
+    required this.columnWidth,
+    required this.nowIndicatorColor,
+    required this.timelines,
+    Key? key,
+  }) : super(key: key);
+
+  ///timetable controller
+  final TimetableController controller;
+
+  ///columnwidth
+  final double columnWidth;
+
+  ///color of the indicator
+  final Color nowIndicatorColor;
+
+  /// timelinse
+  final List<Period> timelines;
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+        top: getTimeIndicatorFromTop(
+            timelines, controller.cellHeight, controller.breakHeight),
+        width: columnWidth,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            Container(
+              color: nowIndicatorColor,
+              height: 2,
+              width: columnWidth + 1,
+            ),
+            Positioned(
+              top: -2,
+              left: -2,
+              child: Container(
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle, color: nowIndicatorColor),
+                height: 6,
+                width: 6,
+              ),
+            ),
+          ],
+        ),
+      );
+}

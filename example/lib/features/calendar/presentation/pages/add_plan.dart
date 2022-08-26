@@ -1,7 +1,7 @@
 import 'package:example/core/colors.dart';
 import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/bloc/event_cubit.dart';
-import 'package:example/features/calendar/presentation/bloc/event_state.dart';
+import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
+import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +29,7 @@ class AddPlan extends StatefulWidget {
   final Period? period;
 
   ///Timetable item if avaialable
-  final TimetableItem<Event>? timetableItem;
+  final CalendarEvent<Event>? timetableItem;
 
   @override
   State<AddPlan> createState() => _AddPlanState();
@@ -77,7 +77,9 @@ class _AddPlanState extends State<AddPlan> {
                       .map((Period e) => DropdownMenuItem<Period>(
                           value: e,
                           child: Text(
-                              '${e.starttime.hour}:${e.starttime.minute} - ${e.endTime.hour}:${e.endTime.minute} ${e.isBreak ? e.title! : ''}')))
+                              '${e.starttime.hour}:${e.starttime.minute} - '
+                              '${e.endTime.hour}:${e.endTime.minute} '
+                              '${e.isBreak ? e.title! : ''}')))
                       .toList(),
                   value: period,
                   hint: const Text('Select Period'),
@@ -92,7 +94,7 @@ class _AddPlanState extends State<AddPlan> {
               ),
               period == null || !period!.isBreak
                   ? Column(
-                      children: [
+                      children: <Widget>[
                         TextField(
                           controller: description,
                           decoration:
@@ -190,8 +192,8 @@ class _AddPlanState extends State<AddPlan> {
                       ],
                     )
                   : const SizedBox.shrink(),
-              BlocBuilder<EventCubit, EventState>(
-                  builder: (BuildContext context, EventState state) {
+              BlocBuilder<TimeTableCubit, TimeTableState>(
+                  builder: (BuildContext context, TimeTableState state) {
                 if (state is AddeingEvent) {
                   return const CircularProgressIndicator.adaptive();
                 }
@@ -211,9 +213,11 @@ class _AddPlanState extends State<AddPlan> {
                           widget.period!.endTime.hour,
                           widget.period!.endTime.minute);
 
-                      BlocProvider.of<EventCubit>(context, listen: false)
-                          .addEvent(TimetableItem<Event>(start, end, 
-                              data: Event(
+                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                          .addEvent(CalendarEvent<Event>(
+                              startTime: start,
+                              endTime: end,
+                              eventData: Event(
                                   color: period!.isBreak
                                       ? darkGrey.withOpacity(0.3)
                                       : selectedColor!,
