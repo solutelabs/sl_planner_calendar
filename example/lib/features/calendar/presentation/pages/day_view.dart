@@ -29,38 +29,38 @@ DateTime now = DateTime.now().subtract(const Duration(days: 1));
 ///custom timeperiods for the timetable
 List<Period> customPeriods = <Period>[
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 30),
+    startTime: const TimeOfDay(hour: 9, minute: 30),
     endTime: const TimeOfDay(hour: 9, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 45),
+    startTime: const TimeOfDay(hour: 9, minute: 45),
     endTime: const TimeOfDay(hour: 10, minute: 30),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 10, minute: 30),
+    startTime: const TimeOfDay(hour: 10, minute: 30),
     endTime: const TimeOfDay(hour: 11, minute: 0),
     isBreak: true,
     title: 'Recess',
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 0),
+    startTime: const TimeOfDay(hour: 11, minute: 0),
     endTime: const TimeOfDay(hour: 11, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 45),
+    startTime: const TimeOfDay(hour: 11, minute: 45),
     endTime: const TimeOfDay(hour: 12, minute: 30),
   ),
   Period(
-      starttime: const TimeOfDay(hour: 12, minute: 30),
+      startTime: const TimeOfDay(hour: 12, minute: 30),
       endTime: const TimeOfDay(hour: 13, minute: 30),
       isBreak: true,
       title: 'Lunch'),
   Period(
-    starttime: const TimeOfDay(hour: 13, minute: 30),
+    startTime: const TimeOfDay(hour: 13, minute: 30),
     endTime: const TimeOfDay(hour: 14, minute: 15),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 14, minute: 15),
+    startTime: const TimeOfDay(hour: 14, minute: 15),
     endTime: const TimeOfDay(hour: 15, minute: 0),
   ),
 ];
@@ -126,36 +126,13 @@ class _DAyPlannerState extends State<DAyPlanner> {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .updateEvent(old, newEvent);
                     },
-                    onWillAccept: (CalendarEvent<Event>? event) {
-                      log(event!.toMap.toString());
-                      if (event != null) {
-                        if (state is LoadingState) {
-                          final List<CalendarEvent<dynamic>> ovelapingEvents =
-                              BlocProvider.of<TimeTableCubit>(context,
-                                      listen: false)
-                                  .events
-                                  .where((CalendarEvent<dynamic> element) =>
-                                      !isTimeisEqualOrLess(
-                                          element.startTime, event.startTime) &&
-                                      isTimeisEqualOrLess(
-                                          element.endTime, event.endTime))
-                                  .toList();
-                          if (ovelapingEvents.isEmpty) {
-                            log('Slot available: ${event.toMap}');
-                            return true;
-                          } else {
-                            log('Slot Not available-> Start Time: '
-                                '${ovelapingEvents.first.startTime}'
-                                'End Time: ${ovelapingEvents.first.endTime}');
-
-                            return false;
-                          }
-                        } else {
-                          return false;
-                        }
-                      } else {
-                        return false;
-                      }
+                    onWillAccept: (CalendarEvent<Event>? event, DateTime date,
+                        Period period) {
+                      final List<CalendarEvent<Event>> events =
+                          BlocProvider.of<TimeTableCubit>(context,
+                                  listen: false)
+                              .events;
+                      isSlotAvlForSingleDay(events, event!, date, period);
                     },
                     nowIndicatorColor: Colors.red,
                     fullWeek: true,
@@ -281,7 +258,7 @@ class _DAyPlannerState extends State<DAyPlanner> {
                             ],
                           ),
                     hourLabelBuilder: (Period period) {
-                      final TimeOfDay start = period.starttime;
+                      final TimeOfDay start = period.startTime;
 
                       final TimeOfDay end = period.endTime;
                       return Container(

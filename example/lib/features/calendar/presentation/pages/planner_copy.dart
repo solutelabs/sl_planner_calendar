@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:example/core/date_extension.dart';
 import 'package:example/core/month_picker.dart';
@@ -15,7 +14,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -37,41 +35,42 @@ DateTime now = DateTime.now().subtract(const Duration(days: 1));
 ///custom timeperiods for the timetable
 List<Period> customPeriods = <Period>[
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 30),
+    startTime: const TimeOfDay(hour: 9, minute: 30),
     endTime: const TimeOfDay(hour: 9, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 45),
+    startTime: const TimeOfDay(hour: 9, minute: 45),
     endTime: const TimeOfDay(hour: 10, minute: 30),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 10, minute: 30),
+    startTime: const TimeOfDay(hour: 10, minute: 30),
     endTime: const TimeOfDay(hour: 11, minute: 0),
     isBreak: true,
     title: 'Recess',
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 0),
+    startTime: const TimeOfDay(hour: 11, minute: 0),
     endTime: const TimeOfDay(hour: 11, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 45),
+    startTime: const TimeOfDay(hour: 11, minute: 45),
     endTime: const TimeOfDay(hour: 12, minute: 30),
   ),
   Period(
-      starttime: const TimeOfDay(hour: 12, minute: 30),
+      startTime: const TimeOfDay(hour: 12, minute: 30),
       endTime: const TimeOfDay(hour: 13, minute: 30),
       isBreak: true,
       title: 'Lunch'),
   Period(
-    starttime: const TimeOfDay(hour: 13, minute: 30),
+    startTime: const TimeOfDay(hour: 13, minute: 30),
     endTime: const TimeOfDay(hour: 14, minute: 15),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 14, minute: 15),
+    startTime: const TimeOfDay(hour: 14, minute: 15),
     endTime: const TimeOfDay(hour: 15, minute: 0),
   ),
 ];
+
 ///screenshot controller
 ScreenshotController screenshotController = ScreenshotController();
 
@@ -169,7 +168,7 @@ class _PlannerState extends State<Planner> {
               //   BlocProvider.of<TimeTableCubit>(context, listen: false)
               //       .saveToPdf(image!);
 
-              final Directory? path = await getDownloadsDirectory();
+              // final Directory? path = await getDownloadsDirectory();
               // screenshotController.captureAndSave(path!.path,
               //     fileName: "planner", pixelRatio: 5);
               //from path_provide package
@@ -179,8 +178,8 @@ class _PlannerState extends State<Planner> {
                           height: 4000,
                           padding: const EdgeInsets.all(30),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.blueAccent, width: 5),
+                            border:
+                                Border.all(color: Colors.blueAccent, width: 5),
                             color: Colors.redAccent,
                           ),
                           child: const Text('dfdsfdsf')),
@@ -223,7 +222,7 @@ class _PlannerState extends State<Planner> {
                         onPressed: () {
                           BlocProvider.of<TimeTableCubit>(context,
                                   listen: false)
-                              .changeViewType(CalendarViewType.shecduleView);
+                              .changeViewType(CalendarViewType.scheduleView);
                           Navigator.pop(context);
                         },
                         child: const Text('Schedule View'),
@@ -273,7 +272,7 @@ class _PlannerState extends State<Planner> {
                         ScaleTransition(scale: animation, child: child),
                 child: IndexedStack(
                   index: state is LoadedState
-                      ? (state.viewType == CalendarViewType.shecduleView
+                      ? (state.viewType == CalendarViewType.scheduleView
                           ? 0
                           : state.viewType == CalendarViewType.dayView
                               ? 1

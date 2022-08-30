@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/widgets/cell.dart';
@@ -7,9 +5,9 @@ import 'package:sl_planner_calendar/src/widgets/corner_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/header_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/hour_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/time_indicator.dart';
-import 'package:sl_planner_calendar/src/widgets/timtable_event.dart';
+import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
 
-import '../core/applog.dart';
+import '../core/app_log.dart';
 
 /// The [SlCalendar] widget displays calendar like view of the events
 /// that scrolls
@@ -75,13 +73,12 @@ class SlCalendar<T> extends StatefulWidget {
 
   /// height  of the header
   final double headerHeight;
-  
 
-  ///ontapt
+  ///onTap  callback
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
   /// The [SlCalendar] widget displays calendar like view
-  /// of the events that scrollsn
+  /// of the events that scrolls
 
   /// list of the timeline
   final List<Period> timelines;
@@ -114,7 +111,7 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
       widget.nowIndicatorColor ?? Theme.of(context).indicatorColor;
   int? _listenerId;
 
-  List<DateTime> daterange = <DateTime>[];
+  List<DateTime> dateRange = <DateTime>[];
 
   @override
   void initState() {
@@ -131,17 +128,17 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
 
   ///get initial list of dates
   void initDate() {
-    log('Setting dates');
+    appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
-    daterange.clear();
+    dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        daterange.add(date);
+        dateRange.add(date);
       } else {
         if (date.weekday > 5) {
         } else {
-          daterange.add(date);
+          dateRange.add(date);
         }
       }
     }
@@ -150,30 +147,30 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
 
   ///get data range
   List<DateTime> getDateRange() {
-    final List<DateTime> datarange = <DateTime>[];
-    log('Setting dates');
+    final List<DateTime> tempDateRange = <DateTime>[];
+    appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
-    daterange.clear();
+    dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        daterange.add(date);
+        dateRange.add(date);
       } else {
         if (date.weekday > 5) {
         } else {
-          daterange.add(date);
+          dateRange.add(date);
         }
       }
     }
-    return datarange;
+    return tempDateRange;
   }
 
-  ///return count of periods and break that are overlaping
-  List<int> getOvelaptingTimeline(TimeOfDay start, TimeOfDay end) {
+  ///return count of periods and break that are overLapping
+  List<int> getOverLappingTimeLine(TimeOfDay start, TimeOfDay end) {
     const int p = 0;
     const int b = 0;
 
-    log('Event P:$p and B:$b');
+    appLog('Event P:$p and B:$b');
     return <int>[p, b];
   }
 
@@ -198,7 +195,7 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
     }
 
     if (event is TimetableVisibleDateChanged) {
-      log('visible data changed');
+      appLog('visible data changed');
       final DateTime prev = controller.visibleDateStart;
       final DateTime now = DateTime.now();
       await adjustColumnWidth();
@@ -207,11 +204,11 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
       return;
     }
     if (event is TimetableDateChanged) {
-      log('date changed');
+      appLog('date changed');
       initDate();
     }
     if (event is TimetableMaxColumnsChanged) {
-      log('max column changed');
+      appLog('max column changed');
       await adjustColumnWidth();
     }
     if (mounted) {
@@ -225,9 +222,9 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
     final List<Period> periods = <Period>[];
 
     for (final Period period in widget.timelines) {
-      if (period.starttime.hour >= item.startTime.hour) {
+      if (period.startTime.hour >= item.startTime.hour) {
         if (period.endTime.hour <= item.endTime.hour) {
-          if (period.starttime.minute >= item.startTime.minute) {
+          if (period.startTime.minute >= item.startTime.minute) {
             if (period.endTime.minute <= item.endTime.minute) {
               periods.add(period);
             }
@@ -272,7 +269,7 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
-      builder: (BuildContext context, BoxConstraints contraints) {
+      builder: (BuildContext context, BoxConstraints constraints) {
         adjustColumnWidth();
         return Column(
           children: <Widget>[
@@ -304,10 +301,10 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                         scrollDirection: Axis.horizontal,
                         controller: _dayHeadingScrollController,
                         itemExtent: columnWidth,
-                        itemCount: daterange.length,
+                        itemCount: dateRange.length,
                         itemBuilder: (BuildContext context, int index) =>
                             HeaderCell(
-                          dateTime: daterange[index],
+                          dateTime: dateRange[index],
                           columnWidth: columnWidth,
                           headerCellBuilder: widget.headerCellBuilder,
                         ),
@@ -366,11 +363,11 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                             scrollDirection: Axis.horizontal,
                             // cacheExtent: 10000.0,
 
-                            itemCount: daterange.length,
+                            itemCount: dateRange.length,
                             itemExtent: columnWidth,
                             controller: _dayScrollController,
                             itemBuilder: (BuildContext context, int index) {
-                              final DateTime date = daterange[index];
+                              final DateTime date = dateRange[index];
                               final List<CalendarEvent<T>> events = widget.items
                                   .where((CalendarEvent<T> event) =>
                                       DateUtils.isSameDay(
@@ -405,8 +402,10 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                                                 (DragTargetDetails<
                                                         CalendarEvent<T>>
                                                     details) {
-                                              log('New period:${period.toMap}');
-                                              log('Dragged event${details.data.toMap}');
+                                              appLog(
+                                                  'New period:${period.toMap}');
+                                              appLog('Dragged event'
+                                                  '${details.data.toMap}');
                                               final CalendarEvent<T> event =
                                                   details.data;
                                               final DateTime newStartTime =
@@ -414,9 +413,9 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                                                       date.year,
                                                       date.month,
                                                       date.day,
-                                                      period.starttime.hour,
-                                                      period.starttime.minute);
-                                              final DateTime newEndtime =
+                                                      period.startTime.hour,
+                                                      period.startTime.minute);
+                                              final DateTime newEndTime =
                                                   DateTime(
                                                       date.year,
                                                       date.month,
@@ -427,7 +426,7 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                                               final CalendarEvent<T> newEvent =
                                                   CalendarEvent<T>(
                                                       startTime: newStartTime,
-                                                      endTime: newEndtime,
+                                                      endTime: newEndTime,
                                                       eventData:
                                                           event.eventData);
 
@@ -435,9 +434,10 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                                                   details.data, newEvent);
                                             },
                                             onWillAccept:
-                                                (CalendarEvent<T>? data) =>
+                                                (CalendarEvent<T>? data,
+                                                        Period period) =>
                                                     isSlotIsAvailable(
-                                                        events, data!),
+                                                        events, data!, period),
                                           )
                                       ],
                                     ),
@@ -459,8 +459,9 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                                               (DragTargetDetails<
                                                       CalendarEvent<T>>
                                                   details) {
-                                            log(details.data.toMap.toString());
-                                            final CalendarEvent<T> myevents =
+                                            appLog(
+                                                details.data.toMap.toString());
+                                            final CalendarEvent<T> myEvents =
                                                 details.data;
                                             final DateTime newStartTime =
                                                 DateTime(
@@ -469,22 +470,21 @@ class _SlCalendarState<T> extends State<SlCalendar<T>> {
                                                     date.day,
                                                     event.startTime.hour,
                                                     event.startTime.minute);
-                                            final DateTime newEndtime =
+                                            final DateTime newEndTime =
                                                 DateTime(
                                                     date.year,
                                                     date.month,
                                                     date.day,
                                                     event.endTime.hour,
                                                     event.endTime.minute);
-                                            myevents
+                                            myEvents
                                               ..startTime = newStartTime
-                                              ..endTime = newEndtime;
+                                              ..endTime = newEndTime;
                                             widget.onEventDragged!(
-                                                details.data, myevents);
+                                                details.data, myEvents);
                                           },
-                                          onWillAccept: (CalendarEvent<T>?
-                                                  data) =>
-                                              isSlotIsAvailable(events, data!),
+                                          onWillAccept:
+                                              (CalendarEvent<T>? data) => false,
                                           columnWidth: columnWidth,
                                           event: event,
                                           itemBuilder: widget.itemBuilder,

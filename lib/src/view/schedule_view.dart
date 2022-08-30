@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+import 'package:sl_planner_calendar/src/core/app_log.dart';
 
 /// The [SlScheduleView] widget displays calendar like view of the events
 /// that scrolls
@@ -68,11 +67,11 @@ class SlScheduleView<T> extends StatefulWidget {
   /// height  of the header
   final double headerHeight;
 
-  ///ontapt
+  ///onTap callback
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
   /// The [SlScheduleView] widget displays calendar like view
-  /// of the events that scrollsn
+  /// of the events that scrolls
 
   /// list of the timeline
   final List<Period> timelines;
@@ -103,7 +102,7 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
       widget.nowIndicatorColor ?? Theme.of(context).indicatorColor;
   int? _listenerId;
 
-  List<DateTime> daterange = <DateTime>[];
+  List<DateTime> dateRange = <DateTime>[];
 
   @override
   void initState() {
@@ -120,17 +119,17 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
 
   ///get initial list of dates
   void initDate() {
-    log('Setting dates');
+    appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
-    daterange.clear();
+    dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        daterange.add(date);
+        dateRange.add(date);
       } else {
         if (date.weekday > 5) {
         } else {
-          daterange.add(date);
+          dateRange.add(date);
         }
       }
     }
@@ -139,30 +138,30 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
 
   ///get data range
   List<DateTime> getDateRange() {
-    final List<DateTime> datarange = <DateTime>[];
-    log('Setting dates');
+    final List<DateTime> tempDateRange = <DateTime>[];
+    appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
-    daterange.clear();
+    dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        daterange.add(date);
+        dateRange.add(date);
       } else {
         if (date.weekday > 5) {
         } else {
-          daterange.add(date);
+          dateRange.add(date);
         }
       }
     }
-    return datarange;
+    return tempDateRange;
   }
 
-  ///return count of periods and break that are overlaping
-  List<int> getOvelaptingTimeline(TimeOfDay start, TimeOfDay end) {
+  ///return count of periods and break that are overlapping
+  List<int> getOverLappingTimeline(TimeOfDay start, TimeOfDay end) {
     const int p = 0;
     const int b = 0;
 
-    log('Event P:$p and B:$b');
+    appLog('Event P:$p and B:$b');
     return <int>[p, b];
   }
 
@@ -185,7 +184,7 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
     }
 
     if (event is TimetableVisibleDateChanged) {
-      log('visible data changed');
+      appLog('visible data changed');
       final DateTime prev = controller.visibleDateStart;
       final DateTime now = DateTime.now();
       await adjustColumnWidth();
@@ -194,11 +193,11 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
       return;
     }
     if (event is TimetableDateChanged) {
-      log('date changed');
+      appLog('date changed');
       initDate();
     }
     if (event is TimetableMaxColumnsChanged) {
-      log('max column changed');
+      appLog('max column changed');
       await adjustColumnWidth();
     }
     if (mounted) {
@@ -212,9 +211,9 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
     final List<Period> periods = <Period>[];
 
     for (final Period period in widget.timelines) {
-      if (period.starttime.hour >= item.startTime.hour) {
+      if (period.startTime.hour >= item.startTime.hour) {
         if (period.endTime.hour <= item.endTime.hour) {
-          if (period.starttime.minute >= item.startTime.minute) {
+          if (period.startTime.minute >= item.startTime.minute) {
             if (period.endTime.minute <= item.endTime.minute) {
               periods.add(period);
             }
@@ -256,18 +255,18 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
-      builder: (BuildContext context, BoxConstraints contraints) {
+      builder: (BuildContext context, BoxConstraints constraints) {
         adjustColumnWidth();
         return ListView.separated(
             controller: _dayScrollController,
             padding: EdgeInsets.zero,
-            itemCount: daterange.length,
+            itemCount: dateRange.length,
             separatorBuilder: (BuildContext context, int index) =>
                 const SizedBox(
                   height: 3,
                 ),
             itemBuilder: (BuildContext context, int index) {
-              final DateTime date = daterange[index];
+              final DateTime date = dateRange[index];
               final List<CalendarEvent<T>> events = widget.items
                   .where((CalendarEvent<T> event) =>
                       DateUtils.isSameDay(date, event.startTime))
@@ -282,26 +281,26 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
             });
       });
 
-  bool _isSnapping = false;
+  // bool _isSnapping = false;
   final Duration _animationDuration = const Duration(milliseconds: 300);
   final Curve _animationCurve = Curves.bounceOut;
 
-  Future<dynamic> _snapToCloset() async {
-    if (_isSnapping || !widget.snapToDay) {
-      return;
-    }
+  // Future<dynamic> _snapToCloset() async {
+  //   if (_isSnapping || !widget.snapToDay) {
+  //     return;
+  //   }
 
-    _isSnapping = true;
-    await Future<dynamic>.microtask(() => null);
-    final double snapPosition =
-        ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
-    await _dayScrollController.animateTo(
-      snapPosition,
-      duration: _animationDuration,
-      curve: _animationCurve,
-    );
-    _isSnapping = false;
-  }
+  //   _isSnapping = true;
+  //   await Future<dynamic>.microtask(() => null);
+  //   final double snapPosition =
+  //       ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
+  //   await _dayScrollController.animateTo(
+  //     snapPosition,
+  //     duration: _animationDuration,
+  //     curve: _animationCurve,
+  //   );
+  //   _isSnapping = false;
+  // }
 
   // Future<dynamic> _updateVisibleDate() async {
   //   final DateTime date = controller.start.add(Duration(
@@ -316,8 +315,8 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
   Future<dynamic> _jumpTo(DateTime date) async {
     final double datePosition =
         (date.difference(controller.start).inDays) * columnWidth;
-    final double hourPosition =
-        ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
+    // final double hourPosition =
+    //     ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
     await Future.wait<void>(<Future<void>>[
       _dayScrollController.animateTo(
         datePosition,

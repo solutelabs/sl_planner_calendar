@@ -6,34 +6,34 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 ///period of the event
 List<Period> periodsForEvent = <Period>[
   Period(
-      starttime: const TimeOfDay(hour: 9, minute: 30),
+      startTime: const TimeOfDay(hour: 9, minute: 30),
       endTime: const TimeOfDay(hour: 9, minute: 45)),
   Period(
-      starttime: const TimeOfDay(hour: 9, minute: 45),
+      startTime: const TimeOfDay(hour: 9, minute: 45),
       endTime: const TimeOfDay(hour: 10, minute: 30)),
   Period(
-      starttime: const TimeOfDay(hour: 9, minute: 45),
+      startTime: const TimeOfDay(hour: 9, minute: 45),
       endTime: const TimeOfDay(hour: 10, minute: 30)),
   Period(
-      starttime: const TimeOfDay(hour: 13, minute: 30),
+      startTime: const TimeOfDay(hour: 13, minute: 30),
       endTime: const TimeOfDay(hour: 14, minute: 45)),
   Period(
-      starttime: const TimeOfDay(hour: 9, minute: 30),
+      startTime: const TimeOfDay(hour: 9, minute: 30),
       endTime: const TimeOfDay(hour: 1, minute: 30)),
   Period(
-      starttime: const TimeOfDay(hour: 11, minute: 0),
+      startTime: const TimeOfDay(hour: 11, minute: 0),
       endTime: const TimeOfDay(hour: 11, minute: 45)),
   Period(
-      starttime: const TimeOfDay(hour: 13, minute: 30),
+      startTime: const TimeOfDay(hour: 13, minute: 30),
       endTime: const TimeOfDay(hour: 15, minute: 00)),
   Period(
-      starttime: const TimeOfDay(hour: 13, minute: 30),
+      startTime: const TimeOfDay(hour: 13, minute: 30),
       endTime: const TimeOfDay(hour: 15, minute: 00)),
   Period(
-      starttime: const TimeOfDay(hour: 11, minute: 30),
+      startTime: const TimeOfDay(hour: 11, minute: 30),
       endTime: const TimeOfDay(hour: 12, minute: 30)),
   Period(
-      starttime: const TimeOfDay(hour: 13, minute: 30),
+      startTime: const TimeOfDay(hour: 13, minute: 30),
       endTime: const TimeOfDay(hour: 14, minute: 15)),
 ];
 
@@ -45,7 +45,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 1, This is testing for longer title',
           period: Period(
-              starttime: const TimeOfDay(hour: 9, minute: 30),
+              startTime: const TimeOfDay(hour: 9, minute: 30),
               endTime: const TimeOfDay(hour: 9, minute: 45)),
           description: 'Description 1sdasdasd asdasdasdsd asdasd asds sd',
           color: const Color(0xFF123CBB).withOpacity(0.30),
@@ -56,7 +56,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 2',
           period: Period(
-              starttime: const TimeOfDay(hour: 9, minute: 45),
+              startTime: const TimeOfDay(hour: 9, minute: 45),
               endTime: const TimeOfDay(hour: 10, minute: 30)),
           description: 'Description 2',
           color: const Color(0xFFF2A93B).withOpacity(0.60),
@@ -67,7 +67,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 3',
           period: Period(
-              starttime: const TimeOfDay(hour: 9, minute: 45),
+              startTime: const TimeOfDay(hour: 9, minute: 45),
               endTime: const TimeOfDay(hour: 10, minute: 30)),
           description: 'Description 3',
           color: const Color(0xFF8CC1DA),
@@ -78,7 +78,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 4',
           period: Period(
-              starttime: const TimeOfDay(hour: 13, minute: 30),
+              startTime: const TimeOfDay(hour: 13, minute: 30),
               endTime: const TimeOfDay(hour: 14, minute: 45)),
           description: 'Description 4',
           color: const Color(0xFFE697A9),
@@ -91,7 +91,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 5',
           period: Period(
-              starttime: const TimeOfDay(hour: 9, minute: 30),
+              startTime: const TimeOfDay(hour: 9, minute: 30),
               endTime: const TimeOfDay(hour: 1, minute: 30)),
           description: 'Description 5',
           color: const Color(0xFF123CBB).withOpacity(0.30),
@@ -102,7 +102,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 6',
           period: Period(
-              starttime: const TimeOfDay(hour: 11, minute: 0),
+              startTime: const TimeOfDay(hour: 11, minute: 0),
               endTime: const TimeOfDay(hour: 11, minute: 45)),
           description: 'Description 6',
           color: const Color(0xFFF2A93B).withOpacity(0.60),
@@ -114,7 +114,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
           title: 'Free Time',
           freeTime: true,
           period: Period(
-              starttime: const TimeOfDay(hour: 13, minute: 52),
+              startTime: const TimeOfDay(hour: 13, minute: 52),
               endTime: const TimeOfDay(hour: 15, minute: 00)),
           description: 'Description 7',
           color: const Color(0xFFCBCE42).withOpacity(0.5),
@@ -127,7 +127,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 8',
           period: Period(
-              starttime: const TimeOfDay(hour: 13, minute: 30),
+              startTime: const TimeOfDay(hour: 13, minute: 30),
               endTime: const TimeOfDay(hour: 15, minute: 00)),
           description: 'Description 8',
           color: const Color(0xFF52B5D7).withOpacity(0.5),
@@ -139,7 +139,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
           title: 'Free Time',
           freeTime: true,
           period: Period(
-              starttime: const TimeOfDay(hour: 11, minute: 30),
+              startTime: const TimeOfDay(hour: 11, minute: 30),
               endTime: const TimeOfDay(hour: 12, minute: 30)),
           description: 'Description 9',
           color: const Color(0xFFCBCE42).withOpacity(0.5),
@@ -150,9 +150,48 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       eventData: Event(
           title: 'Lession 10',
           period: Period(
-              starttime: const TimeOfDay(hour: 13, minute: 30),
+              startTime: const TimeOfDay(hour: 13, minute: 30),
               endTime: const TimeOfDay(hour: 14, minute: 15)),
           description: 'Description 10',
           color: const Color(0xFF52B5D7).withOpacity(0.5),
           documents: <String>['documents.pdf']))
+];
+
+///custom time periods
+List<Period> customPeriods = <Period>[
+  Period(
+    startTime: const TimeOfDay(hour: 9, minute: 30),
+    endTime: const TimeOfDay(hour: 9, minute: 45),
+  ),
+  Period(
+    startTime: const TimeOfDay(hour: 9, minute: 45),
+    endTime: const TimeOfDay(hour: 10, minute: 30),
+  ),
+  Period(
+    startTime: const TimeOfDay(hour: 10, minute: 30),
+    endTime: const TimeOfDay(hour: 11, minute: 0),
+    isBreak: true,
+    title: 'Recess',
+  ),
+  Period(
+    startTime: const TimeOfDay(hour: 11, minute: 0),
+    endTime: const TimeOfDay(hour: 11, minute: 45),
+  ),
+  Period(
+    startTime: const TimeOfDay(hour: 11, minute: 45),
+    endTime: const TimeOfDay(hour: 12, minute: 30),
+  ),
+  Period(
+      startTime: const TimeOfDay(hour: 12, minute: 30),
+      endTime: const TimeOfDay(hour: 13, minute: 30),
+      isBreak: true,
+      title: 'Lunch'),
+  Period(
+    startTime: const TimeOfDay(hour: 13, minute: 30),
+    endTime: const TimeOfDay(hour: 14, minute: 15),
+  ),
+  Period(
+    startTime: const TimeOfDay(hour: 14, minute: 15),
+    endTime: const TimeOfDay(hour: 15, minute: 0),
+  ),
 ];

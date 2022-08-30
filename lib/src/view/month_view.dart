@@ -7,11 +7,11 @@ import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
 
 import '../core/app_log.dart';
 
-/// The [SlDayView] widget displays calendar like view of the events
+/// The [MonthView] widget displays calendar like view of the events
 /// that scrolls
-class SlDayView<T> extends StatefulWidget {
+class MonthView<T> extends StatefulWidget {
   ///
-  const SlDayView({
+  const MonthView({
     required this.timelines,
     required this.onWillAccept,
     Key? key,
@@ -72,10 +72,10 @@ class SlDayView<T> extends StatefulWidget {
   /// height  of the header
   final double headerHeight;
 
-  ///OnTap callback
+  ///onTap callback
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
-  /// The [SlDayView] widget displays calendar like view
+  /// The [MonthView] widget displays calendar like view
   /// of the events that scrolls
 
   /// list of the timeline
@@ -94,10 +94,10 @@ class SlDayView<T> extends StatefulWidget {
   final Function(CalendarEvent<T>, DateTime, Period) onWillAccept;
 
   @override
-  State<SlDayView<T>> createState() => _SlDayViewState<T>();
+  State<MonthView<T>> createState() => _MonthViewState<T>();
 }
 
-class _SlDayViewState<T> extends State<SlDayView<T>> {
+class _MonthViewState<T> extends State<MonthView<T>> {
   final ScrollController _dayScrollController = ScrollController();
   final ScrollController _dayHeadingScrollController = ScrollController();
   final ScrollController _timeScrollController = ScrollController();
@@ -165,7 +165,7 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
   }
 
   ///return count of periods and break that are overlapping
-  List<int> getOverlappingTimeline(TimeOfDay start, TimeOfDay end) {
+  List<int> getOverLappingTimeline(TimeOfDay start, TimeOfDay end) {
     const int p = 0;
     const int b = 0;
 

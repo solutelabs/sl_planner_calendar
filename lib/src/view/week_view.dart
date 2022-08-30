@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/widgets/cell.dart';
@@ -7,9 +5,9 @@ import 'package:sl_planner_calendar/src/widgets/corner_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/header_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/hour_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/time_indicator.dart';
-import 'package:sl_planner_calendar/src/widgets/timtable_event.dart';
+import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
 
-import '../core/applog.dart';
+import '../core/app_log.dart';
 
 /// The [WeekView] widget displays calendar like view of the events
 /// that scrolls
@@ -76,11 +74,11 @@ class WeekView<T> extends StatefulWidget {
   /// height  of the header
   final double headerHeight;
 
-  ///ontapt
+  ///onTap
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
   /// The [WeekView] widget displays calendar like view
-  /// of the events that scrollsn
+  /// of the events that scrolls
 
   /// list of the timeline
   final List<Period> timelines;
@@ -95,7 +93,7 @@ class WeekView<T> extends StatefulWidget {
   /// Called when a piece of data enters the target. This will be followed by
   /// either [onAccept] and [onAcceptWithDetails], if the data is dropped, or
   /// [onLeave], if the drag leaves the target.
-  final DragTargetWillAccept<CalendarEvent<T>> onWillAccept;
+  final bool Function(CalendarEvent<T>, Period) onWillAccept;
 
   @override
   State<WeekView<T>> createState() => _WeekViewState<T>();
@@ -113,7 +111,7 @@ class _WeekViewState<T> extends State<WeekView<T>> {
       widget.nowIndicatorColor ?? Theme.of(context).indicatorColor;
   int? _listenerId;
 
-  List<DateTime> daterange = <DateTime>[];
+  List<DateTime> dateRange = <DateTime>[];
 
   @override
   void initState() {
@@ -130,17 +128,17 @@ class _WeekViewState<T> extends State<WeekView<T>> {
 
   ///get initial list of dates
   void initDate() {
-    log('Setting dates');
+    appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
-    daterange.clear();
+    dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        daterange.add(date);
+        dateRange.add(date);
       } else {
         if (date.weekday > 5) {
         } else {
-          daterange.add(date);
+          dateRange.add(date);
         }
       }
     }
@@ -149,30 +147,30 @@ class _WeekViewState<T> extends State<WeekView<T>> {
 
   ///get data range
   List<DateTime> getDateRange() {
-    final List<DateTime> datarange = <DateTime>[];
-    log('Setting dates');
+    final List<DateTime> tempDateRange = <DateTime>[];
+    appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
-    daterange.clear();
+    dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        daterange.add(date);
+        dateRange.add(date);
       } else {
         if (date.weekday > 5) {
         } else {
-          daterange.add(date);
+          dateRange.add(date);
         }
       }
     }
-    return datarange;
+    return tempDateRange;
   }
 
-  ///return count of periods and break that are overlaping
-  List<int> getOvelaptingTimeline(TimeOfDay start, TimeOfDay end) {
+  ///return count of periods and break that are overlapping
+  List<int> getOverlappingTimeline(TimeOfDay start, TimeOfDay end) {
     const int p = 0;
     const int b = 0;
 
-    log('Event P:$p and B:$b');
+    appLog('Event P:$p and B:$b');
     return <int>[p, b];
   }
 
@@ -193,11 +191,12 @@ class _WeekViewState<T> extends State<WeekView<T>> {
 
   Future<void> _eventHandler(TimetableControllerEvent event) async {
     if (event is TimetableJumpToRequested) {
+      appLog('jumping to ${event.date}');
       await _jumpTo(event.date);
     }
 
     if (event is TimetableVisibleDateChanged) {
-      log('visible data changed');
+      appLog('visible data changed');
       final DateTime prev = controller.visibleDateStart;
       final DateTime now = DateTime.now();
       await adjustColumnWidth();
@@ -206,11 +205,11 @@ class _WeekViewState<T> extends State<WeekView<T>> {
       return;
     }
     if (event is TimetableDateChanged) {
-      log('date changed');
+      appLog('date changed');
       initDate();
     }
     if (event is TimetableMaxColumnsChanged) {
-      log('max column changed');
+      appLog('max column changed');
       await adjustColumnWidth();
     }
     if (mounted) {
@@ -224,9 +223,9 @@ class _WeekViewState<T> extends State<WeekView<T>> {
     final List<Period> periods = <Period>[];
 
     for (final Period period in widget.timelines) {
-      if (period.starttime.hour >= item.startTime.hour) {
+      if (period.startTime.hour >= item.startTime.hour) {
         if (period.endTime.hour <= item.endTime.hour) {
-          if (period.starttime.minute >= item.startTime.minute) {
+          if (period.startTime.minute >= item.startTime.minute) {
             if (period.endTime.minute <= item.endTime.minute) {
               periods.add(period);
             }
@@ -271,7 +270,7 @@ class _WeekViewState<T> extends State<WeekView<T>> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
-      builder: (BuildContext context, BoxConstraints contraints) {
+      builder: (BuildContext context, BoxConstraints constraints) {
         adjustColumnWidth();
         return Column(
           children: <Widget>[
@@ -303,10 +302,10 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                         scrollDirection: Axis.horizontal,
                         controller: _dayHeadingScrollController,
                         itemExtent: columnWidth,
-                        itemCount: daterange.length,
+                        itemCount: dateRange.length,
                         itemBuilder: (BuildContext context, int index) =>
                             HeaderCell(
-                          dateTime: daterange[index],
+                          dateTime: dateRange[index],
                           columnWidth: columnWidth,
                           headerCellBuilder: widget.headerCellBuilder,
                         ),
@@ -365,11 +364,11 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                             scrollDirection: Axis.horizontal,
                             // cacheExtent: 10000.0,
 
-                            itemCount: daterange.length,
+                            itemCount: dateRange.length,
                             itemExtent: columnWidth,
                             controller: _dayScrollController,
                             itemBuilder: (BuildContext context, int index) {
-                              final DateTime date = daterange[index];
+                              final DateTime date = dateRange[index];
                               final List<CalendarEvent<T>> events = widget.items
                                   .where((CalendarEvent<T> event) =>
                                       DateUtils.isSameDay(
@@ -389,54 +388,56 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                       children: <Widget>[
                                         for (Period period in widget.timelines)
                                           TimeTableCell<T>(
-                                            columnWidth: columnWidth,
-                                            period: period,
-                                            breakHeight: controller.breakHeight,
-                                            cellHeight: controller.cellHeight,
-                                            dateTime: date,
-                                            onTap: (DateTime dateTime,
-                                                Period p1,
-                                                CalendarEvent<T>? p2) {
-                                              appLog('data');
-                                              widget.onTap!(dateTime, p1, p2);
-                                            },
-                                            onAcceptWithDetails:
-                                                (DragTargetDetails<
-                                                        CalendarEvent<T>>
-                                                    details) {
-                                              log('New period:${period.toMap}');
-                                              final CalendarEvent<T> event =
-                                                  details.data;
-                                              final DateTime newStartTime =
-                                                  DateTime(
-                                                      date.year,
-                                                      date.month,
-                                                      date.day,
-                                                      period.starttime.hour,
-                                                      period.starttime.minute);
-                                              final DateTime newEndtime =
-                                                  DateTime(
-                                                      date.year,
-                                                      date.month,
-                                                      date.day,
-                                                      period.endTime.hour,
-                                                      period.endTime.minute);
+                                              columnWidth: columnWidth,
+                                              period: period,
+                                              breakHeight:
+                                                  controller.breakHeight,
+                                              cellHeight: controller.cellHeight,
+                                              dateTime: date,
+                                              onTap: (DateTime dateTime,
+                                                  Period p1,
+                                                  CalendarEvent<T>? p2) {
+                                                appLog('data');
+                                                widget.onTap!(dateTime, p1, p2);
+                                              },
+                                              onAcceptWithDetails:
+                                                  (DragTargetDetails<
+                                                          CalendarEvent<T>>
+                                                      details) {
+                                                appLog('New Period'
+                                                    '${period.toMap}');
+                                                final CalendarEvent<T> event =
+                                                    details.data;
+                                                final DateTime newStartTime =
+                                                    DateTime(
+                                                        date.year,
+                                                        date.month,
+                                                        date.day,
+                                                        period.startTime.hour,
+                                                        period
+                                                            .startTime.minute);
+                                                final DateTime newEndTime =
+                                                    DateTime(
+                                                        date.year,
+                                                        date.month,
+                                                        date.day,
+                                                        period.endTime.hour,
+                                                        period.endTime.minute);
 
-                                              CalendarEvent<T> newEvent =
-                                                  CalendarEvent<T>(
-                                                      startTime: newStartTime,
-                                                      endTime: newEndtime,
-                                                      eventData:
-                                                          event.eventData);
+                                                final CalendarEvent<T>
+                                                    newEvent = CalendarEvent<T>(
+                                                        startTime: newStartTime,
+                                                        endTime: newEndTime,
+                                                        eventData:
+                                                            event.eventData);
 
-                                              widget.onEventDragged!(
-                                                  details.data, newEvent);
-                                            },
-                                            onWillAccept:
-                                                (CalendarEvent<T>? data) =>
-                                                    isSlotIsAvailable(
-                                                        events, data!),
-                                          )
+                                                widget.onEventDragged!(
+                                                    details.data, newEvent);
+                                              },
+                                              onWillAccept:
+                                                  (CalendarEvent<T>? data,
+                                                          Period period) =>
+                                                      widget.onWillAccept)
                                       ],
                                     ),
                                     for (final CalendarEvent<T> event in events)
@@ -457,8 +458,9 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                               (DragTargetDetails<
                                                       CalendarEvent<T>>
                                                   details) {
-                                            log(details.data.toMap.toString());
-                                            final CalendarEvent<T> myevents =
+                                            appLog(
+                                                details.data.toMap.toString());
+                                            final CalendarEvent<T> myEvents =
                                                 details.data;
                                             final DateTime newStartTime =
                                                 DateTime(
@@ -467,22 +469,21 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                                     date.day,
                                                     event.startTime.hour,
                                                     event.startTime.minute);
-                                            final DateTime newEndtime =
+                                            final DateTime newEndTime =
                                                 DateTime(
                                                     date.year,
                                                     date.month,
                                                     date.day,
                                                     event.endTime.hour,
                                                     event.endTime.minute);
-                                            myevents
+                                            myEvents
                                               ..startTime = newStartTime
-                                              ..endTime = newEndtime;
+                                              ..endTime = newEndTime;
                                             widget.onEventDragged!(
-                                                details.data, myevents);
+                                                details.data, myEvents);
                                           },
-                                          onWillAccept: (CalendarEvent<T>?
-                                                  data) =>
-                                              isSlotIsAvailable(events, data!),
+                                          onWillAccept:
+                                              (CalendarEvent<T>? data) => true,
                                           columnWidth: columnWidth,
                                           event: event,
                                           itemBuilder: widget.itemBuilder,

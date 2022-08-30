@@ -40,6 +40,24 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "release"
+
+    },
+    {
+      "name": "edgar_planner_calendar_flutter",   "cwd": "edgar_planner_calendar_flutter",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "edgar_planner_calendar_flutter (profile mode)",   "cwd": "edgar_planner_calendar_flutter",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "edgar_planner_calendar_flutter (release mode)",   "cwd": "edgar_planner_calendar_flutter",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
     }
   ]
 }

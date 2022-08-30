@@ -1,13 +1,14 @@
 import 'dart:developer';
 
-import 'package:example/core/date_extension.dart'; 
+import 'package:example/core/date_extension.dart';
+import 'package:example/core/static.dart';
 import 'package:example/features/calendar/data/event_model.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:example/features/calendar/presentation/pages/add_plan.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart'; 
-import 'package:flutter_bloc/flutter_bloc.dart'; 
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -27,53 +28,6 @@ class WeekPlanner extends StatefulWidget {
 DateTime now = DateTime.now().subtract(const Duration(days: 1));
 
 ///custom timeperiods for the timetable
-List<Period> customPeriods = <Period>[
-  Period(
-    starttime: const TimeOfDay(hour: 9, minute: 30),
-    endTime: const TimeOfDay(hour: 9, minute: 45),
-  ),
-  Period(
-    starttime: const TimeOfDay(hour: 9, minute: 45),
-    endTime: const TimeOfDay(hour: 10, minute: 30),
-  ),
-  Period(
-    starttime: const TimeOfDay(hour: 10, minute: 30),
-    endTime: const TimeOfDay(hour: 11, minute: 0),
-    isBreak: true,
-    title: 'Recess',
-  ),
-  Period(
-    starttime: const TimeOfDay(hour: 11, minute: 0),
-    endTime: const TimeOfDay(hour: 11, minute: 45),
-  ),
-  Period(
-    starttime: const TimeOfDay(hour: 11, minute: 45),
-    endTime: const TimeOfDay(hour: 12, minute: 30),
-  ),
-  Period(
-      starttime: const TimeOfDay(hour: 12, minute: 30),
-      endTime: const TimeOfDay(hour: 13, minute: 30),
-      isBreak: true,
-      title: 'Lunch'),
-  Period(
-    starttime: const TimeOfDay(hour: 13, minute: 30),
-    endTime: const TimeOfDay(hour: 14, minute: 15),
-  ),
-  Period(
-    starttime: const TimeOfDay(hour: 14, minute: 15),
-    endTime: const TimeOfDay(hour: 15, minute: 0),
-  ),
-];
-
-///return true if date is same
-bool isSameDate(DateTime date) {
-  final DateTime now = DateTime.now();
-  if (now.year == date.year && now.month == date.month && now.day == date.day) {
-    return true;
-  } else {
-    return false;
-  }
-}
 
 class _WeekPlannerState extends State<WeekPlanner> {
   TimetableController simpleController = TimetableController(
@@ -133,9 +87,9 @@ class _WeekPlannerState extends State<WeekPlanner> {
                                       listen: false)
                                   .events
                                   .where((CalendarEvent<dynamic> element) =>
-                                      !isTimeisEqualOrLess(
+                                      !isTimeIsEqualOrLess(
                                           element.startTime, event.startTime) &&
-                                      isTimeisEqualOrLess(
+                                      isTimeIsEqualOrLess(
                                           element.endTime, event.endTime))
                                   .toList();
                           if (ovelapingEvents.isEmpty) {
@@ -268,7 +222,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
                             ],
                           ),
                     hourLabelBuilder: (Period period) {
-                      final TimeOfDay start = period.starttime;
+                      final TimeOfDay start = period.startTime;
 
                       final TimeOfDay end = period.endTime;
                       return Container(

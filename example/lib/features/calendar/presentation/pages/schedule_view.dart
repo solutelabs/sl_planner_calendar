@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'package:example/core/date_extension.dart';
+import 'package:example/core/utils.dart';
 import 'package:example/features/calendar/data/event_model.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
@@ -16,7 +16,7 @@ class SchedulePlanner extends StatefulWidget {
   const SchedulePlanner({Key? key, this.id, this.isMobile = true})
       : super(key: key);
 
-  ///id that we will recived from native ios
+  ///id that we will received from native ios
   final String? id;
 
   ///bool isMobile
@@ -29,41 +29,41 @@ class SchedulePlanner extends StatefulWidget {
 ///current date time
 DateTime now = DateTime.now().subtract(const Duration(days: 1));
 
-///custom timeperiods for the timetable
+///custom Time Periods for the timetable
 List<Period> customPeriods = <Period>[
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 30),
+    startTime: const TimeOfDay(hour: 9, minute: 30),
     endTime: const TimeOfDay(hour: 9, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 45),
+    startTime: const TimeOfDay(hour: 9, minute: 45),
     endTime: const TimeOfDay(hour: 10, minute: 30),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 10, minute: 30),
+    startTime: const TimeOfDay(hour: 10, minute: 30),
     endTime: const TimeOfDay(hour: 11, minute: 0),
     isBreak: true,
     title: 'Recess',
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 0),
+    startTime: const TimeOfDay(hour: 11, minute: 0),
     endTime: const TimeOfDay(hour: 11, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 45),
+    startTime: const TimeOfDay(hour: 11, minute: 45),
     endTime: const TimeOfDay(hour: 12, minute: 30),
   ),
   Period(
-      starttime: const TimeOfDay(hour: 12, minute: 30),
+      startTime: const TimeOfDay(hour: 12, minute: 30),
       endTime: const TimeOfDay(hour: 13, minute: 30),
       isBreak: true,
       title: 'Lunch'),
   Period(
-    starttime: const TimeOfDay(hour: 13, minute: 30),
+    startTime: const TimeOfDay(hour: 13, minute: 30),
     endTime: const TimeOfDay(hour: 14, minute: 15),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 14, minute: 15),
+    startTime: const TimeOfDay(hour: 14, minute: 15),
     endTime: const TimeOfDay(hour: 15, minute: 0),
   ),
 ];
@@ -80,9 +80,8 @@ bool isSameDate(DateTime date) {
 
 class _SchedulePlannerState extends State<SchedulePlanner> {
   TimetableController simpleController = TimetableController(
-      start:
-          DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
-      end: dateTime.lastDayOfMonth,
+      start: DateTime(2022, 8),
+      end: DateTime(2022, 10),
       timelineWidth: 60,
       breakHeight: 35,
       cellHeight: 120);
@@ -129,23 +128,23 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                   onWillAccept: (CalendarEvent<Event>? event) {
                     if (event != null) {
                       if (state is LoadingState) {
-                        final List<CalendarEvent<dynamic>> ovelapingEvents =
+                        final List<CalendarEvent<dynamic>> overLappingEvents =
                             BlocProvider.of<TimeTableCubit>(context,
                                     listen: false)
                                 .events
                                 .where((CalendarEvent<dynamic> element) =>
-                                    !isTimeisEqualOrLess(
+                                    !isTimeIsEqualOrLess(
                                         element.startTime, event.startTime) &&
-                                    isTimeisEqualOrLess(
+                                    isTimeIsEqualOrLess(
                                         element.endTime, event.endTime))
                                 .toList();
-                        if (ovelapingEvents.isEmpty) {
+                        if (overLappingEvents.isEmpty) {
                           log('Slot available: ${event.toMap}');
                           return true;
                         } else {
                           log('Slot Not available-> Start Time: '
-                              '${ovelapingEvents.first.startTime}'
-                              'End Time: ${ovelapingEvents.first.endTime}');
+                              '${overLappingEvents.first.startTime}'
+                              'End Time: ${overLappingEvents.first.endTime}');
 
                           return false;
                         }
@@ -212,7 +211,7 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                     ),
                   ),
                   hourLabelBuilder: (Period period) {
-                    final TimeOfDay start = period.starttime;
+                    final TimeOfDay start = period.startTime;
 
                     final TimeOfDay end = period.endTime;
                     return Container(
@@ -284,11 +283,8 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                             SizedBox(
                               width: 100,
                               child: Text(
-                                item.eventData!.period.starttime
-                                        .format(context) +
-                                    ' - ' +
-                                    item.eventData!.period.endTime
-                                        .format(context),
+                                getFormattedTime(
+                                    item.eventData!.period, context),
                                 style: const TextStyle(
                                     fontSize: 10, fontWeight: FontWeight.w500),
                               ),

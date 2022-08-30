@@ -1,9 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
-///
+///General time table for testing
 class TimeTableEvent<T> extends StatefulWidget {
   ///
   const TimeTableEvent({
@@ -60,7 +58,7 @@ class TimeTableEvent<T> extends StatefulWidget {
 }
 
 class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
-  bool isSlotAvaialbe = false;
+  bool isSlotAvailable = false;
   @override
   Widget build(BuildContext context) => DragTarget<CalendarEvent<T>>(
         builder: (
@@ -91,14 +89,9 @@ class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
         },
         onWillAccept: (CalendarEvent<T>? data) => widget.onWillAccept(data),
         onAccept: (CalendarEvent<dynamic> data) {},
-        onLeave: (CalendarEvent<dynamic>? value) {
-          isSlotAvaialbe = false;
-          setState(() {});
-          log('On leave');
-        },
+        onLeave: (CalendarEvent<dynamic>? value) {},
         onMove: (DragTargetDetails<CalendarEvent<T>> value) {
-          isSlotAvaialbe = widget.onWillAccept(value.data);
-          log('On moved');
+          // appLog('On moved');
         },
       );
 }
@@ -137,7 +130,8 @@ class BuildEvent<T> extends StatelessWidget {
             ),
           ),
           child: Text(
-            '${hmma.format(event.startTime)} - ${hmma.format(event.endTime)}',
+            '${dateFormat.format(event.startTime)}'
+            '- ${dateFormat.format(event.endTime)}',
             style: TextStyle(
               fontSize: 10,
               color: Theme.of(context).colorScheme.onSurface,

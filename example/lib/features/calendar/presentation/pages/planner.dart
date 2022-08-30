@@ -32,38 +32,38 @@ DateTime now = DateTime.now().subtract(const Duration(days: 1));
 ///custom timeperiods for the timetable
 List<Period> customPeriods = <Period>[
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 30),
+    startTime: const TimeOfDay(hour: 9, minute: 30),
     endTime: const TimeOfDay(hour: 9, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 9, minute: 45),
+    startTime: const TimeOfDay(hour: 9, minute: 45),
     endTime: const TimeOfDay(hour: 10, minute: 30),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 10, minute: 30),
+    startTime: const TimeOfDay(hour: 10, minute: 30),
     endTime: const TimeOfDay(hour: 11, minute: 0),
     isBreak: true,
     title: 'Recess',
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 0),
+    startTime: const TimeOfDay(hour: 11, minute: 0),
     endTime: const TimeOfDay(hour: 11, minute: 45),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 11, minute: 45),
+    startTime: const TimeOfDay(hour: 11, minute: 45),
     endTime: const TimeOfDay(hour: 12, minute: 30),
   ),
   Period(
-      starttime: const TimeOfDay(hour: 12, minute: 30),
+      startTime: const TimeOfDay(hour: 12, minute: 30),
       endTime: const TimeOfDay(hour: 13, minute: 30),
       isBreak: true,
       title: 'Lunch'),
   Period(
-    starttime: const TimeOfDay(hour: 13, minute: 30),
+    startTime: const TimeOfDay(hour: 13, minute: 30),
     endTime: const TimeOfDay(hour: 14, minute: 15),
   ),
   Period(
-    starttime: const TimeOfDay(hour: 14, minute: 15),
+    startTime: const TimeOfDay(hour: 14, minute: 15),
     endTime: const TimeOfDay(hour: 15, minute: 0),
   ),
 ];
@@ -108,7 +108,7 @@ class _PlannerState extends State<Planner> {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0, 
+        elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         centerTitle: true,
         title: GestureDetector(
@@ -204,9 +204,9 @@ class _PlannerState extends State<Planner> {
                                       listen: false)
                                   .events
                                   .where((CalendarEvent<dynamic> element) =>
-                                      !isTimeisEqualOrLess(
+                                      !isTimeIsEqualOrLess(
                                           element.startTime, event.startTime) &&
-                                      isTimeisEqualOrLess(
+                                      isTimeIsEqualOrLess(
                                           element.endTime, event.endTime))
                                   .toList();
                           if (ovelapingEvents.isEmpty) {
@@ -339,7 +339,7 @@ class _PlannerState extends State<Planner> {
                             ],
                           ),
                     hourLabelBuilder: (Period period) {
-                      final TimeOfDay start = period.starttime;
+                      final TimeOfDay start = period.startTime;
 
                       final TimeOfDay end = period.endTime;
                       return Container(

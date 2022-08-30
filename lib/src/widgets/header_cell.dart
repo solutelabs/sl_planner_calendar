@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-///headerCell
+///headerCell widget build the label for the header of the timetable
 class HeaderCell extends StatelessWidget {
   ///headerCell
   const HeaderCell({
@@ -14,10 +14,10 @@ class HeaderCell extends StatelessWidget {
   /// Renders for the header that provides the [DateTime] for the day
   final Widget Function(DateTime)? headerCellBuilder;
 
-  ///datetime
+  ///dateTime
   final DateTime dateTime;
 
-  ///columnWidht
+  ///columnWidth
   final double columnWidth;
 
   @override

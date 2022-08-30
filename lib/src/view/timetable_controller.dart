@@ -51,7 +51,7 @@ class TimetableController {
     _timelineWidth = timelineWidth ?? 50;
     _breakHeight = breakHeight ?? 35;
     _visibleDateStart = _start;
-    _viewType = viewType ?? CalendarViewType.shecduleView;
+    _viewType = viewType ?? CalendarViewType.scheduleView;
     if (onEvent != null) {
       addListener(onEvent);
     }
@@ -96,7 +96,7 @@ class TimetableController {
 
   /// calendar view type
 
-  CalendarViewType _viewType = CalendarViewType.shecduleView;
+  CalendarViewType _viewType = CalendarViewType.scheduleView;
 
   ///get current view type
   CalendarViewType get viewType => _viewType;
@@ -294,9 +294,9 @@ class TimetableViewChanged extends TimetableControllerEvent {
 
 ///timetablesave
 class TimeTableSave extends TimetableControllerEvent {
-  ///pixel ratio
-  double pixelRatio;
-
   ///
   TimeTableSave(this.pixelRatio);
+
+  ///pixel ratio
+  double pixelRatio;
 }

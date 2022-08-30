@@ -1,9 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:sl_planner_calendar/src/core/applog.dart';
+import 'package:sl_planner_calendar/src/core/app_log.dart';
 
 import '../../sl_planner_calendar.dart';
 
@@ -14,7 +12,7 @@ bool isTimeBefore(TimeOfDay a, TimeOfDay b) {
   return dateA.isBefore(dateB);
 }
 
-///get top Margin for celll
+///get top Margin for cell
 
 double getTopMargin(DateTime startTime, List<Period> timelines,
     double cellHeight, double breakHeight) {
@@ -23,7 +21,7 @@ double getTopMargin(DateTime startTime, List<Period> timelines,
   final int ts = t
       .where((Period element) =>
           isTimeBefore(
-              element.starttime,
+              element.startTime,
               TimeOfDay(
                 hour: startTime.hour,
                 minute: startTime.minute,
@@ -35,7 +33,7 @@ double getTopMargin(DateTime startTime, List<Period> timelines,
   final int breaks = t
       .where((Period element) =>
           isTimeBefore(
-              element.starttime,
+              element.startTime,
               TimeOfDay(
                 hour: startTime.hour,
                 minute: startTime.minute,
@@ -55,7 +53,7 @@ double getBottomMargin(DateTime startTime, List<Period> timelines,
   final int ts = t
       .where((Period element) =>
           !isTimeBefore(
-              element.starttime,
+              element.startTime,
               TimeOfDay(
                 hour: startTime.hour,
                 minute: startTime.minute,
@@ -67,7 +65,7 @@ double getBottomMargin(DateTime startTime, List<Period> timelines,
   final int breaks = t
       .where((Period element) =>
           !isTimeBefore(
-              element.starttime,
+              element.startTime,
               TimeOfDay(
                 hour: startTime.hour,
                 minute: startTime.minute,
@@ -79,7 +77,7 @@ double getBottomMargin(DateTime startTime, List<Period> timelines,
   return ts * cellHeight + breaks * breakHeight;
 }
 
-///get total timelin
+///get total timeline
 
 double getTimelineHeight(
     List<Period> timelines, double cellHeight, double breakHeight) {
@@ -94,7 +92,7 @@ double getTimelineHeight(
   return h;
 }
 
-///get top margin for nowTimeindicator
+///get top margin for now TimeIndicator
 double getTimeIndicatorFromTop(
     List<Period> timelines, double cellHeight, double breakHeight) {
   final DateTime now = DateTime.now();
@@ -119,8 +117,8 @@ double getTimeIndicatorFromTop(
   }
   final List<Period> times = t
       .where((Period element) => isDateBeetWeen(
-          DateTime(now.year, now.month, now.day, element.starttime.hour,
-              element.starttime.minute),
+          DateTime(now.year, now.month, now.day, element.startTime.hour,
+              element.startTime.minute),
           DateTime(now.year, now.month, now.day, element.endTime.hour,
               element.endTime.minute),
           now))
@@ -131,14 +129,14 @@ double getTimeIndicatorFromTop(
     appLog('Period during current time${time.toMap}');
 
     appLog('Total top margin:$total');
-    final Duration d = diffTime(time.endTime, time.starttime);
+    final Duration d = diffTime(time.endTime, time.startTime);
 
     appLog('Duration of the period:${d.inMinutes}');
     final double rm =
         time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
     appLog('size of the minute:$rm');
     final Duration duration = now.difference(DateTime(now.year, now.month,
-        now.day, time.starttime.hour, time.starttime.minute));
+        now.day, time.startTime.hour, time.startTime.minute));
 
     appLog('Duration from start to now ${duration.inMinutes}');
     return total = total + rm * duration.inMinutes;
@@ -171,8 +169,8 @@ double getEventMarginFromTop(List<Period> timelines, double cellHeight,
   }
   final List<Period> times = t
       .where((Period element) => isDateBeetWeen(
-          DateTime(start.year, start.month, start.day, element.starttime.hour,
-              element.starttime.minute),
+          DateTime(start.year, start.month, start.day, element.startTime.hour,
+              element.startTime.minute),
           DateTime(start.year, start.month, start.day, element.endTime.hour,
               element.endTime.minute),
           start))
@@ -183,14 +181,14 @@ double getEventMarginFromTop(List<Period> timelines, double cellHeight,
     appLog('Period during current time${time.toMap}');
 
     appLog('Total top margin:$total');
-    final Duration d = diffTime(time.endTime, time.starttime);
+    final Duration d = diffTime(time.endTime, time.startTime);
 
     appLog('Duration of the period:${d.inMinutes}');
     final double rm =
         time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
     appLog('size of the minute:$rm');
     final Duration duration = start.difference(DateTime(start.year, start.month,
-        start.day, time.starttime.hour, time.starttime.minute));
+        start.day, time.startTime.hour, time.startTime.minute));
 
     appLog('Duration from start to now ${duration.inMinutes}');
     return total = total + rm * duration.inMinutes;
@@ -228,8 +226,8 @@ double getEventMarginFromBottom(List<Period> timelines, double cellHeight,
   }
   final List<Period> times = t
       .where((Period element) => isDateBeetWeen(
-          DateTime(start.year, start.month, start.day, element.starttime.hour,
-              element.starttime.minute),
+          DateTime(start.year, start.month, start.day, element.startTime.hour,
+              element.startTime.minute),
           DateTime(start.year, start.month, start.day, element.endTime.hour,
               element.endTime.minute),
           start))
@@ -240,14 +238,14 @@ double getEventMarginFromBottom(List<Period> timelines, double cellHeight,
     appLog('Period during current time${time.toMap}');
 
     appLog('Total top margin:$total');
-    final Duration d = diffTime(time.endTime, time.starttime);
+    final Duration d = diffTime(time.endTime, time.startTime);
 
     appLog('Duration of the period:${d.inMinutes}');
     final double rm =
         time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
     appLog('size of the minute:$rm');
     final Duration duration = start.difference(DateTime(start.year, start.month,
-        start.day, time.starttime.hour, time.starttime.minute));
+        start.day, time.startTime.hour, time.startTime.minute));
 
     appLog('Duration from start to now ${duration.inMinutes}');
     total = total + rm * duration.inMinutes;
@@ -257,7 +255,7 @@ double getEventMarginFromBottom(List<Period> timelines, double cellHeight,
   }
 }
 
-///diffrence between teo TimeOfDay
+///difference between teo TimeOfDay
 
 Duration diffTime(TimeOfDay end, TimeOfDay start) {
   final DateTime e = DateTime(2000, 12, 2, end.hour, end.minute);
@@ -274,18 +272,22 @@ bool isDateBeetWeen(DateTime first, DateTime last, DateTime currentDate) {
   }
 }
 
-///hh:mm fformat
-final DateFormat hmma = DateFormat('h:mm a');
+///hh:mm format
+final DateFormat dateFormat = DateFormat('h:mm a');
 
 ///return true if given slot is empty  in events
-bool isSlotIsAvailable(
-    List<CalendarEvent<dynamic>> events, CalendarEvent<dynamic> event) {
-  final List<CalendarEvent<dynamic>> ovelapingEvents = events
+bool isSlotIsAvailable(List<CalendarEvent<dynamic>> events,
+    CalendarEvent<dynamic> event, Period period) {
+  final List<CalendarEvent<dynamic>> oveLappingEvents = events
       .where((CalendarEvent<dynamic> element) =>
-          !isTimeisEqualOrLess(element.startTime, event.startTime) &&
-          isTimeisEqualOrLess(element.endTime, event.endTime))
+          !isTimeIsEqualOrMore(
+              element.startTime,
+              DateTime(2000, 1, 1, period.startTime.hour,
+                  period.startTime.minute)) &&
+          isTimeIsEqualOrLess(element.endTime,
+              DateTime(2000, 1, 1, period.endTime.hour, period.endTime.minute)))
       .toList();
-  if (ovelapingEvents.isEmpty) {
+  if (oveLappingEvents.isEmpty) {
     appLog('Slot available: ${event.toMap}', show: true);
     return true;
   } else {
@@ -295,10 +297,23 @@ bool isSlotIsAvailable(
   }
 }
 
-///retur true if given date is less or qual
-bool isTimeisEqualOrLess(DateTime first, DateTime seconds) {
+///return true if given date is less or qual
+bool isTimeIsEqualOrLess(DateTime first, DateTime seconds) {
   if (first.hour <= seconds.hour) {
     if (first.minute <= seconds.minute) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+///return true if give date is more ore equal
+bool isTimeIsEqualOrMore(DateTime first, DateTime seconds) {
+  if (first.hour >= seconds.hour) {
+    if (first.minute >= seconds.minute) {
       return true;
     } else {
       return false;
@@ -318,24 +333,32 @@ bool isSameDate(DateTime date) {
   }
 }
 
-bool isSloatAvailableForTheDrag(List<CalendarEvent<dynamic>> myEvents,
-    CalendarEvent<dynamic> draggedEvent, DateTime dateTime) {
+///is available for the drag
+
+bool isSlotAvlForSingleDay(List<CalendarEvent<dynamic>> myEvents,
+    CalendarEvent<dynamic> draggedEvent, DateTime dateTime, Period period) {
   final List<CalendarEvent<dynamic>> events = myEvents
       .where((CalendarEvent<dynamic> event) =>
           DateUtils.isSameDay(dateTime, event.startTime))
       .toList();
-  final List<CalendarEvent<dynamic>> ovelapingEvents = events
-      .where((CalendarEvent<dynamic> element) =>
-          !isTimeisEqualOrLess(element.startTime, draggedEvent.startTime) &&
-          isTimeisEqualOrLess(element.endTime, draggedEvent.endTime))
-      .toList();
-  if (ovelapingEvents.isEmpty) {
-    log('Slot available: ${draggedEvent.toMap}');
+  final List<CalendarEvent<dynamic>> overLappingEvents =
+      <CalendarEvent<dynamic>>[];
+
+  for (final CalendarEvent<dynamic> event in events) {
+    if (isTimeIsEqualOrMore(
+            event.startTime,
+            DateTime(
+                2000, 1, 1, period.startTime.hour, period.startTime.minute)) &&
+        isTimeIsEqualOrLess(event.endTime,
+            DateTime(2000, 1, 1, period.endTime.hour, period.endTime.minute))) {
+      overLappingEvents.add(event);
+    }
+  }
+
+  if (overLappingEvents.isEmpty) {
     return true;
   } else {
-    log('Slot Not available-> Start Time: '
-        '${ovelapingEvents.first.startTime}'
-        'End Time: ${ovelapingEvents.first.endTime}');
+    appLog(overLappingEvents.toString());
 
     return false;
   }

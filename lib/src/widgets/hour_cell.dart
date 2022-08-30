@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
-///hourcell
+///Hour Cell widget build the widget for the hour label
 class HourCell extends StatelessWidget {
   ///
   const HourCell(
@@ -23,8 +23,8 @@ class HourCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TimeOfDay start = TimeOfDay(
-      hour: period.starttime.hour,
-      minute: period.starttime.minute,
+      hour: period.startTime.hour,
+      minute: period.startTime.minute,
     );
 
     final TimeOfDay end = TimeOfDay(

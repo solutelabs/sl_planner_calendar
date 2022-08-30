@@ -23,7 +23,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   }
 
   ///view of the calendar
-  CalendarViewType viewType = CalendarViewType.shecduleView;
+  CalendarViewType viewType = CalendarViewType.scheduleView;
 
   /// set method handler to receive data from flutter
   static const MethodChannel platform = MethodChannel('com.example.demo/data');
@@ -109,11 +109,10 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   ///void save image as psd
 
   Future<void> saveToPdf(Uint8List image) async {
-    final pw.Document pdf = pw.Document();
-
-    pdf.addPage(pw.Page(
-        build: (pw.Context context) =>
-            pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
+    final pw.Document pdf = pw.Document()
+      ..addPage(pw.Page(
+          build: (pw.Context context) =>
+              pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
 
     final Directory? path = await getDownloadsDirectory();
     try {

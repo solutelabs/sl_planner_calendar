@@ -4,29 +4,29 @@ import 'package:flutter/material.dart';
 class Period {
   ///
   Period(
-      {required this.starttime,
+      {required this.startTime,
       required this.endTime,
       this.title,
       this.isBreak = false});
 
-  ///starttime
+  ///Start Time
   ///
-  TimeOfDay starttime;
+  TimeOfDay startTime;
 
-  ///endtime
+  ///End Time
   TimeOfDay endTime;
 
   /// String title
   String? title;
 
   /// if this period is break then make this variable true
-  /// and pass title of the breack
+  /// and pass title of the break
   bool isBreak = false;
 
   ///to map functionality
 
   Map<String, dynamic> get toMap => <String, dynamic>{
-        'startTime': starttime,
+        'startTime': startTime,
         'endTime': endTime,
         'title': title,
         'isBreak': isBreak

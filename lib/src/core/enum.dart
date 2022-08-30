@@ -1,11 +1,17 @@
-///calendar view tyoe
+///calendar view type
 enum CalendarViewType {
   /// day view of the calendar
   dayView,
 
   ///schedule view of the calendar
-  shecduleView,
+  scheduleView,
 
   ///week view of the calendar
-  weekView
+  weekView,
+
+  ///MonthView
+  monthView,
+
+  ///termView,
+  termView
 }

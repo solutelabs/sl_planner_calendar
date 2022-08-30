@@ -1,9 +1,8 @@
-import 'dart:developer'; 
-
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+import 'package:sl_planner_calendar/src/core/app_log.dart';
 
-///time table celll
+///time table cell
 class TimeTableCell<T> extends StatelessWidget {
   ///
   const TimeTableCell({
@@ -38,10 +37,10 @@ class TimeTableCell<T> extends StatelessWidget {
   ///cellHeight
   final double cellHeight;
 
-  ///datetime of the celll
+  ///dateTime of the cell
   final DateTime dateTime;
 
-  ///ontap callback function
+  ///onTap callback function
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
   /// Called when an acceptable piece of data was dropped over this drag target.
@@ -56,7 +55,7 @@ class TimeTableCell<T> extends StatelessWidget {
   /// Called when a piece of data enters the target. This will be followed by
   /// either [onAccept] and [onAcceptWithDetails], if the data is dropped, or
   /// [onLeave], if the drag leaves the target.
-  final DragTargetWillAccept<CalendarEvent<T>> onWillAccept;
+  final Function(CalendarEvent<T>, Period) onWillAccept;
 
   /// Called when an acceptable piece of data was dropped over this drag target.
   ///
@@ -75,7 +74,7 @@ class TimeTableCell<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: () {
-          log('ontap');
+          appLog('OnTap');
           onTap!(dateTime, period, null);
         },
         child: DragTarget<CalendarEvent<T>>(
@@ -89,7 +88,7 @@ class TimeTableCell<T> extends StatelessWidget {
             height: period.isBreak ? breakHeight : cellHeight,
             child: GestureDetector(
               onTap: () {
-                log('ontap');
+                appLog('onTap');
                 onTap!(dateTime, period, null);
               },
               child: Center(
@@ -107,9 +106,12 @@ class TimeTableCell<T> extends StatelessWidget {
             ),
           ),
           onAcceptWithDetails: onAcceptWithDetails,
-          onWillAccept: onWillAccept,
+          onWillAccept: (CalendarEvent<T>? data) {
+            appLog('Cell  Dragged:${data!.toMap}');
+            return onWillAccept(data, period);
+          },
           onAccept: (CalendarEvent<T> data) {
-            log(data.toMap.toString());
+            appLog(data.toMap.toString());
           },
           onLeave: (CalendarEvent<T>? value) {},
           onMove: (DragTargetDetails<CalendarEvent<T>> value) {},

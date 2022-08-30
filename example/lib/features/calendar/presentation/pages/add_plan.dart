@@ -77,7 +77,7 @@ class _AddPlanState extends State<AddPlan> {
                       .map((Period e) => DropdownMenuItem<Period>(
                           value: e,
                           child: Text(
-                              '${e.starttime.hour}:${e.starttime.minute} - '
+                              '${e.startTime.hour}:${e.startTime.minute} - '
                               '${e.endTime.hour}:${e.endTime.minute} '
                               '${e.isBreak ? e.title! : ''}')))
                       .toList(),
@@ -203,8 +203,8 @@ class _AddPlanState extends State<AddPlan> {
                           widget.date.year,
                           widget.date.month,
                           widget.date.day,
-                          widget.period!.starttime.hour,
-                          widget.period!.starttime.minute);
+                          widget.period!.startTime.hour,
+                          widget.period!.startTime.minute);
 
                       final DateTime end = DateTime(
                           widget.date.year,

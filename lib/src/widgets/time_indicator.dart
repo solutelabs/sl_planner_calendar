@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
-///
+/// Current time indicator widget
 class TimeIndicator extends StatelessWidget {
-  ///timeindicator
+  ///time indicator
   const TimeIndicator({
     required this.controller,
     required this.columnWidth,
@@ -15,13 +15,13 @@ class TimeIndicator extends StatelessWidget {
   ///timetable controller
   final TimetableController controller;
 
-  ///columnwidth
+  ///column width
   final double columnWidth;
 
   ///color of the indicator
   final Color nowIndicatorColor;
 
-  /// timelinse
+  /// timeline of the calendar
   final List<Period> timelines;
 
   @override
