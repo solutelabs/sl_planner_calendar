@@ -10,3 +10,4 @@ export 'src/core/enum.dart';
 export 'src/view/schedule_view.dart';
 export 'src/view/week_view.dart';
 export 'src/view/day_view.dart';
+export 'src/view/month_view.dart';

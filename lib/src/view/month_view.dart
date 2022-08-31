@@ -1,19 +1,22 @@
+// ignore_for_file: prefer_adjacent_string_concatenation
+
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:sl_planner_calendar/src/widgets/cell.dart';
-import 'package:sl_planner_calendar/src/widgets/hour_cell.dart';
-import 'package:sl_planner_calendar/src/widgets/time_indicator.dart';
-import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
+import 'package:sl_planner_calendar/src/widgets/day_cell.dart';
 
 import '../core/app_log.dart';
 
-/// The [MonthView] widget displays calendar like view of the events
+/// The [SlMonthView] widget displays calendar like view of the events
 /// that scrolls
-class MonthView<T> extends StatefulWidget {
+class SlMonthView<T> extends StatefulWidget {
   ///
-  const MonthView({
+  const SlMonthView({
     required this.timelines,
     required this.onWillAccept,
+    required this.onMonthChanged,
     Key? key,
     this.onEventDragged,
     this.controller,
@@ -26,8 +29,10 @@ class MonthView<T> extends StatefulWidget {
     this.headerHeight = 45,
     this.hourLabelBuilder,
     this.nowIndicatorColor,
+    this.isDragable = false,
+    this.isSwipeEnable = false,
     this.showNowIndicator = true,
-    this.cornerBuilder,
+    this.deadCellBuilder,
     this.snapToDay = true,
     this.onTap,
   }) : super(key: key);
@@ -40,22 +45,29 @@ class MonthView<T> extends StatefulWidget {
   final Widget Function(Period)? cellBuilder;
 
   /// Renders for the header that provides the [DateTime] for the day
-  final Widget Function(DateTime)? headerCellBuilder;
+  final Widget Function(int)? headerCellBuilder;
 
   /// Timetable items to display in the timetable
   final List<CalendarEvent<T>> items;
 
   /// Renders event card from `TimetableItem<T>` for each item
-  final Widget Function(CalendarEvent<T>)? itemBuilder;
+  final Widget Function(List<CalendarEvent<T>>, Size size)? itemBuilder;
 
   /// Renders hour label given [TimeOfDay] for each hour
   final Widget Function(Period period)? hourLabelBuilder;
 
   /// Renders upper left corner of the timetable given the first visible date
-  final Widget Function(DateTime current)? cornerBuilder;
+  final Widget Function(DateTime current)? deadCellBuilder;
 
   /// Snap to hour column. Default is `true`.
   final bool snapToDay;
+
+  ///bool is dragable
+  ///
+  final bool isDragable;
+
+  ///final isSwipeEnable
+  final bool isSwipeEnable;
 
   ///show now indicator,default is true
   final bool showNowIndicator;
@@ -75,7 +87,7 @@ class MonthView<T> extends StatefulWidget {
   ///onTap callback
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
-  /// The [MonthView] widget displays calendar like view
+  /// The [SlMonthView] widget displays calendar like view
   /// of the events that scrolls
 
   /// list of the timeline
@@ -84,6 +96,9 @@ class MonthView<T> extends StatefulWidget {
   ///return new and okd event
   final Function(CalendarEvent<T> old, CalendarEvent<T> newEvent)?
       onEventDragged;
+
+  ///retun current month when user swipe and month changed
+  final Function(Month) onMonthChanged;
 
   /// Called to determine whether this widget is interested in receiving a given
   /// piece of data being dragged over this drag target.
@@ -94,13 +109,10 @@ class MonthView<T> extends StatefulWidget {
   final Function(CalendarEvent<T>, DateTime, Period) onWillAccept;
 
   @override
-  State<MonthView<T>> createState() => _MonthViewState<T>();
+  State<SlMonthView<T>> createState() => _SlMonthViewState<T>();
 }
 
-class _MonthViewState<T> extends State<MonthView<T>> {
-  final ScrollController _dayScrollController = ScrollController();
-  final ScrollController _dayHeadingScrollController = ScrollController();
-  final ScrollController _timeScrollController = ScrollController();
+class _SlMonthViewState<T> extends State<SlMonthView<T>> {
   double columnWidth = 50;
   TimetableController controller = TimetableController();
   final GlobalKey<State<StatefulWidget>> _key = GlobalKey();
@@ -109,7 +121,9 @@ class _MonthViewState<T> extends State<MonthView<T>> {
       widget.nowIndicatorColor ?? Theme.of(context).indicatorColor;
   int? _listenerId;
 
-  List<DateTime> dateRange = <DateTime>[];
+  List<CalendarDay> dateRange = <CalendarDay>[];
+  List<Month> monthRange = <Month>[];
+  PageController pageController = PageController();
 
   @override
   void initState() {
@@ -126,22 +140,24 @@ class _MonthViewState<T> extends State<MonthView<T>> {
 
   ///get initial list of dates
   void initDate() {
-    appLog('Setting dates');
+    log('Setting dates in month view');
     final int diff = controller.end.difference(controller.start).inDays;
     dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        dateRange.add(date);
+        dateRange.add(CalendarDay(dateTime: date));
       } else {
         if (date.weekday > 5) {
         } else {
-          dateRange.add(date);
+          dateRange.add(CalendarDay(dateTime: date));
         }
       }
     }
-    dateForHeader = dateRange[0];
+    monthRange = getMonthRange(controller.start, controller.end);
+    dateForHeader = dateRange[0].dateTime;
     setState(() {});
+    controller.jumpTo(DateTime.now());
   }
 
   ///get data range
@@ -153,14 +169,15 @@ class _MonthViewState<T> extends State<MonthView<T>> {
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
-        dateRange.add(date);
+        dateRange.add(CalendarDay(dateTime: date));
       } else {
         if (date.weekday > 5) {
         } else {
-          dateRange.add(date);
+          dateRange.add(CalendarDay(dateTime: date));
         }
       }
     }
+
     return tempDateRange;
   }
 
@@ -182,15 +199,12 @@ class _MonthViewState<T> extends State<MonthView<T>> {
     if (_listenerId != null) {
       controller.removeListener(_listenerId!);
     }
-    _dayScrollController.dispose();
-    _dayHeadingScrollController.dispose();
-    _timeScrollController.dispose();
     super.dispose();
   }
 
   Future<void> _eventHandler(TimetableControllerEvent event) async {
     if (event is TimetableJumpToRequested) {
-      // await _jumpTo(event.date);
+      await _jumpTo(event.date);
     }
 
     if (event is TimetableVisibleDateChanged) {
@@ -268,182 +282,90 @@ class _MonthViewState<T> extends State<MonthView<T>> {
       key: _key,
       builder: (BuildContext context, BoxConstraints constraints) {
         final Size size = constraints.biggest;
-
+        final double columnHeight = (size.height) / 4;
+        final double aspectRation = columnWidth / columnHeight;
+        log('aspect ratio $aspectRation');
         return SizedBox(
           height: getTimelineHeight(
               widget.timelines, controller.cellHeight, controller.breakHeight),
-          child: PageView.builder(
-              // cacheExtent: 10000.0,
-              padEnds: false,
-              onPageChanged: (int value) {
-                dateForHeader = dateRange[value];
-                setState(() {});
-              },
-              itemCount: dateRange.length,
-              // itemExtent: size.width - controller.timelineWidth,
-              // controller: _dayScrollController,
-              itemBuilder: (BuildContext context, int index) {
-                final DateTime date = dateRange[index];
-                final List<CalendarEvent<T>> events = widget.items
-                    .where((CalendarEvent<T> event) =>
-                        DateUtils.isSameDay(date, event.startTime))
-                    .toList();
-                final DateTime now = DateTime.now();
-                final bool isToday = DateUtils.isSameDay(date, now);
-                return ListView(
-                  children: <Widget>[
-                    SizedBox(
-                        height: controller.headerHeight,
-                        child: widget.headerCellBuilder!(dateForHeader)),
-                    const Divider(
-                      thickness: 2,
-                      height: 2,
-                    ),
-                    Row(
-                      children: <Widget>[
-                        SizedBox(
-                          width: controller.timelineWidth,
-                          height: getTimelineHeight(widget.timelines,
-                              controller.cellHeight, controller.breakHeight),
-                          child: Column(
-                            children: <Widget>[
-                              // SizedBox(height: controller.cellHeight / 2),
-                              for (Period item in widget.timelines)
-                                HourCell(
-                                  controller: controller,
-                                  period: item,
-                                  hourLabelBuilder: widget.hourLabelBuilder,
-                                ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: size.width - controller.timelineWidth,
-                          height: getTimelineHeight(widget.timelines,
-                              controller.cellHeight, controller.breakHeight),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: <Widget>[
-                              Column(
-                                children: <Widget>[
-                                  for (Period period in widget.timelines)
-                                    TimeTableCell<T>(
-                                        columnWidth: size.width,
-                                        period: period,
-                                        breakHeight: controller.breakHeight,
-                                        cellHeight: controller.cellHeight,
-                                        dateTime: date,
-                                        onTap: (DateTime dateTime, Period p1,
-                                            CalendarEvent<T>? p2) {
-                                          appLog('data');
-                                          widget.onTap!(dateTime, p1, p2);
-                                        },
-                                        onAcceptWithDetails:
-                                            (DragTargetDetails<CalendarEvent<T>>
-                                                details) {
-                                          appLog('New period:${period.toMap}');
-                                          appLog('Dragged event'
-                                              '${details.data.toMap}');
-                                          final CalendarEvent<T> event =
-                                              details.data;
-                                          final DateTime newStartTime =
-                                              DateTime(
-                                                  date.year,
-                                                  date.month,
-                                                  date.day,
-                                                  period.startTime.hour,
-                                                  period.startTime.minute);
-                                          final DateTime newEndTime = DateTime(
-                                              date.year,
-                                              date.month,
-                                              date.day,
-                                              period.endTime.hour,
-                                              period.endTime.minute);
-
-                                          final CalendarEvent<T> newEvent =
-                                              CalendarEvent<T>(
-                                                  startTime: newStartTime,
-                                                  endTime: newEndTime,
-                                                  eventData: event.eventData);
-
-                                          widget.onEventDragged!(
-                                              details.data, newEvent);
-                                        },
-                                        onWillAccept: (CalendarEvent<T>? data,
-                                            Period period) {
-                                          appLog('Dragged event${data!.toMap}');
-                                          return widget.onWillAccept(
-                                              data, date, period);
-                                        })
-                                ],
-                              ),
-                              for (final CalendarEvent<T> event in events)
-                                Positioned(
-                                  width: size.width - 60,
-                                  top: getEventMarginFromTop(
-                                      widget.timelines,
-                                      controller.cellHeight,
-                                      controller.breakHeight,
-                                      event.startTime),
-                                  bottom: getEventMarginFromBottom(
-                                      widget.timelines,
-                                      controller.cellHeight,
-                                      controller.breakHeight,
-                                      event.endTime),
-                                  child: TimeTableEvent<T>(
-                                    onAcceptWithDetails:
-                                        (DragTargetDetails<CalendarEvent<T>>
-                                            details) {
-                                      appLog(details.data.toMap.toString());
-                                      final CalendarEvent<T> myEvents =
-                                          details.data;
-                                      final DateTime newStartTime = DateTime(
-                                          date.year,
-                                          date.month,
-                                          date.day,
-                                          event.startTime.hour,
-                                          event.startTime.minute);
-                                      final DateTime newEndTime = DateTime(
-                                          date.year,
-                                          date.month,
-                                          date.day,
-                                          event.endTime.hour,
-                                          event.endTime.minute);
-                                      myEvents
-                                        ..startTime = newStartTime
-                                        ..endTime = newEndTime;
-                                      widget.onEventDragged!(
-                                          details.data, myEvents);
-                                    },
-                                    onWillAccept: (CalendarEvent<T>? data) =>
-                                        false,
-                                    columnWidth: 230,
-                                    event: event,
-                                    itemBuilder: widget.itemBuilder,
-                                  ),
-                                ),
-                              if (widget.showNowIndicator && isToday)
-                                StreamBuilder<DateTime>(
-                                    stream: Stream<DateTime>.periodic(
-                                        const Duration(seconds: 60),
-                                        (int count) => DateTime.now()
-                                            .add(const Duration(minutes: 1))),
-                                    builder: (BuildContext context,
-                                            AsyncSnapshot<DateTime> snapshot) =>
-                                        TimeIndicator(
-                                            controller: controller,
-                                            columnWidth: columnWidth,
-                                            nowIndicatorColor:
-                                                nowIndicatorColor,
-                                            timelines: widget.timelines)),
-                            ],
-                          ),
-                        )
-                      ],
-                    )
-                  ],
-                );
-              }),
+          child: Column(
+            children: <Widget>[
+              SizedBox(
+                height: controller.headerHeight,
+                child: GridView.builder(
+                    itemCount: 7,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 7),
+                    itemBuilder: (BuildContext context, int index) => Column(
+                          children: <Widget>[widget.headerCellBuilder!(index)],
+                        )),
+              ),
+              SizedBox(
+                height: size.height - controller.headerHeight,
+                child: PageView.builder(
+                    // cacheExtent: 10000.0,
+                    controller: pageController,
+                    padEnds: false,
+                    physics: widget.isSwipeEnable
+                        ? const AlwaysScrollableScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                    onPageChanged: (int value) {
+                      dateForHeader = dateRange[value].dateTime;
+                      setState(() {});
+                      widget.onMonthChanged(monthRange[value]);
+                    },
+                    itemCount: monthRange.length,
+                    // itemExtent: size.width - controller.timelineWidth,
+                    // controller: _dayScrollController,
+                    itemBuilder: (BuildContext context, int index) {
+                      final Month month = monthRange[index];
+                      final List<CalendarDay> dates =
+                          getDatesForCurrentView(month, monthRange, dateRange);
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        itemCount: 35,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            childAspectRatio: aspectRation, crossAxisCount: 7),
+                        itemBuilder: (BuildContext context, int index) {
+                          final DateTime dateTime = dates[index].dateTime;
+                          final List<CalendarEvent<T>> events = widget.items
+                              .where((CalendarEvent<T> event) =>
+                                  DateUtils.isSameDay(
+                                      dateTime, event.startTime))
+                              .toList();
+                          return DayCell<T>(
+                              calendarDay: dates[index],
+                              columnWidth: columnWidth,
+                              deadCellBuilder: widget.deadCellBuilder!,
+                              itemBuilder: (List<CalendarEvent<T>> dayEvents) =>
+                                  widget.itemBuilder!(dayEvents,
+                                      Size(columnWidth, columnHeight)),
+                              events: events,
+                              period: Period(
+                                  endTime:
+                                      const TimeOfDay(hour: 12, minute: 00),
+                                  title: 'asdasd',
+                                  startTime:
+                                      const TimeOfDay(hour: 11, minute: 00)),
+                              breakHeight: controller.breakHeight,
+                              cellHeight: controller.cellHeight,
+                              dateTime: dateTime,
+                              onTap: (DateTime date, Period period,
+                                  CalendarEvent<Object?>? event) {},
+                              onWillAccept: (CalendarEvent<Object?> event,
+                                      Period period) =>
+                                  true,
+                              onAcceptWithDetails:
+                                  (DragTargetDetails<CalendarEvent<Object?>>
+                                      event) {});
+                        },
+                      );
+                    }),
+              ),
+            ],
+          ),
         );
       });
 
@@ -483,22 +405,123 @@ class _MonthViewState<T> extends State<MonthView<T>> {
   //   }
   // }
 
-  // Future<dynamic> _jumpTo(DateTime date) async {
-  //   final double datePosition =
-  //       (date.difference(controller.start).inDays) * columnWidth;
-  //   final double hourPosition =
-  //       ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
-  //   await Future.wait<void>(<Future<void>>[
-  //     _dayScrollController.animateTo(
-  //       datePosition,
-  //       duration: _animationDuration,
-  //       curve: _animationCurve,
-  //     ),
-  //     _timeScrollController.animateTo(
-  //       hourPosition,
-  //       duration: _animationDuration,
-  //       curve: _animationCurve,
-  //     ),
-  //   ]);
-  // }
+  ///jump to current date
+  Future<dynamic> _jumpTo(DateTime date) async {
+    if (pageController.hasClients) {
+      final Iterable<Month> tempMonths = monthRange.where((Month element) =>
+          element.year == date.year && element.month == date.month);
+      if (tempMonths.isEmpty) {
+      } else {
+        await pageController.animateToPage(monthRange.indexOf(tempMonths.first),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+      }
+    }
+  }
+}
+
+/// month ckass
+class Month {
+  ///month constructor
+  Month(
+      {required this.month,
+      required this.monthName,
+      required this.endDay,
+      required this.startDay,
+      required this.year});
+
+  /// int month
+  int month;
+
+  ///int year
+  int year;
+
+  ///int startDay
+  int startDay;
+
+  ///int endDay
+  int endDay;
+
+  /// monthName
+  String monthName;
+
+  @override
+  String toString() => 'Month Name $monthName Month $month StartDay $startDay'
+      ' EndDay $endDay $year';
+}
+
+///calend day
+
+class CalendarDay {
+  ///
+  CalendarDay({required this.dateTime, this.deadCell = false});
+
+  ///bool is deadCell
+  bool deadCell;
+
+  ///
+  /// DateTime
+  DateTime dateTime;
+
+  @override
+  String toString() => 'DeadCell $deadCell' + ' DateTime: $dateTime';
+}
+
+///get month list between date
+List<Month> getMonthRange(DateTime first, DateTime second) {
+  DateTime date1 = first;
+  final DateTime date2 = second;
+  final List<Month> tempList = <Month>[];
+  while (date1.isBefore(date2)) {
+    tempList.add(Month(
+        month: date1.month,
+        startDay: 1,
+        endDay: DateTime(date1.year, date1.month + 1)
+            .subtract(const Duration(days: 1))
+            .day,
+        monthName: DateFormat('M').format(date1),
+        year: date1.year));
+    date1 = DateTime(date1.year, date1.month + 1);
+  }
+  log(tempList.toString());
+
+  return tempList;
+}
+
+///return the dates from the list depends on the current month
+List<CalendarDay> getDatesForCurrentView(
+    Month month, List<Month> months, List<CalendarDay> dateRange) {
+  int skip = 0;
+  final List<Month> previousMonth = months
+      .where((Month element) =>
+          element.month < month.month && element.year <= month.year)
+      .toList();
+
+  for (final Month i in previousMonth) {
+    skip = skip + i.endDay;
+  }
+
+  final List<CalendarDay> tempDate =
+      dateRange.skip(skip).take(month.endDay).toList();
+  if (tempDate.first.dateTime.weekday == 1) {
+    final int diff = 35 - month.endDay;
+
+    final List<CalendarDay> temList =
+        dateRange.skip(skip + month.endDay).take(diff).toList();
+    if (temList.length < diff) {
+    } else {
+      for (int i = 1; i < diff + 1; i++) {
+        tempDate.add(CalendarDay(
+            dateTime: tempDate.last.dateTime.add(Duration(days: i)),
+            deadCell: true));
+      }
+    }
+
+    return tempDate;
+  } else {
+    return dateRange
+        .skip(skip - tempDate.first.dateTime.weekday)
+        .take(45)
+        .toList();
+  }
 }
