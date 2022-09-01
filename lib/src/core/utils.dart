@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
@@ -362,4 +364,98 @@ bool isSlotAvlForSingleDay(List<CalendarEvent<dynamic>> myEvents,
 
     return false;
   }
+}
+
+
+
+///get month list between date
+List<Month> getMonthRange(DateTime first, DateTime second) {
+  DateTime date1 = first;
+  final DateTime date2 = second;
+  final List<Month> tempList = <Month>[];
+  while (date1.isBefore(date2)) {
+    tempList.add(Month(
+        month: date1.month,
+        startDay: 1,
+        endDay: DateTime(date1.year, date1.month + 1)
+            .subtract(const Duration(days: 1))
+            .day,
+        monthName: DateFormat('M').format(date1),
+        year: date1.year));
+    date1 = DateTime(date1.year, date1.month + 1);
+  }
+  log(tempList.toString());
+
+  return tempList;
+}
+
+///return the dates from the list depends on the current month
+List<CalendarDay> getDatesForCurrentView(
+    Month month, List<Month> months, List<CalendarDay> dateRange) {
+  int skip = 0;
+  final List<Month> previousMonth = months
+      .where((Month element) =>
+          element.month < month.month && element.year <= month.year)
+      .toList();
+
+  for (final Month i in previousMonth) {
+    skip = skip + i.endDay;
+  }
+
+  final List<CalendarDay> tempDate =
+      dateRange.skip(skip).take(month.endDay).toList();
+  if (tempDate.first.dateTime.weekday == 1) {
+    final int diff = 35 - month.endDay;
+
+    final List<CalendarDay> temList =
+        dateRange.skip(skip + month.endDay).take(diff).toList();
+    if (temList.length < diff) {
+      for (final CalendarDay element in temList) {
+        tempDate.add(CalendarDay(dateTime: element.dateTime, deadCell: true));
+      }
+      final int newDif = diff - temList.length;
+      for (int i = 1; i < newDif + 1; i++) {
+        tempDate.add(CalendarDay(
+            dateTime: tempDate.last.dateTime.add(const Duration(days: 1)),
+            deadCell: true));
+      }
+    } else {
+      for (final CalendarDay element in temList) {
+        tempDate.add(CalendarDay(dateTime: element.dateTime, deadCell: true));
+      }
+    }
+
+    return tempDate;
+  } else {
+    final int negativeDiff = 7 - tempDate.first.dateTime.weekday;
+
+    for (int i = 1; i <= negativeDiff; i++) {
+      tempDate.insert(
+          0,
+          CalendarDay(
+              dateTime:
+                  tempDate.first.dateTime.subtract(const Duration(days: 1)),
+              deadCell: true));
+    }
+    final int diff = 35 - tempDate.length;
+
+    final List<CalendarDay> temList =
+        dateRange.skip(skip + month.endDay).take(diff).toList();
+    if (temList.length < diff) {
+      for (final CalendarDay element in temList) {
+        tempDate.add(CalendarDay(dateTime: element.dateTime, deadCell: true));
+      }
+      final int newDif = diff - temList.length;
+      for (int i = 1; i < newDif + 1; i++) {
+        tempDate.add(CalendarDay(
+            dateTime: tempDate.last.dateTime.add(const Duration(days: 1)),
+            deadCell: true));
+      }
+    } else {
+      for (final CalendarDay element in temList) {
+        tempDate.add(CalendarDay(dateTime: element.dateTime, deadCell: true));
+      }
+    }
+  }
+  return tempDate;
 }

@@ -16,6 +16,7 @@ class DayCell<T> extends StatelessWidget {
     required this.onAcceptWithDetails,
     required this.calendarDay,
     required this.deadCellBuilder,
+    this.dateBuilder,
     this.isDragable = false,
     this.events,
     this.itemBuilder,
@@ -93,6 +94,9 @@ class DayCell<T> extends StatelessWidget {
   ///calendar day
   final CalendarDay calendarDay;
 
+  /// Renders upper right corner of the timetable cell
+  final Widget Function(DateTime current)? dateBuilder;
+
   /// Renders upper left corner of the timetable given the first visible date
   final Widget Function(DateTime current) deadCellBuilder;
   @override
@@ -149,42 +153,64 @@ class DayCell<T> extends StatelessWidget {
                 onLeave: (CalendarEvent<T>? value) {},
                 onMove: (DragTargetDetails<CalendarEvent<T>> value) {},
               )
-            : SizedBox(
+            : Container(
+                color: Colors.transparent,
                 width: columnWidth,
                 height: cellHeight,
                 child: Stack(
                   children: <Widget>[
                     Positioned(
-                        top: 6,
-                        right: 6,
-                        child: Text(
-                          dateTime.day.toString(),
-                          style: TextStyle(
-                              color: calendarDay.deadCell
-                                  ? Colors.red
-                                  : Colors.black),
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: Column(
+                          children: <Widget>[
+                            calendarDay.deadCell
+                                ? deadCellBuilder(dateTime)
+                                : const SizedBox.shrink(),
+                          ],
                         )),
+                    dateBuilder == null
+                        ? Positioned(
+                            top: 12,
+                            right: 12,
+                            child: Text(
+                              dateTime.day.toString(),
+                              style: TextStyle(
+                                  color: calendarDay.deadCell
+                                      ? Colors.grey
+                                      : Colors.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700),
+                            ))
+                        : Positioned(
+                            top: 0,
+                            right: 0,
+                            left: 0,
+                            bottom: 0,
+                            child: dateBuilder!(dateTime)),
                     GestureDetector(
                       onTap: () {
                         appLog('onTap');
                         onTap!(dateTime, period, null);
                       },
                       child: Center(
-                        child: calendarDay.deadCell
-                            ? deadCellBuilder(calendarDay.dateTime)
-                            : cellBuilder != null
-                                ? cellBuilder!(period)
-                                : Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: Theme.of(context).dividerColor,
-                                        width: 0.5,
-                                      ),
-                                    ),
+                        child: cellBuilder != null
+                            ? cellBuilder!(period)
+                            : Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 0.5,
                                   ),
+                                ),
+                              ),
                       ),
                     ),
-                    Positioned(child: itemBuilder!(events!))
+                    calendarDay.deadCell
+                        ? const SizedBox.shrink()
+                        : Positioned(child: itemBuilder!(events!))
                   ],
                 )),
       );

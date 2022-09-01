@@ -8,11 +8,11 @@ import 'package:sl_planner_calendar/src/widgets/day_cell.dart';
 
 import '../core/app_log.dart';
 
-/// The [SlMonthView] widget displays calendar like view of the events
+/// The [SlTermView] widget displays calendar like view of the events
 /// that scrolls
-class SlMonthView<T> extends StatefulWidget {
+class SlTermView<T> extends StatefulWidget {
   ///
-  const SlMonthView({
+  const SlTermView({
     required this.timelines,
     required this.onWillAccept,
     required this.onMonthChanged,
@@ -21,6 +21,7 @@ class SlMonthView<T> extends StatefulWidget {
     this.controller,
     this.cellBuilder,
     this.headerCellBuilder,
+    this.dateBuilder,
     // ignore: always_specify_types
     this.items = const [],
     this.itemBuilder,
@@ -58,6 +59,9 @@ class SlMonthView<T> extends StatefulWidget {
   /// Renders upper left corner of the timetable given the first visible date
   final Widget Function(DateTime current)? deadCellBuilder;
 
+  /// Renders upper right corner of the timetable cell
+  final Widget Function(DateTime current)? dateBuilder;
+
   /// Snap to hour column. Default is `true`.
   final bool snapToDay;
 
@@ -86,7 +90,7 @@ class SlMonthView<T> extends StatefulWidget {
   ///onTap callback
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
-  /// The [SlMonthView] widget displays calendar like view
+  /// The [SlTermView] widget displays calendar like view
   /// of the events that scrolls
 
   /// list of the timeline
@@ -108,10 +112,10 @@ class SlMonthView<T> extends StatefulWidget {
   final Function(CalendarEvent<T>, DateTime, Period) onWillAccept;
 
   @override
-  State<SlMonthView<T>> createState() => _SlMonthViewState<T>();
+  State<SlTermView<T>> createState() => _SlTermViewState<T>();
 }
 
-class _SlMonthViewState<T> extends State<SlMonthView<T>> {
+class _SlTermViewState<T> extends State<SlTermView<T>> {
   double columnWidth = 50;
   TimetableController controller = TimetableController();
   final GlobalKey<State<StatefulWidget>> _key = GlobalKey();
@@ -121,7 +125,6 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
   int? _listenerId;
 
   List<CalendarDay> dateRange = <CalendarDay>[];
-  List<Month> monthRange = <Month>[];
   PageController pageController = PageController();
 
   @override
@@ -140,7 +143,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
   ///get initial list of dates
   void initDate() {
     log('Setting dates in month view');
-    final int diff = controller.end.difference(controller.start).inDays;
+    final int diff = controller.end.difference(controller.start).inDays+1;
     dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
@@ -153,31 +156,38 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
         }
       }
     }
-    monthRange = getMonthRange(controller.start, controller.end);
     dateForHeader = dateRange[0].dateTime;
+    addPaddingDate();
     setState(() {});
     controller.jumpTo(DateTime.now());
   }
 
-  ///get data range
-  List<DateTime> getDateRange() {
-    final List<DateTime> tempDateRange = <DateTime>[];
-    appLog('Setting dates');
-    final int diff = controller.end.difference(controller.start).inDays;
-    dateRange.clear();
-    for (int i = 0; i < diff; i++) {
-      final DateTime date = controller.start.add(Duration(days: i));
-      if (widget.fullWeek) {
-        dateRange.add(CalendarDay(dateTime: date));
-      } else {
-        if (date.weekday > 5) {
-        } else {
-          dateRange.add(CalendarDay(dateTime: date));
-        }
+  void addPaddingDate() {
+    final DateTime firstDay = dateRange.first.dateTime;
+    if (firstDay.weekday == 1) {
+      log('first day is monday');
+    } else {
+      final int diff = 7 - firstDay.weekday;
+
+      for (int i = 1; i <= diff; i++) {
+        dateRange.insert(
+            0,
+            CalendarDay(
+                deadCell: true,
+                dateTime: firstDay.subtract(Duration(days: i))));
       }
     }
+    final DateTime lastDay = dateRange.last.dateTime;
+    if (lastDay.weekday == 7) {
+      log('lasy day is sunday');
+    } else {
+      final int diff = 7 - lastDay.weekday;
 
-    return tempDateRange;
+      for (int i = 1; i <= diff; i++) {
+        dateRange.add(CalendarDay(
+            deadCell: true, dateTime: lastDay.add(Duration(days: i))));
+      }
+    }
   }
 
   ///return count of periods and break that are overlapping
@@ -281,9 +291,11 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
       key: _key,
       builder: (BuildContext context, BoxConstraints constraints) {
         final Size size = constraints.biggest;
-        final double columnHeight = (size.height) / 4;
-        final double aspectRation = columnWidth / columnHeight;
-        log('aspect ratio $aspectRation');
+
+        final double cw = size.width / 7;
+        final double columnHeight = (size.height - controller.headerHeight) / 7;
+        final double aspectRatio = cw / columnHeight;
+        log('aspect ratio $aspectRatio');
         return SizedBox(
           height: getTimelineHeight(
               widget.timelines, controller.cellHeight, controller.breakHeight),
@@ -302,67 +314,43 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                         )),
               ),
               SizedBox(
-                height: size.height - controller.headerHeight,
-                child: PageView.builder(
-                    // cacheExtent: 10000.0,
-                    controller: pageController,
-                    padEnds: false,
-                    // physics: widget.isSwipeEnable
-                    //     ? const AlwaysScrollableScrollPhysics()
-                    //     : const NeverScrollableScrollPhysics(),
-                    onPageChanged: (int value) {
-                      dateForHeader = dateRange[value].dateTime;
-                      setState(() {});
-                      widget.onMonthChanged(monthRange[value]);
-                    },
-                    itemCount: monthRange.length,
-                    // itemExtent: size.width - controller.timelineWidth,
-                    // controller: _dayScrollController,
+                  height: size.height - controller.headerHeight,
+                  child: GridView.builder(
+                    itemCount: dateRange.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        childAspectRatio: aspectRatio, crossAxisCount: 7),
                     itemBuilder: (BuildContext context, int index) {
-                      final Month month = monthRange[index];
-                      final List<CalendarDay> dates =
-                          getDatesForCurrentView(month, monthRange, dateRange);
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        itemCount: 35,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            childAspectRatio: aspectRation, crossAxisCount: 7),
-                        itemBuilder: (BuildContext context, int index) {
-                          final DateTime dateTime = dates[index].dateTime;
-                          final List<CalendarEvent<T>> events = widget.items
-                              .where((CalendarEvent<T> event) =>
-                                  DateUtils.isSameDay(
-                                      dateTime, event.startTime))
-                              .toList();
-                          return DayCell<T>(
-                              calendarDay: dates[index],
-                              columnWidth: columnWidth,
-                              deadCellBuilder: widget.deadCellBuilder!,
-                              itemBuilder: (List<CalendarEvent<T>> dayEvents) =>
-                                  widget.itemBuilder!(dayEvents,
-                                      Size(columnWidth, columnHeight)),
-                              events: events,
-                              period: Period(
-                                  endTime:
-                                      const TimeOfDay(hour: 12, minute: 00),
-                                  title: 'asdasd',
-                                  startTime:
-                                      const TimeOfDay(hour: 11, minute: 00)),
-                              breakHeight: controller.breakHeight,
-                              cellHeight: controller.cellHeight,
-                              dateTime: dateTime,
-                              onTap: (DateTime date, Period period,
-                                  CalendarEvent<Object?>? event) {},
-                              onWillAccept: (CalendarEvent<Object?> event,
-                                      Period period) =>
+                      final DateTime dateTime = dateRange[index].dateTime;
+                      final List<CalendarEvent<T>> events = widget.items
+                          .where((CalendarEvent<T> event) =>
+                              DateUtils.isSameDay(dateTime, event.startTime))
+                          .toList();
+                      return DayCell<T>(
+                          calendarDay: dateRange[index],
+                          columnWidth: columnWidth,
+                          dateBuilder: widget.dateBuilder,
+                          deadCellBuilder: widget.deadCellBuilder!,
+                          itemBuilder: (List<CalendarEvent<T>> dayEvents) =>
+                              widget.itemBuilder!(
+                                  dayEvents, Size(cw, columnHeight)),
+                          events: events,
+                          period: Period(
+                              endTime: const TimeOfDay(hour: 12, minute: 00),
+                              title: 'asdasd',
+                              startTime: const TimeOfDay(hour: 11, minute: 00)),
+                          breakHeight: controller.breakHeight,
+                          cellHeight: controller.cellHeight,
+                          dateTime: dateTime,
+                          onTap: (DateTime date, Period period,
+                              CalendarEvent<Object?>? event) {},
+                          onWillAccept:
+                              (CalendarEvent<Object?> event, Period period) =>
                                   true,
-                              onAcceptWithDetails:
-                                  (DragTargetDetails<CalendarEvent<Object?>>
-                                      event) {});
-                        },
-                      );
-                    }),
-              ),
+                          onAcceptWithDetails:
+                              (DragTargetDetails<CalendarEvent<Object?>>
+                                  event) {});
+                    },
+                  )),
             ],
           ),
         );
@@ -406,16 +394,6 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
 
   ///jump to current date
   Future<dynamic> _jumpTo(DateTime date) async {
-    return true;
-    if (pageController.hasClients) {
-      final Iterable<Month> tempMonths = monthRange.where((Month element) =>
-          element.year == date.year && element.month == date.month);
-      if (tempMonths.isEmpty) {
-      } else {
-        await pageController.animateToPage(monthRange.indexOf(tempMonths.first),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut);
-      }
-    }
+    if (pageController.hasClients) {}
   }
 }
