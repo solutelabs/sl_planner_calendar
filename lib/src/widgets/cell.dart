@@ -55,7 +55,7 @@ class TimeTableCell<T> extends StatelessWidget {
   /// Called when a piece of data enters the target. This will be followed by
   /// either [onAccept] and [onAcceptWithDetails], if the data is dropped, or
   /// [onLeave], if the drag leaves the target.
-  final Function(CalendarEvent<T>, Period) onWillAccept;
+  final bool Function(CalendarEvent<T>, Period) onWillAccept;
 
   /// Called when an acceptable piece of data was dropped over this drag target.
   ///

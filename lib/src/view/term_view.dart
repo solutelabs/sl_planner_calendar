@@ -88,7 +88,10 @@ class SlTermView<T> extends StatefulWidget {
   final double headerHeight;
 
   ///onTap callback
-  final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
+  final Function(DateTime dateTime)? onTap;
+
+  // ///OnEventCellTap callback
+  // final Function(DateTime dateTime, List<CalendarEvent<T>>)? onEventsTap;
 
   /// The [SlTermView] widget displays calendar like view
   /// of the events that scrolls
@@ -143,7 +146,7 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
   ///get initial list of dates
   void initDate() {
     log('Setting dates in month view');
-    final int diff = controller.end.difference(controller.start).inDays+1;
+    final int diff = controller.end.difference(controller.start).inDays + 1;
     dateRange.clear();
     for (int i = 0; i < diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
@@ -156,38 +159,11 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
         }
       }
     }
+
+    dateRange = addPaddingDate(dateRange);
     dateForHeader = dateRange[0].dateTime;
-    addPaddingDate();
     setState(() {});
     controller.jumpTo(DateTime.now());
-  }
-
-  void addPaddingDate() {
-    final DateTime firstDay = dateRange.first.dateTime;
-    if (firstDay.weekday == 1) {
-      log('first day is monday');
-    } else {
-      final int diff = 7 - firstDay.weekday;
-
-      for (int i = 1; i <= diff; i++) {
-        dateRange.insert(
-            0,
-            CalendarDay(
-                deadCell: true,
-                dateTime: firstDay.subtract(Duration(days: i))));
-      }
-    }
-    final DateTime lastDay = dateRange.last.dateTime;
-    if (lastDay.weekday == 7) {
-      log('lasy day is sunday');
-    } else {
-      final int diff = 7 - lastDay.weekday;
-
-      for (int i = 1; i <= diff; i++) {
-        dateRange.add(CalendarDay(
-            deadCell: true, dateTime: lastDay.add(Duration(days: i))));
-      }
-    }
   }
 
   ///return count of periods and break that are overlapping
@@ -294,8 +270,7 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
 
         final double cw = size.width / 7;
         final double columnHeight = (size.height - controller.headerHeight) / 7;
-        final double aspectRatio = cw / columnHeight;
-        log('aspect ratio $aspectRatio');
+        final double aspectRatio = cw / columnHeight; 
         return SizedBox(
           height: getTimelineHeight(
               widget.timelines, controller.cellHeight, controller.breakHeight),
@@ -334,15 +309,14 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
                               widget.itemBuilder!(
                                   dayEvents, Size(cw, columnHeight)),
                           events: events,
-                          period: Period(
-                              endTime: const TimeOfDay(hour: 12, minute: 00),
-                              title: 'asdasd',
-                              startTime: const TimeOfDay(hour: 11, minute: 00)),
                           breakHeight: controller.breakHeight,
                           cellHeight: controller.cellHeight,
                           dateTime: dateTime,
-                          onTap: (DateTime date, Period period,
-                              CalendarEvent<Object?>? event) {},
+                          onTap: (DateTime date) {
+                            if (widget.onTap != null) {
+                              widget.onTap!(date);
+                            }
+                          },
                           onWillAccept:
                               (CalendarEvent<Object?> event, Period period) =>
                                   true,

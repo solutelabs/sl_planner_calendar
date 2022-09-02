@@ -7,7 +7,6 @@ class DayCell<T> extends StatelessWidget {
   ///
   const DayCell({
     required this.columnWidth,
-    required this.period,
     required this.breakHeight,
     required this.cellHeight,
     required this.dateTime,
@@ -29,13 +28,10 @@ class DayCell<T> extends StatelessWidget {
 
   /// Renders for the cells the represent each hour that provides
   /// that [DateTime] for that hour
-  final Widget Function(Period)? cellBuilder;
+  final Widget Function(DateTime)? cellBuilder;
 
   ///column Width
   final double columnWidth;
-
-  ///period
-  final Period period;
 
   ///DateTime date
   final DateTime dateTime;
@@ -47,7 +43,7 @@ class DayCell<T> extends StatelessWidget {
   final double cellHeight;
 
   ///onTap callback function
-  final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
+  final Function(DateTime dateTime)? onTap;
 
   /// Called when an acceptable piece of data was dropped over this drag target.
   ///
@@ -103,7 +99,9 @@ class DayCell<T> extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
         onTap: () {
           appLog('OnTap');
-          onTap!(dateTime, period, null);
+          if (onTap != null) {
+            onTap!(dateTime);
+          }
         },
         child: isDragable
             ? DragTarget<CalendarEvent<T>>(
@@ -114,30 +112,24 @@ class DayCell<T> extends StatelessWidget {
                 ) =>
                     SizedBox(
                   width: columnWidth,
-                  height: period.isBreak ? breakHeight : cellHeight,
+                  height: cellHeight,
                   child: Stack(
                     children: <Widget>[
                       Positioned(
                           top: 6,
                           right: 6,
                           child: Text(dateTime.day.toString())),
-                      GestureDetector(
-                        onTap: () {
-                          appLog('onTap');
-                          onTap!(dateTime, period, null);
-                        },
-                        child: Center(
-                          child: cellBuilder != null
-                              ? cellBuilder!(period)
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Theme.of(context).dividerColor,
-                                      width: 0.5,
-                                    ),
+                      Center(
+                        child: cellBuilder != null
+                            ? cellBuilder!(dateTime)
+                            : Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 0.5,
                                   ),
                                 ),
-                        ),
+                              ),
                       ),
                     ],
                   ),
@@ -145,7 +137,8 @@ class DayCell<T> extends StatelessWidget {
                 onAcceptWithDetails: onAcceptWithDetails,
                 onWillAccept: (CalendarEvent<T>? data) {
                   appLog('Cell  Dragged:${data!.toMap}');
-                  return onWillAccept(data, period);
+                  // return onWillAccept(data, period);
+                  return true;
                 },
                 onAccept: (CalendarEvent<T> data) {
                   appLog(data.toMap.toString());
@@ -190,23 +183,17 @@ class DayCell<T> extends StatelessWidget {
                             left: 0,
                             bottom: 0,
                             child: dateBuilder!(dateTime)),
-                    GestureDetector(
-                      onTap: () {
-                        appLog('onTap');
-                        onTap!(dateTime, period, null);
-                      },
-                      child: Center(
-                        child: cellBuilder != null
-                            ? cellBuilder!(period)
-                            : Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 0.5,
-                                  ),
+                    Center(
+                      child: cellBuilder != null
+                          ? cellBuilder!(dateTime)
+                          : Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Theme.of(context).dividerColor,
+                                  width: 0.5,
                                 ),
                               ),
-                      ),
+                            ),
                     ),
                     calendarDay.deadCell
                         ? const SizedBox.shrink()

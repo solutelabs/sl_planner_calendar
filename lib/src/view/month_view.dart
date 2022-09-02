@@ -84,7 +84,7 @@ class SlMonthView<T> extends StatefulWidget {
   final double headerHeight;
 
   ///onTap callback
-  final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
+  final Function(DateTime dateTime)? onTap;
 
   /// The [SlMonthView] widget displays calendar like view
   /// of the events that scrolls
@@ -281,9 +281,10 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
       key: _key,
       builder: (BuildContext context, BoxConstraints constraints) {
         final Size size = constraints.biggest;
-        final double columnHeight = (size.height) / 4;
-        final double aspectRation = columnWidth / columnHeight;
-        log('aspect ratio $aspectRation');
+        final double cw = size.width / 7;
+        final double columnHeight = (size.height - controller.headerHeight) / 5;
+        final double aspectRatio = cw / columnHeight;
+
         return SizedBox(
           height: getTimelineHeight(
               widget.timelines, controller.cellHeight, controller.breakHeight),
@@ -320,13 +321,14 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                     // controller: _dayScrollController,
                     itemBuilder: (BuildContext context, int index) {
                       final Month month = monthRange[index];
-                      final List<CalendarDay> dates =
-                          getDatesForCurrentView(month, monthRange, dateRange);
+                      List<CalendarDay> dates =
+                          getDatesForMonth(month, monthRange, dateRange);
+                      dates = addPaddingDate(dates);
                       return GridView.builder(
                         shrinkWrap: true,
                         itemCount: 35,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            childAspectRatio: aspectRation, crossAxisCount: 7),
+                            childAspectRatio: aspectRatio, crossAxisCount: 7),
                         itemBuilder: (BuildContext context, int index) {
                           final DateTime dateTime = dates[index].dateTime;
                           final List<CalendarEvent<T>> events = widget.items
@@ -342,17 +344,14 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                                   widget.itemBuilder!(dayEvents,
                                       Size(columnWidth, columnHeight)),
                               events: events,
-                              period: Period(
-                                  endTime:
-                                      const TimeOfDay(hour: 12, minute: 00),
-                                  title: 'asdasd',
-                                  startTime:
-                                      const TimeOfDay(hour: 11, minute: 00)),
                               breakHeight: controller.breakHeight,
                               cellHeight: controller.cellHeight,
                               dateTime: dateTime,
-                              onTap: (DateTime date, Period period,
-                                  CalendarEvent<Object?>? event) {},
+                              onTap: (DateTime date) {
+                                if (widget.onTap != null) {
+                                  widget.onTap!(date);
+                                }
+                              },
                               onWillAccept: (CalendarEvent<Object?> event,
                                       Period period) =>
                                   true,
@@ -405,17 +404,5 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
   // }
 
   ///jump to current date
-  Future<dynamic> _jumpTo(DateTime date) async {
-    return true;
-    if (pageController.hasClients) {
-      final Iterable<Month> tempMonths = monthRange.where((Month element) =>
-          element.year == date.year && element.month == date.month);
-      if (tempMonths.isEmpty) {
-      } else {
-        await pageController.animateToPage(monthRange.indexOf(tempMonths.first),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut);
-      }
-    }
-  }
+  Future<dynamic> _jumpTo(DateTime date) async => true;
 }

@@ -366,8 +366,6 @@ bool isSlotAvlForSingleDay(List<CalendarEvent<dynamic>> myEvents,
   }
 }
 
-
-
 ///get month list between date
 List<Month> getMonthRange(DateTime first, DateTime second) {
   DateTime date1 = first;
@@ -387,6 +385,22 @@ List<Month> getMonthRange(DateTime first, DateTime second) {
   log(tempList.toString());
 
   return tempList;
+}
+///get dates for current month 
+
+List<CalendarDay> getDatesForMonth(
+    Month month, List<Month> months, List<CalendarDay> dateRange) {
+  int skip = 0;
+  final List<Month> previousMonth = months
+      .where((Month element) =>
+          element.month < month.month && element.year <= month.year)
+      .toList();
+
+  for (final Month i in previousMonth) {
+    skip = skip + i.endDay;
+  }
+
+  return dateRange.skip(skip).take(month.endDay).toList();
 }
 
 ///return the dates from the list depends on the current month
@@ -458,4 +472,37 @@ List<CalendarDay> getDatesForCurrentView(
     }
   }
   return tempDate;
+}
+
+///add extra date at start end end
+
+List<CalendarDay> addPaddingDate(List<CalendarDay> myDateRange) {
+  final List<CalendarDay> dateRange = myDateRange;
+  final DateTime firstDay = dateRange.first.dateTime;
+  if (firstDay.weekday == 1) {
+    log('first day is monday');
+  } else {
+    log('First day is${firstDay.weekday}');
+    final int diff = 7 - firstDay.weekday;
+    log('Negative diff is $diff');
+
+    for (int i = 1; i < firstDay.weekday; i++) {
+      dateRange.insert(
+          0,
+          CalendarDay(
+              deadCell: true, dateTime: firstDay.subtract(Duration(days: i))));
+    }
+  }
+  final DateTime lastDay = dateRange.last.dateTime;
+  if (lastDay.weekday == 7) {
+    log('lasy day is sunday');
+  } else {
+    final int diff = 7 - lastDay.weekday;
+
+    for (int i = 1; i <= diff; i++) {
+      dateRange.add(CalendarDay(
+          deadCell: true, dateTime: lastDay.add(Duration(days: i))));
+    }
+  }
+  return dateRange;
 }

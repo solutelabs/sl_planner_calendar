@@ -390,8 +390,8 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                           TimeTableCell<T>(
                                               columnWidth: columnWidth,
                                               period: period,
-                                              breakHeight:
-                                                  controller.breakHeight,
+                                              breakHeight: controller
+                                                  .breakHeight,
                                               cellHeight: controller.cellHeight,
                                               dateTime: date,
                                               onTap: (DateTime dateTime,
@@ -437,7 +437,8 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                               onWillAccept:
                                                   (CalendarEvent<T>? data,
                                                           Period period) =>
-                                                      widget.onWillAccept)
+                                                      widget.onWillAccept(
+                                                          data!, period))
                                       ],
                                     ),
                                     for (final CalendarEvent<T> event in events)
@@ -483,7 +484,7 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                                 details.data, myEvents);
                                           },
                                           onWillAccept:
-                                              (CalendarEvent<T>? data) => true,
+                                              (CalendarEvent<T>? data) => false,
                                           columnWidth: columnWidth,
                                           event: event,
                                           itemBuilder: widget.itemBuilder,
