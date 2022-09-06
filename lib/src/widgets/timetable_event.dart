@@ -77,6 +77,7 @@ class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
                   itemBuilder: widget.itemBuilder)),
           childWhenDragging: Container(
               decoration: BoxDecoration(
+                  color: Colors.transparent,
                   border: Border.all(width: 2, color: Colors.transparent),
                   borderRadius: BorderRadius.circular(6))),
           child: BuildEvent<T>(
@@ -120,7 +121,6 @@ class BuildEvent<T> extends StatelessWidget {
       ? itemBuilder!(event)
       : Container(
           width: columnWidth,
-          padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),

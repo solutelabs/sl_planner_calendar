@@ -9,16 +9,17 @@ class SlScheduleView<T> extends StatefulWidget {
   const SlScheduleView({
     required this.timelines,
     required this.onWillAccept,
+    required this.cellBuilder,
     Key? key,
     this.onEventDragged,
     this.controller,
-    this.cellBuilder,
     this.headerCellBuilder,
     // ignore: always_specify_types
     this.items = const [],
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
+    this.cellHeight = 51,
     this.hourLabelBuilder,
     this.nowIndicatorColor,
     this.showNowIndicator = true,
@@ -32,7 +33,7 @@ class SlScheduleView<T> extends StatefulWidget {
 
   /// Renders for the cells the represent each hour that provides
   /// that [DateTime] for that hour
-  final Widget Function(Period)? cellBuilder;
+  final Widget Function(DateTime) cellBuilder;
 
   /// Renders for the header that provides the [DateTime] for the day
   final Widget Function(DateTime)? headerCellBuilder;
@@ -67,8 +68,11 @@ class SlScheduleView<T> extends StatefulWidget {
   /// height  of the header
   final double headerHeight;
 
+  ///height of the single event or cell
+  final double cellHeight;
+
   ///onTap callback
-  final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
+  final Function(DateTime dateTime, List<CalendarEvent<T>>?)? onTap;
 
   /// The [SlScheduleView] widget displays calendar like view
   /// of the events that scrolls
@@ -272,18 +276,36 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
                       DateUtils.isSameDay(date, event.startTime))
                   .toList();
               return ListTile(
+                onTap: () {
+                  if (widget.onTap != null) {
+                    widget.onTap!(date, events);
+                  }
+                },
                 leading: widget.headerCellBuilder!(date),
-                title: Column(
-                    children: events
-                        .map((CalendarEvent<T> e) => widget.itemBuilder!(e))
-                        .toList()),
+                title: events.isEmpty
+                    ? DragTarget<CalendarEvent<T>>(
+                        onWillAccept: (Object? data) => true,
+                        builder: (BuildContext conterx, List<Object?> obj,
+                                List<dynamic> data) =>
+                            widget.cellBuilder(date))
+                    : Column(
+                        children: events
+                            .map((CalendarEvent<T> e) =>
+                                Draggable<CalendarEvent<T>>(
+                                    ignoringFeedbackSemantics: false,
+                                    data: e,
+                                    childWhenDragging: widget.cellBuilder(date),
+                                    feedback:
+                                        Material(child: widget.itemBuilder!(e)),
+                                    child: widget.itemBuilder!(e)))
+                            .toList()),
               );
             });
       });
 
   // bool _isSnapping = false;
   final Duration _animationDuration = const Duration(milliseconds: 300);
-  final Curve _animationCurve = Curves.bounceOut;
+  final Curve _animationCurve = Curves.linear;
 
   // Future<dynamic> _snapToCloset() async {
   //   if (_isSnapping || !widget.snapToDay) {
@@ -313,10 +335,13 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
   // }
 
   Future<dynamic> _jumpTo(DateTime date) async {
-    final double datePosition =
-        (date.difference(controller.start).inDays) * columnWidth;
-    // final double hourPosition =
-    //     ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
+    final int index = dateRange.indexOf(dateRange.firstWhere(
+        (DateTime element) =>
+            element.year == date.year &&
+            element.month == date.month &&
+            element.day == date.day));
+    final double datePosition = 65.0 + 3 * (index + 1);
+
     await Future.wait<void>(<Future<void>>[
       _dayScrollController.animateTo(
         datePosition,

@@ -48,7 +48,7 @@ class WeekView<T> extends StatefulWidget {
   final List<CalendarEvent<T>> items;
 
   /// Renders event card from `TimetableItem<T>` for each item
-  final Widget Function(CalendarEvent<T>)? itemBuilder;
+  final Widget Function(CalendarEvent<T>, double width)? itemBuilder;
 
   /// Renders hour label given [TimeOfDay] for each hour
   final Widget Function(Period period)? hourLabelBuilder;
@@ -84,7 +84,8 @@ class WeekView<T> extends StatefulWidget {
   final List<Period> timelines;
 
   ///return new and okd event
-  final Function(CalendarEvent<T> old, CalendarEvent<T> newEvent)?
+  final Function(
+          CalendarEvent<T> old, CalendarEvent<T> newEvent, Period period)?
       onEventDragged;
 
   /// Called to determine whether this widget is interested in receiving a given
@@ -280,6 +281,7 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                 children: <Widget>[
                   CornerCell(
                       controller: controller,
+                      cornerBuilder: widget.cornerBuilder,
                       headerHeight: widget.headerHeight),
                   Expanded(
                     child: NotificationListener<ScrollNotification>(
@@ -390,6 +392,7 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                           TimeTableCell<T>(
                                               columnWidth: columnWidth,
                                               period: period,
+                                              cellBuilder: widget.cellBuilder,
                                               breakHeight: controller
                                                   .breakHeight,
                                               cellHeight: controller.cellHeight,
@@ -432,7 +435,9 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                                             event.eventData);
 
                                                 widget.onEventDragged!(
-                                                    details.data, newEvent);
+                                                    details.data,
+                                                    newEvent,
+                                                    period);
                                               },
                                               onWillAccept:
                                                   (CalendarEvent<T>? data,
@@ -480,14 +485,16 @@ class _WeekViewState<T> extends State<WeekView<T>> {
                                             myEvents
                                               ..startTime = newStartTime
                                               ..endTime = newEndTime;
-                                            widget.onEventDragged!(
-                                                details.data, myEvents);
+                                            // widget.onEventDragged!(
+                                            //     details.data, myEvents);
                                           },
                                           onWillAccept:
                                               (CalendarEvent<T>? data) => false,
                                           columnWidth: columnWidth,
                                           event: event,
-                                          itemBuilder: widget.itemBuilder,
+                                          itemBuilder: (CalendarEvent<T> p0) =>
+                                              widget.itemBuilder!(
+                                                  p0, columnWidth),
                                         ),
                                       ),
                                     if (widget.showNowIndicator && isToday)
@@ -523,7 +530,7 @@ class _WeekViewState<T> extends State<WeekView<T>> {
 
   bool _isSnapping = false;
   final Duration _animationDuration = const Duration(milliseconds: 300);
-  final Curve _animationCurve = Curves.bounceOut;
+  final Curve _animationCurve = Curves.linearToEaseOut;
 
   Future<dynamic> _snapToCloset() async {
     if (_isSnapping || !widget.snapToDay) {

@@ -2,9 +2,7 @@ import 'dart:developer';
 import 'package:example/core/utils.dart';
 import 'package:example/features/calendar/data/event_model.dart';
 import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
-import 'package:example/features/calendar/presentation/pages/add_plan.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -100,7 +98,7 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
   }
 
   DateTime currentMonth = DateTime.now();
-
+  static double cellHeight = 51;
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
 
   @override
@@ -161,21 +159,9 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                   items: state is LoadedState
                       ? state.events
                       : <CalendarEvent<Event>>[],
-                  onTap: (DateTime date, Period period,
-                      CalendarEvent<Event>? event) {
-                    log(date.toString());
-                    log(period.toMap.toString());
-                    log(event.toString());
-
-                    Navigator.push<Widget>(
-                        context,
-                        CupertinoPageRoute<Widget>(
-                            builder: (BuildContext context) => AddPlan(
-                                  date: date,
-                                  periods: customPeriods,
-                                  period: period,
-                                  timetableItem: event,
-                                )));
+                  onTap: (DateTime dateTime, List<CalendarEvent<Event>>? p1) {
+                    log(dateTime.toString());
+                    log(p1.toString());
                   },
                   headerHeight: widget.isMobile ? 38 : 40,
                   headerCellBuilder: (DateTime date) =>
@@ -318,19 +304,16 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                       ],
                     ),
                   ),
-                  cellBuilder: (Period period) => Container(
-                    height: period.isBreak
-                        ? simpleController.breakHeight
-                        : simpleController.cellHeight,
+                  cellBuilder: (DateTime period) => Container(
+                    height: cellHeight,
                     decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Colors.grey.withOpacity(0.5), width: 0.5),
-                        color: period.isBreak
-                            ? Colors.grey.withOpacity(0.2)
-                            : Colors.transparent),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.5), width: 0.5),
+                      color: Colors.grey.withOpacity(0.2),
+                    ),
                   ),
                 ),
-              ),
+              )
             ],
           );
         }

@@ -368,41 +368,20 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
       });
 
   // bool _isSnapping = false;
-  // final Duration _animationDuration = const Duration(milliseconds: 300);
-  // final Curve _animationCurve = Curves.bounceOut;
+  final Duration _animationDuration = const Duration(milliseconds: 300);
+  final Curve _animationCurve = Curves.linear;
 
-  // Future<dynamic> _snapToCloset() async {
-  //   if (_isSnapping || !widget.snapToDay) {
-  //     return;
-  //   }
-
-  //   _isSnapping = true;
-  //   await Future<dynamic>.microtask(() => null);
-  //   final double snapPosition =
-  //       ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
-  //   await _dayScrollController.animateTo(
-  //     snapPosition,
-  //     duration: _animationDuration,
-  //     curve: _animationCurve,
-  //   );
-  //   await _dayHeadingScrollController.animateTo(
-  //     snapPosition,
-  //     duration: _animationDuration,
-  //     curve: _animationCurve,
-  //   );
-  //   _isSnapping = false;
-  // }
-
-  // Future<dynamic> _updateVisibleDate() async {
-  //   final DateTime date = controller.start.add(Duration(
-  //     days: _dayHeadingScrollController.position.pixels ~/ columnWidth,
-  //   ));
-  //   if (date != controller.visibleDateStart) {
-  //     controller.updateVisibleDate(date);
-  //     setState(() {});
-  //   }
-  // }
-
-  ///jump to current date
-  Future<dynamic> _jumpTo(DateTime date) async => true;
+  ///jump to givent  date
+  Future<dynamic> _jumpTo(DateTime date) async {
+    try {
+      final Month month = monthRange.firstWhere((Month element) =>
+          element.month == date.month && element.year == date.year);
+      await pageController.animateToPage(monthRange.indexOf(month),
+          duration: _animationDuration, curve: _animationCurve);
+      return true;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
 }

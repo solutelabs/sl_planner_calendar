@@ -27,7 +27,6 @@ class SlTermView<T> extends StatefulWidget {
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
-    this.hourLabelBuilder,
     this.nowIndicatorColor,
     this.isDragable = false,
     this.isSwipeEnable = false,
@@ -51,10 +50,8 @@ class SlTermView<T> extends StatefulWidget {
   final List<CalendarEvent<T>> items;
 
   /// Renders event card from `TimetableItem<T>` for each item
-  final Widget Function(List<CalendarEvent<T>>, Size size)? itemBuilder;
-
-  /// Renders hour label given [TimeOfDay] for each hour
-  final Widget Function(Period period)? hourLabelBuilder;
+  final Widget Function(List<CalendarEvent<T>>, Size size, DateTime)?
+      itemBuilder;
 
   /// Renders upper left corner of the timetable given the first visible date
   final Widget Function(DateTime current)? deadCellBuilder;
@@ -128,7 +125,7 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
   int? _listenerId;
 
   List<CalendarDay> dateRange = <CalendarDay>[];
-  PageController pageController = PageController();
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -261,6 +258,8 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
     }
   }
 
+  double columnHeightForScrolling = 0;
+
   DateTime dateForHeader = DateTime.now();
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -270,7 +269,8 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
 
         final double cw = size.width / 7;
         final double columnHeight = (size.height - controller.headerHeight) / 7;
-        final double aspectRatio = cw / columnHeight; 
+        columnHeightForScrolling = columnHeight;
+        final double aspectRatio = cw / columnHeight;
         return SizedBox(
           height: getTimelineHeight(
               widget.timelines, controller.cellHeight, controller.breakHeight),
@@ -291,6 +291,8 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
               SizedBox(
                   height: size.height - controller.headerHeight,
                   child: GridView.builder(
+                    controller: scrollController,
+                    physics: const ClampingScrollPhysics(),
                     itemCount: dateRange.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         childAspectRatio: aspectRatio, crossAxisCount: 7),
@@ -307,7 +309,7 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
                           deadCellBuilder: widget.deadCellBuilder!,
                           itemBuilder: (List<CalendarEvent<T>> dayEvents) =>
                               widget.itemBuilder!(
-                                  dayEvents, Size(cw, columnHeight)),
+                                  dayEvents, Size(cw, columnHeight), dateTime),
                           events: events,
                           breakHeight: controller.breakHeight,
                           cellHeight: controller.cellHeight,
@@ -330,44 +332,26 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
         );
       });
 
-  // bool _isSnapping = false;
-  // final Duration _animationDuration = const Duration(milliseconds: 300);
-  // final Curve _animationCurve = Curves.bounceOut;
+  final Duration _animationDuration = const Duration(milliseconds: 300);
+  final Curve _animationCurve = Curves.linear;
 
-  // Future<dynamic> _snapToCloset() async {
-  //   if (_isSnapping || !widget.snapToDay) {
-  //     return;
-  //   }
-
-  //   _isSnapping = true;
-  //   await Future<dynamic>.microtask(() => null);
-  //   final double snapPosition =
-  //       ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
-  //   await _dayScrollController.animateTo(
-  //     snapPosition,
-  //     duration: _animationDuration,
-  //     curve: _animationCurve,
-  //   );
-  //   await _dayHeadingScrollController.animateTo(
-  //     snapPosition,
-  //     duration: _animationDuration,
-  //     curve: _animationCurve,
-  //   );
-  //   _isSnapping = false;
-  // }
-
-  // Future<dynamic> _updateVisibleDate() async {
-  //   final DateTime date = controller.start.add(Duration(
-  //     days: _dayHeadingScrollController.position.pixels ~/ columnWidth,
-  //   ));
-  //   if (date != controller.visibleDateStart) {
-  //     controller.updateVisibleDate(date);
-  //     setState(() {});
-  //   }
-  // }
-
-  ///jump to current date
+  ///jump to given date
   Future<dynamic> _jumpTo(DateTime date) async {
-    if (pageController.hasClients) {}
+    if (scrollController.hasClients) {
+      try {
+        final CalendarDay onjectOfCd = dateRange.firstWhere((CalendarDay now) =>
+            now.dateTime.year == date.year &&
+            now.dateTime.month == date.month &&
+            now.dateTime.day == date.day);
+
+        final int index = dateRange.indexOf(onjectOfCd);
+        final double rm = (index + 1) / 7;
+
+        await scrollController.animateTo(rm * columnHeightForScrolling,
+            duration: _animationDuration, curve: _animationCurve);
+      } on Exception catch (e) {
+        debugPrint(e.toString());
+      }
+    }
   }
 }

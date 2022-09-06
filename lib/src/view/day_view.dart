@@ -98,9 +98,6 @@ class SlDayView<T> extends StatefulWidget {
 }
 
 class _SlDayViewState<T> extends State<SlDayView<T>> {
-  final ScrollController _dayScrollController = ScrollController();
-  final ScrollController _dayHeadingScrollController = ScrollController();
-  final ScrollController _timeScrollController = ScrollController();
   double columnWidth = 50;
   TimetableController controller = TimetableController();
   final GlobalKey<State<StatefulWidget>> _key = GlobalKey();
@@ -141,7 +138,9 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
       }
     }
     dateForHeader = dateRange[0];
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   ///get data range
@@ -182,24 +181,22 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
     if (_listenerId != null) {
       controller.removeListener(_listenerId!);
     }
-    _dayScrollController.dispose();
-    _dayHeadingScrollController.dispose();
-    _timeScrollController.dispose();
+    pageController.dispose();
     super.dispose();
   }
 
   Future<void> _eventHandler(TimetableControllerEvent event) async {
     if (event is TimetableJumpToRequested) {
-      // await _jumpTo(event.date);
+      await _jumpTo(event.date);
     }
 
     if (event is TimetableVisibleDateChanged) {
       appLog('visible data changed');
+
       // final DateTime prev = controller.visibleDateStart;
       // final DateTime now = DateTime.now();
       await adjustColumnWidth();
-      // await _jumpTo(
-      //     DateTime(prev.year, prev.month, prev.day, now.hour, now.minute));
+      //add jump
       return;
     }
     if (event is TimetableDateChanged) {
@@ -257,10 +254,14 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
         columnWidth = width;
 
         await Future<dynamic>.microtask(() => null);
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       }
     }
   }
+
+  PageController pageController = PageController();
 
   DateTime dateForHeader = DateTime.now();
   @override
@@ -273,7 +274,7 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
           height: getTimelineHeight(
               widget.timelines, controller.cellHeight, controller.breakHeight),
           child: PageView.builder(
-              // cacheExtent: 10000.0,
+              controller: pageController,
               padEnds: false,
               onPageChanged: (int value) {
                 dateForHeader = dateRange[value];
@@ -329,6 +330,7 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                                   for (Period period in widget.timelines)
                                     TimeTableCell<T>(
                                         columnWidth: size.width,
+                                        cellBuilder: widget.cellBuilder,
                                         period: period,
                                         breakHeight: controller.breakHeight,
                                         cellHeight: controller.cellHeight,
@@ -417,7 +419,8 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                                     },
                                     onWillAccept: (CalendarEvent<T>? data) =>
                                         false,
-                                    columnWidth: 230,
+                                    columnWidth:
+                                        size.width - controller.timelineWidth,
                                     event: event,
                                     itemBuilder: widget.itemBuilder,
                                   ),
@@ -432,7 +435,7 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                                             AsyncSnapshot<DateTime> snapshot) =>
                                         TimeIndicator(
                                             controller: controller,
-                                            columnWidth: columnWidth,
+                                            columnWidth: size.width - 60,
                                             nowIndicatorColor:
                                                 nowIndicatorColor,
                                             timelines: widget.timelines)),
@@ -447,58 +450,24 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
         );
       });
 
-  // bool _isSnapping = false;
-  // final Duration _animationDuration = const Duration(milliseconds: 300);
-  // final Curve _animationCurve = Curves.bounceOut;
+  final Duration _animationDuration = const Duration(milliseconds: 300);
+  final Curve _animationCurve = Curves.linear;
 
-  // Future<dynamic> _snapToCloset() async {
-  //   if (_isSnapping || !widget.snapToDay) {
-  //     return;
-  //   }
+  ///jump to given date
+  Future<dynamic> _jumpTo(DateTime date) async {
+    if (pageController.hasClients) {
+      try {
+        final DateTime onjectOfCd = dateRange.firstWhere((DateTime now) =>
+            now.year == date.year &&
+            now.month == date.month &&
+            now.day == date.day);
 
-  //   _isSnapping = true;
-  //   await Future<dynamic>.microtask(() => null);
-  //   final double snapPosition =
-  //       ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
-  //   await _dayScrollController.animateTo(
-  //     snapPosition,
-  //     duration: _animationDuration,
-  //     curve: _animationCurve,
-  //   );
-  //   await _dayHeadingScrollController.animateTo(
-  //     snapPosition,
-  //     duration: _animationDuration,
-  //     curve: _animationCurve,
-  //   );
-  //   _isSnapping = false;
-  // }
-
-  // Future<dynamic> _updateVisibleDate() async {
-  //   final DateTime date = controller.start.add(Duration(
-  //     days: _dayHeadingScrollController.position.pixels ~/ columnWidth,
-  //   ));
-  //   if (date != controller.visibleDateStart) {
-  //     controller.updateVisibleDate(date);
-  //     setState(() {});
-  //   }
-  // }
-
-  // Future<dynamic> _jumpTo(DateTime date) async {
-  //   final double datePosition =
-  //       (date.difference(controller.start).inDays) * columnWidth;
-  //   final double hourPosition =
-  //       ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
-  //   await Future.wait<void>(<Future<void>>[
-  //     _dayScrollController.animateTo(
-  //       datePosition,
-  //       duration: _animationDuration,
-  //       curve: _animationCurve,
-  //     ),
-  //     _timeScrollController.animateTo(
-  //       hourPosition,
-  //       duration: _animationDuration,
-  //       curve: _animationCurve,
-  //     ),
-  //   ]);
-  // }
+        final int index = dateRange.indexOf(onjectOfCd);
+        await pageController.animateToPage(index,
+            duration: _animationDuration, curve: _animationCurve);
+      } on Exception catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+  }
 }
