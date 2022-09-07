@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// period class
+/// period class for the timetable
 class Period {
-  ///
+  /// Period for the timetable
   Period(
       {required this.startTime,
       required this.endTime,
@@ -10,7 +10,6 @@ class Period {
       this.isBreak = false});
 
   ///Start Time
-  ///
   TimeOfDay startTime;
 
   ///End Time

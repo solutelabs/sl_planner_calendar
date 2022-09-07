@@ -11,7 +11,7 @@ import '../core/app_log.dart';
 /// The [SlTermView] widget displays calendar like view of the events
 /// that scrolls
 class SlTermView<T> extends StatefulWidget {
-  ///
+   /// initialize TermView for the calendar
   const SlTermView({
     required this.timelines,
     required this.onWillAccept,
@@ -28,7 +28,7 @@ class SlTermView<T> extends StatefulWidget {
     this.fullWeek = false,
     this.headerHeight = 45,
     this.nowIndicatorColor,
-    this.isDragable = false,
+    this.isDraggable = false,
     this.isSwipeEnable = false,
     this.showNowIndicator = true,
     this.deadCellBuilder,
@@ -62,9 +62,9 @@ class SlTermView<T> extends StatefulWidget {
   /// Snap to hour column. Default is `true`.
   final bool snapToDay;
 
-  ///bool is dragable
+  ///bool is draggable
   ///
-  final bool isDragable;
+  final bool isDraggable;
 
   ///final isSwipeEnable
   final bool isSwipeEnable;
@@ -100,7 +100,7 @@ class SlTermView<T> extends StatefulWidget {
   final Function(CalendarEvent<T> old, CalendarEvent<T> newEvent)?
       onEventDragged;
 
-  ///retun current month when user swipe and month changed
+  ///return current month when user swipe and month changed
   final Function(Month) onMonthChanged;
 
   /// Called to determine whether this widget is interested in receiving a given
@@ -190,12 +190,8 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
     }
 
     if (event is TimetableVisibleDateChanged) {
-      appLog('visible data changed');
-      // final DateTime prev = controller.visibleDateStart;
-      // final DateTime now = DateTime.now();
-      await adjustColumnWidth();
-      // await _jumpTo(
-      //     DateTime(prev.year, prev.month, prev.day, now.hour, now.minute));
+      appLog('visible data changed'); 
+      await adjustColumnWidth(); 
       return;
     }
     if (event is TimetableDateChanged) {
@@ -339,12 +335,12 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
   Future<dynamic> _jumpTo(DateTime date) async {
     if (scrollController.hasClients) {
       try {
-        final CalendarDay onjectOfCd = dateRange.firstWhere((CalendarDay now) =>
+        final CalendarDay objectOfCd = dateRange.firstWhere((CalendarDay now) =>
             now.dateTime.year == date.year &&
             now.dateTime.month == date.month &&
             now.dateTime.day == date.day);
 
-        final int index = dateRange.indexOf(onjectOfCd);
+        final int index = dateRange.indexOf(objectOfCd);
         final double rm = (index + 1) / 7;
 
         await scrollController.animateTo(rm * columnHeightForScrolling,

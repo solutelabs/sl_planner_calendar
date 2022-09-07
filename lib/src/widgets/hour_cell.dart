@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-
+import 'package:sl_planner_calendar/src/core/text_styles.dart';
 ///Hour Cell widget build the widget for the hour label
 class HourCell extends StatelessWidget {
-  ///
+  /// initialized hourCell
   const HourCell(
       {required this.controller,
       required this.period,
@@ -40,9 +40,10 @@ class HourCell extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(start.format(context),
-                          style: const TextStyle(fontSize: 11)),
+                          style:   context.subtitle1,),
                       Text(end.format(context),
-                          style: const TextStyle(fontSize: 11)),
+                         
+                          style:   context.subtitle1),
                     ],
                   )));
   }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/app_log.dart';
+import 'package:sl_planner_calendar/src/core/colors.dart';
 
+import 'package:sl_planner_calendar/src/core/text_styles.dart';
 ///DayCell for month and term view
 class DayCell<T> extends StatelessWidget {
-  ///
+  /// initialized dayCell
   const DayCell({
     required this.columnWidth,
     required this.breakHeight,
@@ -16,7 +18,7 @@ class DayCell<T> extends StatelessWidget {
     required this.calendarDay,
     required this.deadCellBuilder,
     this.dateBuilder,
-    this.isDragable = false,
+    this.isDraggable = false,
     this.events,
     this.itemBuilder,
     this.onAccept,
@@ -80,12 +82,12 @@ class DayCell<T> extends StatelessWidget {
 
   ///rend card for cell that we added extra in the current view
 
-  ///list of the eent for day
+  ///list of the event for day
   final List<CalendarEvent<T>>? events;
 
-  ///bool isDragable
+  ///bool isDraggable
 
-  final bool isDragable;
+  final bool isDraggable;
 
   ///calendar day
   final CalendarDay calendarDay;
@@ -103,7 +105,7 @@ class DayCell<T> extends StatelessWidget {
             onTap!(dateTime);
           }
         },
-        child: isDragable
+        child: isDraggable
             ? DragTarget<CalendarEvent<T>>(
                 builder: (
                   BuildContext context,
@@ -136,8 +138,7 @@ class DayCell<T> extends StatelessWidget {
                 ),
                 onAcceptWithDetails: onAcceptWithDetails,
                 onWillAccept: (CalendarEvent<T>? data) {
-                  appLog('Cell  Dragged:${data!.toMap}');
-                  // return onWillAccept(data, period);
+                  appLog('Cell  Dragged:${data!.toMap}'); 
                   return true;
                 },
                 onAccept: (CalendarEvent<T> data) {
@@ -147,7 +148,7 @@ class DayCell<T> extends StatelessWidget {
                 onMove: (DragTargetDetails<CalendarEvent<T>> value) {},
               )
             : Container(
-                color: Colors.transparent,
+                color: transparent,
                 width: columnWidth,
                 height: cellHeight,
                 child: Stack(
@@ -170,12 +171,13 @@ class DayCell<T> extends StatelessWidget {
                             right: 12,
                             child: Text(
                               dateTime.day.toString(),
-                              style: TextStyle(
-                                  color: calendarDay.deadCell
-                                      ? Colors.grey
-                                      : Colors.black,
+                              style:context.headline1.copyWith(
+
+                                               color: calendarDay.deadCell
+                                      ? greyColor
+                                      : blackColor,
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w700),
+                              ),
                             ))
                         : Positioned(
                             top: 0,

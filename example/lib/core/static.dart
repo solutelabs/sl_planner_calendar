@@ -1,7 +1,9 @@
 import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/pages/planner.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+
+///current date time
+DateTime now = DateTime.now();
 
 ///period of the event
 List<Period> periodsForEvent = <Period>[

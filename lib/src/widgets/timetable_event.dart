@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-
+import 'package:sl_planner_calendar/src/core/colors.dart';
+import 'package:sl_planner_calendar/src/core/text_styles.dart';
 ///General time table for testing
 class TimeTableEvent<T> extends StatefulWidget {
-  ///
+  /// initialized timeTableEvent
   const TimeTableEvent({
     required this.columnWidth,
     required this.event,
     required this.onWillAccept,
     required this.onAcceptWithDetails,
     this.onAccept,
+    this.isDraggable = true,
     this.onLeave,
     this.onMove,
     this.itemBuilder,
@@ -53,6 +55,9 @@ class TimeTableEvent<T> extends StatefulWidget {
   /// Note that this includes entering and leaving the target.
   final DragTargetMove<T>? onMove;
 
+  /// Not doing anything. It is just a placeholder.
+  final bool isDraggable;
+
   @override
   State<TimeTableEvent<T>> createState() => _TimeTableEventState<T>();
 }
@@ -70,15 +75,19 @@ class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
           // Data is the value this Draggable
           // stores.
           data: widget.event,
-          feedback: Material(
+          maxSimultaneousDrags: widget.isDraggable ? 1 : 0,
+          ignoringFeedbackSemantics: false,
+
+          feedback: Container(
+              width: widget.columnWidth,
               child: BuildEvent<T>(
                   event: widget.event,
                   columnWidth: widget.columnWidth,
                   itemBuilder: widget.itemBuilder)),
           childWhenDragging: Container(
               decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border.all(width: 2, color: Colors.transparent),
+                  color: transparent,
+                  border: Border.all(width: 2, color: transparent),
                   borderRadius: BorderRadius.circular(6))),
           child: BuildEvent<T>(
               event: widget.event,
@@ -118,7 +127,15 @@ class BuildEvent<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => itemBuilder != null
-      ? itemBuilder!(event)
+      ? Card(
+          color: transparent,
+          margin: const EdgeInsets.all(0),
+          borderOnForeground: false,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0),
+          ),
+          elevation: 0,
+          child: itemBuilder!(event))
       : Container(
           width: columnWidth,
           decoration: BoxDecoration(
@@ -132,10 +149,7 @@ class BuildEvent<T> extends StatelessWidget {
           child: Text(
             '${dateFormat.format(event.startTime)}'
             '- ${dateFormat.format(event.endTime)}',
-            style: TextStyle(
-              fontSize: 10,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            style: context.subtitle1,
           ),
         );
 }

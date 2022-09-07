@@ -72,14 +72,14 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
-                  child: SlCalendar<Event>(
+                  child: SlWeekView<Event>(
                     timelines: customPeriods,
                     onEventDragged: (CalendarEvent<Event> old,
-                        CalendarEvent<Event> newEvent) {
+                        CalendarEvent<Event> newEvent, Period period) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .updateEvent(old, newEvent);
                     },
-                    onWillAccept: (CalendarEvent<Event>? event) {
+                    onWillAccept: (CalendarEvent<Event>? event, Period period) {
                       if (event != null) {
                         if (state is LoadingState) {
                           final List<CalendarEvent<dynamic>> ovelapingEvents =
@@ -249,7 +249,8 @@ class _WeekPlannerState extends State<WeekPlanner> {
                       );
                     },
                     controller: simpleController,
-                    itemBuilder: (CalendarEvent<Event> item) => Container(
+                    itemBuilder: (CalendarEvent<Event> item, double width) =>
+                        Container(
                       margin: const EdgeInsets.all(4),
                       padding: const EdgeInsets.all(6),
                       height: item.eventData!.period.isBreak

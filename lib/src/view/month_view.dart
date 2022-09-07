@@ -11,7 +11,7 @@ import '../core/app_log.dart';
 /// The [SlMonthView] widget displays calendar like view of the events
 /// that scrolls
 class SlMonthView<T> extends StatefulWidget {
-  ///
+  /// initialize monthView for the calendar
   const SlMonthView({
     required this.timelines,
     required this.onWillAccept,
@@ -21,14 +21,13 @@ class SlMonthView<T> extends StatefulWidget {
     this.controller,
     this.cellBuilder,
     this.headerCellBuilder,
-    // ignore: always_specify_types
-    this.items = const [],
+    this.items = const <CalendarEvent<Never>>[],
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
     this.hourLabelBuilder,
     this.nowIndicatorColor,
-    this.isDragable = false,
+    this.isDraggable = false,
     this.isSwipeEnable = false,
     this.showNowIndicator = true,
     this.deadCellBuilder,
@@ -61,9 +60,9 @@ class SlMonthView<T> extends StatefulWidget {
   /// Snap to hour column. Default is `true`.
   final bool snapToDay;
 
-  ///bool is dragable
+  ///bool is draggable
   ///
-  final bool isDragable;
+  final bool isDraggable;
 
   ///final isSwipeEnable
   final bool isSwipeEnable;
@@ -96,7 +95,7 @@ class SlMonthView<T> extends StatefulWidget {
   final Function(CalendarEvent<T> old, CalendarEvent<T> newEvent)?
       onEventDragged;
 
-  ///retun current month when user swipe and month changed
+  ///return current month when user swipe and month changed
   final Function(Month) onMonthChanged;
 
   /// Called to determine whether this widget is interested in receiving a given
@@ -207,12 +206,8 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
     }
 
     if (event is TimetableVisibleDateChanged) {
-      appLog('visible data changed');
-      // final DateTime prev = controller.visibleDateStart;
-      // final DateTime now = DateTime.now();
-      await adjustColumnWidth();
-      // await _jumpTo(
-      //     DateTime(prev.year, prev.month, prev.day, now.hour, now.minute));
+      appLog('visible data changed'); 
+      await adjustColumnWidth(); 
       return;
     }
     if (event is TimetableDateChanged) {
@@ -304,21 +299,18 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
               ),
               SizedBox(
                 height: size.height - controller.headerHeight,
-                child: PageView.builder(
-                    // cacheExtent: 10000.0,
+                child: PageView.builder( 
                     controller: pageController,
                     padEnds: false,
-                    // physics: widget.isSwipeEnable
-                    //     ? const AlwaysScrollableScrollPhysics()
-                    //     : const NeverScrollableScrollPhysics(),
+                    physics: widget.isSwipeEnable
+                        ? const AlwaysScrollableScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
                     onPageChanged: (int value) {
                       dateForHeader = dateRange[value].dateTime;
                       setState(() {});
                       widget.onMonthChanged(monthRange[value]);
                     },
-                    itemCount: monthRange.length,
-                    // itemExtent: size.width - controller.timelineWidth,
-                    // controller: _dayScrollController,
+                    itemCount: monthRange.length, 
                     itemBuilder: (BuildContext context, int index) {
                       final Month month = monthRange[index];
                       List<CalendarDay> dates =
@@ -366,13 +358,15 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
           ),
         );
       });
-
-  // bool _isSnapping = false;
+ 
   final Duration _animationDuration = const Duration(milliseconds: 300);
   final Curve _animationCurve = Curves.linear;
 
-  ///jump to givent  date
+  ///jump to given  date
   Future<dynamic> _jumpTo(DateTime date) async {
+    if (!pageController.hasClients) {
+      return false;
+    }
     try {
       final Month month = monthRange.firstWhere((Month element) =>
           element.month == date.month && element.year == date.year);

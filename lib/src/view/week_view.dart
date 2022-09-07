@@ -9,11 +9,11 @@ import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
 
 import '../core/app_log.dart';
 
-/// The [WeekView] widget displays calendar like view of the events
+/// The [SlWeekView] widget displays calendar like view of the events
 /// that scrolls
-class WeekView<T> extends StatefulWidget {
-  ///
-  const WeekView({
+class SlWeekView<T> extends StatefulWidget {
+  /// initialize weekView of the cALENDAR
+  const SlWeekView({
     required this.timelines,
     required this.onWillAccept,
     Key? key,
@@ -77,7 +77,7 @@ class WeekView<T> extends StatefulWidget {
   ///onTap
   final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
 
-  /// The [WeekView] widget displays calendar like view
+  /// The [SlWeekView] widget displays calendar like view
   /// of the events that scrolls
 
   /// list of the timeline
@@ -97,10 +97,10 @@ class WeekView<T> extends StatefulWidget {
   final bool Function(CalendarEvent<T>, Period) onWillAccept;
 
   @override
-  State<WeekView<T>> createState() => _WeekViewState<T>();
+  State<SlWeekView<T>> createState() => _SlWeekViewState<T>();
 }
 
-class _WeekViewState<T> extends State<WeekView<T>> {
+class _SlWeekViewState<T> extends State<SlWeekView<T>> {
   final ScrollController _dayScrollController = ScrollController();
   final ScrollController _dayHeadingScrollController = ScrollController();
   final ScrollController _timeScrollController = ScrollController();

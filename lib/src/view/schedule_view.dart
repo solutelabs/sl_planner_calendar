@@ -5,7 +5,7 @@ import 'package:sl_planner_calendar/src/core/app_log.dart';
 /// The [SlScheduleView] widget displays calendar like view of the events
 /// that scrolls
 class SlScheduleView<T> extends StatefulWidget {
-  ///
+  /// initialize schedule for the calendar
   const SlScheduleView({
     required this.timelines,
     required this.onWillAccept,
@@ -14,8 +14,7 @@ class SlScheduleView<T> extends StatefulWidget {
     this.onEventDragged,
     this.controller,
     this.headerCellBuilder,
-    // ignore: always_specify_types
-    this.items = const [],
+    this.items = const <CalendarEvent<Never>>[],
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
@@ -285,7 +284,7 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
                 title: events.isEmpty
                     ? DragTarget<CalendarEvent<T>>(
                         onWillAccept: (Object? data) => true,
-                        builder: (BuildContext conterx, List<Object?> obj,
+                        builder: (BuildContext content, List<Object?> obj,
                                 List<dynamic> data) =>
                             widget.cellBuilder(date))
                     : Column(

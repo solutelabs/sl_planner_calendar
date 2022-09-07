@@ -4,13 +4,12 @@ import 'package:sl_planner_calendar/src/widgets/cell.dart';
 import 'package:sl_planner_calendar/src/widgets/hour_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/time_indicator.dart';
 import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
-
 import '../core/app_log.dart';
 
 /// The [SlDayView] widget displays calendar like view of the events
 /// that scrolls
 class SlDayView<T> extends StatefulWidget {
-  ///
+  /// initialize DayView for the calendar
   const SlDayView({
     required this.timelines,
     required this.onWillAccept,
@@ -19,8 +18,7 @@ class SlDayView<T> extends StatefulWidget {
     this.controller,
     this.cellBuilder,
     this.headerCellBuilder,
-    // ignore: always_specify_types
-    this.items = const [],
+    this.items = const <CalendarEvent<Never>>[],
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
@@ -192,9 +190,6 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
 
     if (event is TimetableVisibleDateChanged) {
       appLog('visible data changed');
-
-      // final DateTime prev = controller.visibleDateStart;
-      // final DateTime now = DateTime.now();
       await adjustColumnWidth();
       //add jump
       return;
@@ -207,9 +202,7 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
       appLog('max column changed');
       await adjustColumnWidth();
     }
-    if (mounted) {
-      setState(() {});
-    }
+ 
   }
 
   double getHeightOfTheEvent(CalendarEvent<dynamic> item) {
@@ -263,7 +256,10 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
 
   PageController pageController = PageController();
 
-  DateTime dateForHeader = DateTime.now();
+  static DateTime dateForHeader = DateTime.now();
+  ValueNotifier<DateTime> headerDateNotifier =
+      ValueNotifier<DateTime>(dateForHeader);
+      
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
@@ -278,11 +274,9 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
               padEnds: false,
               onPageChanged: (int value) {
                 dateForHeader = dateRange[value];
-                setState(() {});
+                headerDateNotifier.value = dateForHeader;
               },
               itemCount: dateRange.length,
-              // itemExtent: size.width - controller.timelineWidth,
-              // controller: _dayScrollController,
               itemBuilder: (BuildContext context, int index) {
                 final DateTime date = dateRange[index];
                 final List<CalendarEvent<T>> events = widget.items
@@ -293,9 +287,14 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                 final bool isToday = DateUtils.isSameDay(date, now);
                 return ListView(
                   children: <Widget>[
-                    SizedBox(
-                        height: controller.headerHeight,
-                        child: widget.headerCellBuilder!(dateForHeader)),
+                    ValueListenableBuilder<DateTime>(
+                        valueListenable: headerDateNotifier,
+                        builder: (BuildContext context, DateTime value,
+                                Widget? child) =>
+                            SizedBox(
+                                height: controller.headerHeight,
+                                child:
+                                    widget.headerCellBuilder!(dateForHeader))),
                     const Divider(
                       thickness: 2,
                       height: 2,
@@ -308,7 +307,6 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                               controller.cellHeight, controller.breakHeight),
                           child: Column(
                             children: <Widget>[
-                              // SizedBox(height: controller.cellHeight / 2),
                               for (Period item in widget.timelines)
                                 HourCell(
                                   controller: controller,
@@ -457,12 +455,12 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
   Future<dynamic> _jumpTo(DateTime date) async {
     if (pageController.hasClients) {
       try {
-        final DateTime onjectOfCd = dateRange.firstWhere((DateTime now) =>
+        final DateTime objectOfDate = dateRange.firstWhere((DateTime now) =>
             now.year == date.year &&
             now.month == date.month &&
             now.day == date.day);
 
-        final int index = dateRange.indexOf(onjectOfCd);
+        final int index = dateRange.indexOf(objectOfDate);
         await pageController.animateToPage(index,
             duration: _animationDuration, curve: _animationCurve);
       } on Exception catch (e) {

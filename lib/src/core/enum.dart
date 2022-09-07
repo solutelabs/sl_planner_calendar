@@ -1,4 +1,4 @@
-///calendar view type
+/// Enaum data type for the CalendarView
 enum CalendarViewType {
   /// day view of the calendar
   dayView,
@@ -9,9 +9,9 @@ enum CalendarViewType {
   ///week view of the calendar
   weekView,
 
-  ///MonthView
+  ///MonthView of the calendar
   monthView,
 
-  ///termView,
+  ///termView of the calendar
   termView
 }

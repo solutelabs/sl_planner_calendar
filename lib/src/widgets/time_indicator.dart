@@ -3,7 +3,7 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 /// Current time indicator widget
 class TimeIndicator extends StatelessWidget {
-  ///time indicator
+  ///initialized timeIndicator
   const TimeIndicator({
     required this.controller,
     required this.columnWidth,

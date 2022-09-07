@@ -3,9 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:sl_planner_calendar/src/core/app_log.dart';
-
-import '../../sl_planner_calendar.dart';
+import 'package:sl_planner_calendar/src/core/app_log.dart'; 
 
 ///check if give time is before or not
 bool isTimeBefore(TimeOfDay a, TimeOfDay b) {
@@ -79,8 +77,7 @@ double getBottomMargin(DateTime startTime, List<Period> timelines,
   return ts * cellHeight + breaks * breakHeight;
 }
 
-///get total timeline
-
+///get total timeline height
 double getTimelineHeight(
     List<Period> timelines, double cellHeight, double breakHeight) {
   double h = 0;
@@ -495,7 +492,7 @@ List<CalendarDay> addPaddingDate(List<CalendarDay> myDateRange) {
   }
   final DateTime lastDay = dateRange.last.dateTime;
   if (lastDay.weekday == 7) {
-    log('lasy day is sunday');
+    log('lazy day is sunday');
   } else {
     final int diff = 7 - lastDay.weekday;
 

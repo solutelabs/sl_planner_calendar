@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/app_log.dart';
-
-///time table cell
+/// A cell that is used to render the time table.
+ 
 class TimeTableCell<T> extends StatelessWidget {
-  ///
+  /// initialized the timetable cell for the calendar views
   const TimeTableCell({
     required this.columnWidth,
     required this.period,

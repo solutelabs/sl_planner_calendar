@@ -1,6 +1,6 @@
-///
+/// Events of the calendar
 class CalendarEvent<T> {
-  ///Pass starttime and endtime along with evet data
+  ///Pass startTime and endTime along with event data
   CalendarEvent(
       {required this.startTime, required this.endTime, this.eventData});
 

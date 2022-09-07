@@ -5,10 +5,10 @@ import 'package:sl_planner_calendar/src/core/enum.dart';
 
 /// A controller for the timetable.
 ///
-/// The controller allow intialization of the timetable and to expose
+/// The controller allow initialization of the timetable and to expose
 /// timetable functionality to the outside.
 class TimetableController {
-  ///
+  ///   /// initialize timetableController
   TimetableController({
     /// The number of day columns to show.
     int initialColumns = 3,
@@ -31,7 +31,7 @@ class TimetableController {
     /// The width of the timeline where hour labels are rendered. Default is 50.
     double? timelineWidth,
 
-    ///height of the breakcell
+    ///height of the breakCell
     double? breakHeight,
 
     /// type of the calendar view
@@ -104,11 +104,11 @@ class TimetableController {
   /// The current height of each cell in the timetable.
   double get cellHeight => _cellHeight;
 
-  /// list of the listner
+  /// list of the listener
   final Map<int, Function(TimetableControllerEvent)> _listeners =
       <int, Function(TimetableControllerEvent)>{};
 
-  /// if  table has listner
+  /// if  table has listener
   bool get hasListeners => _listeners.isNotEmpty;
 
   ///
@@ -200,7 +200,7 @@ class TimetableController {
     dispatch(TimetableDateChanged(start, end));
   }
 
-  ///change claendar view
+  ///change calendar view
   void changeView(CalendarViewType viewType) {
     _viewType = viewType;
     dispatch(TimetableViewChanged(viewType));
@@ -218,7 +218,7 @@ abstract class TimetableControllerEvent {}
 
 /// Event used to change the cell height of the timetable
 class TimetableCellHeightChanged extends TimetableControllerEvent {
-  /// cell height change evemt
+  /// cell height change event
   TimetableCellHeightChanged(this.height);
 
   ///cell height
@@ -227,7 +227,7 @@ class TimetableCellHeightChanged extends TimetableControllerEvent {
 
 /// Event used to change the number of columns in the timetable
 class TimetableColumnsChanged extends TimetableControllerEvent {
-  /// column height change evemt
+  /// column height change event
   TimetableColumnsChanged(this.columns);
 
   ///no of columns
@@ -236,7 +236,7 @@ class TimetableColumnsChanged extends TimetableControllerEvent {
 
 /// Event used to change the number of columns in the timetable
 class TimetableMaxColumnsChanged extends TimetableControllerEvent {
-  /// column height change evemt
+  /// column height change event
   TimetableMaxColumnsChanged(this.columns);
 
   ///no of columns
@@ -292,7 +292,7 @@ class TimetableViewChanged extends TimetableControllerEvent {
   final CalendarViewType viewType;
 }
 
-///timetablesave
+///Save timetable to local storage
 class TimeTableSave extends TimetableControllerEvent {
   ///
   TimeTableSave(this.pixelRatio);
