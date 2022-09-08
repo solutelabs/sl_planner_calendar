@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/colors.dart';
 import 'package:sl_planner_calendar/src/core/text_styles.dart';
+
 ///General time table for testing
 class TimeTableEvent<T> extends StatefulWidget {
   /// initialized timeTableEvent

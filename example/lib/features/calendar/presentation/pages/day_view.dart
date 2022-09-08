@@ -1,81 +1,39 @@
 import 'dart:developer';
 
-import 'package:example/core/date_extension.dart';
-import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
-import 'package:example/features/calendar/presentation/pages/add_plan.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:edgar_planner_calendar_flutter/core/colors.dart';
+import 'package:edgar_planner_calendar_flutter/core/constants.dart';
+import 'package:edgar_planner_calendar_flutter/core/date_extension.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/static.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/cell_border.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/single_day_event_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///planner
-class DAyPlanner extends StatefulWidget {
-  ///
-  const DAyPlanner({Key? key, this.id}) : super(key: key);
+class DayPlanner extends StatefulWidget {
+  /// initialized day planner
+  const DayPlanner({
+    required this.timetableController,
+    Key? key,
+    this.id,
+  }) : super(key: key);
 
-  ///id that we will recived from native ios
+  ///id that we will received from native ios
   final String? id;
 
+  ///timetable controller for the calendar
+  final TimetableController timetableController;
   @override
-  State<DAyPlanner> createState() => _DAyPlannerState();
+  State<DayPlanner> createState() => _DayPlannerState();
 }
 
-///current date time
-DateTime now = DateTime.now().subtract(const Duration(days: 1));
-
-///custom timeperiods for the timetable
-List<Period> customPeriods = <Period>[
-  Period(
-    startTime: const TimeOfDay(hour: 9, minute: 30),
-    endTime: const TimeOfDay(hour: 9, minute: 45),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 9, minute: 45),
-    endTime: const TimeOfDay(hour: 10, minute: 30),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 10, minute: 30),
-    endTime: const TimeOfDay(hour: 11, minute: 0),
-    isBreak: true,
-    title: 'Recess',
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 11, minute: 0),
-    endTime: const TimeOfDay(hour: 11, minute: 45),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 11, minute: 45),
-    endTime: const TimeOfDay(hour: 12, minute: 30),
-  ),
-  Period(
-      startTime: const TimeOfDay(hour: 12, minute: 30),
-      endTime: const TimeOfDay(hour: 13, minute: 30),
-      isBreak: true,
-      title: 'Lunch'),
-  Period(
-    startTime: const TimeOfDay(hour: 13, minute: 30),
-    endTime: const TimeOfDay(hour: 14, minute: 15),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 14, minute: 15),
-    endTime: const TimeOfDay(hour: 15, minute: 0),
-  ),
-];
-
-///return true if date is same
-bool isSameDate(DateTime date) {
-  final DateTime now = DateTime.now();
-  if (now.year == date.year && now.month == date.month && now.day == date.day) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-class _DAyPlannerState extends State<DAyPlanner> {
+class _DayPlannerState extends State<DayPlanner> {
   TimetableController simpleController = TimetableController(
       start:
           DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
@@ -88,11 +46,13 @@ class _DAyPlannerState extends State<DAyPlanner> {
   @override
   void initState() {
     super.initState();
+    simpleController = widget.timetableController;
+    setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       currentMonth = simpleController.visibleDateStart;
       setState(() {});
       Future<dynamic>.delayed(const Duration(milliseconds: 100), () {
-        simpleController.jumpTo(now);
+        simpleController.jumpTo(dateTime);
       });
     });
   }
@@ -105,7 +65,7 @@ class _DAyPlannerState extends State<DAyPlanner> {
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
         final bool isMobile = value.maxWidth < 600;
-        // Size size = value.biggest;
+        final Size size = value.biggest;
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {
           if (state is ErrorState) {
@@ -124,7 +84,7 @@ class _DAyPlannerState extends State<DAyPlanner> {
                     onEventDragged: (CalendarEvent<Event> old,
                         CalendarEvent<Event> newEvent) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .updateEvent(old, newEvent);
+                          .updateEvent(old, newEvent, null);
                     },
                     onWillAccept: (CalendarEvent<Event>? event, DateTime date,
                         Period period) {
@@ -132,9 +92,10 @@ class _DAyPlannerState extends State<DAyPlanner> {
                           BlocProvider.of<TimeTableCubit>(context,
                                   listen: false)
                               .events;
-                      isSlotAvlForSingleDay(events, event!, date, period);
+                      return isSlotAvlForSingleDay(
+                          events, event!, date, period);
                     },
-                    nowIndicatorColor: Colors.red,
+                    nowIndicatorColor: timeIndicatorColor,
                     fullWeek: true,
                     cornerBuilder: (DateTime current) =>
                         const SizedBox.shrink(),
@@ -146,18 +107,8 @@ class _DAyPlannerState extends State<DAyPlanner> {
                       log(date.toString());
                       log(period.toMap.toString());
                       log(event.toString());
-
-                      Navigator.push<Widget>(
-                          context,
-                          CupertinoPageRoute<Widget>(
-                              builder: (BuildContext context) => AddPlan(
-                                    date: date,
-                                    periods: customPeriods,
-                                    period: period,
-                                    timetableItem: event,
-                                  )));
                     },
-                    headerHeight: isMobile ? 38 : 40,
+                    headerHeight: isMobile ? headerHeight : 40,
                     headerCellBuilder: (DateTime date) => isMobile
                         ? Row(
                             children: <Widget>[
@@ -165,12 +116,19 @@ class _DAyPlannerState extends State<DAyPlanner> {
                                 width: simpleController.timelineWidth,
                                 child: Center(
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     mainAxisSize: MainAxisSize.min,
                                     children: <Widget>[
                                       Text(
-                                        DateFormat('E').format(date),
-                                        style: const TextStyle(fontSize: 10),
+                                        DateFormat('E')
+                                            .format(date)
+                                            .toUpperCase(),
+                                        style: context.hourLabelMobile.copyWith(
+                                          color: isSameDate(date)
+                                              ? primaryPink
+                                              : null,
+                                        ),
                                       ),
                                       Container(
                                           width: 24,
@@ -179,18 +137,22 @@ class _DAyPlannerState extends State<DAyPlanner> {
                                               borderRadius:
                                                   BorderRadius.circular(12.5),
                                               color: isSameDate(date)
-                                                  ? Colors.pink
+                                                  ? primaryPink
                                                   : Colors.transparent),
                                           child: Center(
                                             child: Text(
                                               date.day.toString(),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
+                                              style: context
+                                                  .headline1WithNotoSans
+                                                  .copyWith(
+                                                      color: isSameDate(date)
+                                                          ? Colors.white
+                                                          : null),
                                             ),
-                                          ))
+                                          )),
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -201,55 +163,37 @@ class _DAyPlannerState extends State<DAyPlanner> {
                             children: <Widget>[
                               Expanded(
                                 child: Container(
-                                    height: 15,
+                                    height: simpleController.headerHeight,
                                     decoration: BoxDecoration(
                                         border: Border.all(
                                             color: Colors.grey.withOpacity(0.5),
                                             width: 0.5),
-                                        // borderRadius:
-                                        //     BorderRadius.circular(12.5),
-                                        color: isSameDate(date)
-                                            ? Colors.black87
-                                            : Colors.transparent),
+                                        color: lightGrey),
                                     child: Center(
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
                                         children: <Widget>[
-                                          Flexible(
-                                            child: Text(
-                                              DateFormat('E')
-                                                  .format(date)
-                                                  .toUpperCase(),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
-                                            ),
+                                          SizedBox(
+                                            width:
+                                                simpleController.timelineWidth,
+                                          ),
+                                          Text(
+                                            DateFormat('EEEE')
+                                                .format(date)
+                                                .toUpperCase(),
+                                            style: context.subtitle1.copyWith(
+                                                color: isSameDate(date)
+                                                    ? textBlack
+                                                    : null),
                                           ),
                                           const SizedBox(
                                             width: 6,
                                           ),
-                                          Icon(
-                                            Icons.circle,
-                                            color: isSameDate(date)
-                                                ? Colors.white
-                                                : null,
-                                            size: 6,
-                                          ),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Flexible(
-                                            child: Text(
-                                              DateFormat('d MMM').format(date),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
-                                            ),
+                                          Text(
+                                            DateFormat('d ').format(date),
+                                            style: context.headline1.copyWith(
+                                                color: isSameDate(date)
+                                                    ? textBlack
+                                                    : null),
                                           ),
                                         ],
                                       ),
@@ -267,113 +211,69 @@ class _DAyPlannerState extends State<DAyPlanner> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Text(period.title ?? '',
-                                      style: const TextStyle(fontSize: 10)),
+                                      style: isMobile
+                                          ? context.hourLabelMobile
+                                          : context.hourLabelTablet),
                                 ],
                               )
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Text(start.format(context).substring(0, 5),
-                                      style: const TextStyle(fontSize: 10)),
+                                      style: isMobile
+                                          ? context.hourLabelMobile
+                                          : context.hourLabelTablet),
                                   const SizedBox(
                                     height: 8,
                                   ),
                                   Text(end.format(context).substring(0, 5),
-                                      style: const TextStyle(fontSize: 10)),
+                                      style: isMobile
+                                          ? context.hourLabelMobile
+                                          : context.hourLabelTablet),
                                 ],
                               ),
                       );
                     },
                     controller: simpleController,
-                    itemBuilder: (CalendarEvent<Event> item) => Container(
-                      margin: const EdgeInsets.all(4),
-                      padding: const EdgeInsets.all(6),
-                      height: item.eventData!.period.isBreak
-                          ? simpleController.breakHeight
-                          : simpleController.cellHeight,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: item.eventData!.color),
-                      child: item.eventData!.period.isBreak
-                          ? Container(
-                              height: simpleController.breakHeight,
-                              child: Center(
-                                  child: Text(
-                                item.eventData!.title,
-                                style: const TextStyle(color: Colors.white),
-                              )),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    const Icon(
-                                      Icons.circle,
-                                      color: Colors.black,
-                                      size: 10,
-                                    ),
-                                    const SizedBox(
-                                      width: 4,
-                                    ),
-                                    Flexible(
-                                      child: Text(
-                                        item.eventData!.title,
-                                        overflow: TextOverflow.ellipsis,
+                    itemBuilder: (CalendarEvent<Event> item) =>
+                        SingleDayEventTile(
+                            cellWidth:
+                                size.width - simpleController.timelineWidth,
+                            item: item,
+                            breakHeight: simpleController.breakHeight,
+                            cellHeight: simpleController.cellHeight),
+                    cellBuilder: (Period period) => CellBorder(
+                        borderWidth: 1,
+                        borderRadius: 0,
+                        color: period.isBreak
+                            ? isMobile
+                                ? lightGrey
+                                : grey
+                            : Colors.transparent,
+                        borderColor: grey,
+                        border: !period.isBreak
+                            ? null
+                            : Border(
+                                left: isMobile
+                                    ? const BorderSide(
+                                        color: grey,
+                                      )
+                                    : const BorderSide(
+                                        color: textGrey,
+                                        width: 5,
                                       ),
-                                    ),
-                                  ],
+                                top: const BorderSide(
+                                  color: grey,
                                 ),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : Flexible(
-                                        child: Text(
-                                          item.eventData!.description,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : const Spacer(),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : item.eventData!.documents.isNotEmpty
-                                        ? Wrap(
-                                            runSpacing: 8,
-                                            spacing: 8,
-                                            children: item.eventData!.documents
-                                                .map((String e) => Container(
-                                                    padding: const EdgeInsets
-                                                            .symmetric(
-                                                        horizontal: 4,
-                                                        vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20)),
-                                                    child: Text(
-                                                      e,
-                                                      style: const TextStyle(
-                                                          fontSize: 10),
-                                                    )))
-                                                .toList())
-                                        : const SizedBox.shrink(),
-                              ],
-                            ),
-                    ),
-                    cellBuilder: (Period period) => Container(
-                      height: period.isBreak
-                          ? simpleController.breakHeight
-                          : simpleController.cellHeight,
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.grey.withOpacity(0.5), width: 0.5),
-                          color: period.isBreak
-                              ? Colors.grey.withOpacity(0.2)
-                              : Colors.red),
-                    ),
+                                right: const BorderSide(
+                                  color: grey,
+                                ),
+                                bottom: const BorderSide(
+                                  color: grey,
+                                )),
+                        cellHeight: period.isBreak
+                            ? simpleController.breakHeight
+                            : simpleController.cellHeight),
                   ),
                 ),
               ],

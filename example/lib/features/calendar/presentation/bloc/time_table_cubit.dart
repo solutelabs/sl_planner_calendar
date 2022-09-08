@@ -3,13 +3,12 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
-import 'package:example/core/static.dart';
-import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/bloc/method_name.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
+import 'package:edgar_planner_calendar_flutter/core/static.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/method_name.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'dart:io';
 
@@ -17,39 +16,62 @@ import 'package:pdf/widgets.dart' as pw;
 
 ///timetable cubit
 class TimeTableCubit extends Cubit<TimeTableState> {
-  ///
+  /// initialized timetable cubit
   TimeTableCubit() : super(InitialState()) {
     getDummyEvents();
+    setListener();
   }
 
   ///view of the calendar
-  CalendarViewType viewType = CalendarViewType.scheduleView;
+  CalendarViewType viewType = CalendarViewType.weekView;
 
   /// set method handler to receive data from flutter
   static const MethodChannel platform = MethodChannel('com.example.demo/data');
 
   ///set method handler
 
-  void setListner() {
+  void setListener() {
     platform.setMethodCallHandler((MethodCall call) async {
       switch (call.method) {
-        case sendToFlutter:
-          debugPrint('Data recive from flutter');
+        case ReceiveMethods.sendToFlutter:
+          debugPrint('id receive from ios app');
           await updateId(call.arguments);
           break;
 
+        case ReceiveMethods.sendDate:
+          debugPrint('date receive from flutter');
+          log(call.arguments.toString());
+          id = call.arguments.toString();
+          emit(LoadedState(_events, viewType));
+          break;
+
         default:
-          debugPrint('Data recive from flutter:No handler');
+          debugPrint('Data receive from flutter:No handler');
       }
     });
   }
 
-  ///send data to native appp
-  Future<bool> sendToNativeApp(dynamic data) {
-    platform.invokeMethod<dynamic>(
-      'receiveFromFlutter',
+  ///send ontap callback to native app
+  Future<bool> onTap(DateTime dateTime) async {
+    final Map<String, dynamic> data = <String, dynamic>{
+      'viewType': viewType.toString(),
+      'date': dateTime.toString()
+    };
+    await sendToNativeApp(onTapMethod, data);
+    return true;
+  }
+
+  ///send data to native app
+  Future<bool> sendToNativeApp(String methodName, dynamic data) {
+    platform
+        .invokeMethod<dynamic>(
+      methodName,
       data,
-    );
+    )
+        .then((dynamic value) {
+      log('MethodName: $onTapMethod');
+      log('Data: $data');
+    });
 
     return Future<bool>.value(true);
   }
@@ -60,7 +82,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   ///events of timetable
   List<CalendarEvent<Event>> _events = <CalendarEvent<Event>>[];
 
-  ///Stirng id
+  ///String id
   String? id;
 
   ///update id of the user
@@ -86,7 +108,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
 
   ///call this function to add events
   Future<void> addEvent(CalendarEvent<Event> value) async {
-    emit(AddeingEvent());
+    emit(AddingEvent());
 
     await Future<dynamic>.delayed(const Duration(seconds: 2));
 
@@ -96,9 +118,14 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   }
 
   ///remove pld event and add new event
-  bool updateEvent(CalendarEvent<Event> old, CalendarEvent<Event> newEvent) {
+  bool updateEvent(
+      CalendarEvent<Event> old, CalendarEvent<Event> newEvent, Period? period) {
     emit(UpdatingEvent());
     _events.remove(old);
+    if (period != null) {
+      newEvent.eventData!.period = period;
+    }
+
     log('removed${old.toMap}');
     _events.add(newEvent);
     emit(LoadedState(_events, viewType));
@@ -114,7 +141,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
           build: (pw.Context context) =>
               pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
 
-    final Directory? path = await getDownloadsDirectory();
+    final Directory? path = Directory('path for my edgar planner save methid');
     try {
       // await FileSaver.instance
       //     .saveFile("example", image, "pdf", mimeType: MimeType.PDF);

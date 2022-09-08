@@ -1,9 +1,8 @@
-import 'package:example/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/colors.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/month_view.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-
-///current date time
-DateTime now = DateTime.now();
 
 ///period of the event
 List<Period> periodsForEvent = <Period>[
@@ -45,11 +44,21 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
       startTime: DateTime(now.year, now.month, now.day, 9, 30),
       endTime: DateTime(now.year, now.month, now.day, 9, 45),
       eventData: Event(
-          title: 'Lession 1, This is testing for longer title',
+          title:
+              'Lession 1, This is testing for longer title,if long text is ther'
+              ' ethen we can display longer text and check the ui',
           period: Period(
               startTime: const TimeOfDay(hour: 9, minute: 30),
               endTime: const TimeOfDay(hour: 9, minute: 45)),
-          description: 'Description 1sdasdasd asdasdasdsd asdasd asds sd',
+          description:
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'
+              ' do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+              ' Ut enim ad minim veniam, quis nostrud exercitation ullamco '
+              'laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure'
+              ' dolor in reprehenderit in voluptate velit esse cillum dolore eu'
+              ' fugiat nulla pariatur. Excepteur sint occaecat cupidatat non'
+              ' proident, sunt in culpa qui officia deserunt mollit anim id'
+              ' est laborum.',
           color: const Color(0xFF123CBB).withOpacity(0.30),
           documents: <String>['documents.pdf'])),
   CalendarEvent<Event>(
@@ -63,6 +72,18 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
           description: 'Description 2',
           color: const Color(0xFFF2A93B).withOpacity(0.60),
           documents: <String>['documents.pdf'])),
+  CalendarEvent<Event>(
+      startTime: DateTime(now.year, now.month, now.day, 10, 30),
+      endTime: DateTime(now.year, now.month, now.day, 11),
+      eventData: Event(
+          title: 'Duty - Basketball Court',
+          period: Period(
+              isBreak: true,
+              startTime: const TimeOfDay(hour: 9, minute: 45),
+              endTime: const TimeOfDay(hour: 10, minute: 30)),
+          description: 'Description 2',
+          color: grey,
+          documents: <String>[])),
   CalendarEvent<Event>(
       startTime: DateTime(now.year, now.month, now.day, 11),
       endTime: DateTime(now.year, now.month, now.day, 11, 45),
@@ -85,7 +106,18 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
           description: 'Description 4',
           color: const Color(0xFFE697A9),
           documents: <String>['documents.pdf'])),
-
+  CalendarEvent<Event>(
+      startTime: DateTime(now.year, now.month, now.day, 12, 30),
+      endTime: DateTime(now.year, now.month, now.day, 13, 30),
+      eventData: Event(
+          title: 'Duty - Canteen',
+          period: Period(
+              isBreak: true,
+              startTime: const TimeOfDay(hour: 9, minute: 45),
+              endTime: const TimeOfDay(hour: 10, minute: 30)),
+          description: 'Description 2',
+          color: grey,
+          documents: <String>[])),
   //second column
   CalendarEvent<Event>(
       startTime: DateTime(now.year, now.month, now.day + 1, 9, 30),
@@ -159,7 +191,7 @@ List<CalendarEvent<Event>> dummyEvents = <CalendarEvent<Event>>[
           documents: <String>['documents.pdf']))
 ];
 
-///custom time periods
+///custom timeperiods for the timetable
 List<Period> customPeriods = <Period>[
   Period(
     startTime: const TimeOfDay(hour: 9, minute: 30),

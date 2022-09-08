@@ -1,32 +1,94 @@
 import 'package:flutter/material.dart';
 
-///hotpink
-Color hotPink = const Color(0xFFfd05a9);
+/// The above code is creating a constant variable called hotPink and assigning
+/// it the value of the
+/// color with the hex code of 0xFFfd05a9.
+const Color hotPink = Color(0xFFfd05a9);
 
-///darkgrey
-Color darkGrey = const Color(0xFF272d3b);
+/// Defining a constant variable called darkGrey and assigning it a value of
+/// Color(0xFF272d3b).
 
-/// lession pink
-Color lessionPink = const Color(0xFFfd8fcf);
+const Color darkGrey = Color(0xFF272d3b);
 
-///less orange
-Color lessOrange = const Color(0xFFfacc8f);
+/// Creating a constant variable called lessonPink and assigning it the value
+///  of the color with the hex
+/// code of 0xFFfd8fcf.
 
-///less blue
-Color lessBlue = const Color(0xFF95d5e7);
+/// Creating a constant variable called lessonPink and assigning it the value
+/// of the color with the hex
+/// code of 0xFFfd8fcf.
+const Color lessonPink = Color(0xFFfd8fcf);
 
-///less navy
-Color lessNavy = const Color(0xFFaebee8);
+/// Creating a constant variable called lessOrange and assigning it the value
+///  of the color with the hex
+/// code of 0xFFfacc8f.
+const Color lessOrange = Color(0xFFfacc8f);
 
-///less green
-Color lessGreen = const Color(0xFFdee292);
+/// Creating a constant variable called lessBlue and assigning it the value of
+///  the color with the hex
+/// code of 0xFF95d5e7.
+
+/// Creating a constant variable called lessBlue and assigning it the value of
+///  the color with the hex
+/// code of 0xFF95d5e7.
+const Color lessBlue = Color(0xFF95d5e7);
+
+/// Creating a constant variable called lessNavy and assigning it the value of
+///  the color with the hex
+/// code of 0xFFaebee8.
+const Color lessNavy = Color(0xFFaebee8);
+
+/// Creating a constant variable called lessGreen and assigning it the value of
+///  the color with the hex
+/// code of 0xFFdee292.
+
+/// Creating a constant variable called lessGreen and assigning it the value of
+/// the color with the hex
+/// code of 0xFFdee292.
+const Color lessGreen = Color(0xFFdee292);
+
+/// Creating a constant variable called lightGrey and assigning it the value of
+/// the color with the hex
+/// code of 0xFFF6F6F7.
+const Color lightGrey = Color(0xFFF6F6F7);
+
+/// Creating a constant variable called grey and assigning it the value of the
+///  color with the hex code
+/// of 0xFFE0E0E0.
+
+const Color grey = Color(0xFFE0E0E0);
+
+/// Creating a constant variable called darkestGrey and assigning it the value
+///  of the color with the hex
+/// code of 0xFF828282.
+const Color darkestGrey = Color(0xFF828282);
+
+/// Creating a constant variable called textBlack and assigning it the value of
+/// the color with the hex
+/// code of 0xFF333333.
+const Color textBlack = Color(0xFF333333);
+
+/// Creating a constant variable called primaryPink and assigning it the value
+/// of the color with the hex
+/// code of 0xFFFF00AD.
+const Color primaryPink = Color(0xFFFF00AD);
+
+/// Creating a constant variable called textGrey and assigning it the value of
+///  the color with the hex
+/// code of 0xFFBDBDBD.
+const Color textGrey = Color(0xFFBDBDBD);
+
+/// Creating a constant variable called timeIndicatorColor and assigning it the
+///  value of the color with
+/// the hex code of 0xFFED5833.
+const Color timeIndicatorColor = Color(0xFFED5833);
 
 ///default color list
 
-List<Color> mycolors = <Color>[
+List<Color> myColors = <Color>[
   hotPink,
   darkGrey,
-  lessionPink,
+  lessonPink,
   lessOrange,
   lessBlue,
   lessNavy,

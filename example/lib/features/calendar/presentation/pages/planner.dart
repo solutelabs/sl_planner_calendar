@@ -1,0 +1,206 @@
+import 'dart:developer';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/day_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/month_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/schedule_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/setting_dialog.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/term_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/week_view.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+
+///planner
+class Planner extends StatefulWidget {
+  ///
+  const Planner({Key? key, this.id}) : super(key: key);
+
+  ///id that we will received from native ios
+  final String? id;
+
+  @override
+  State<Planner> createState() => _PlannerState();
+}
+
+///current date time
+DateTime now = DateTime.now().subtract(const Duration(days: 1));
+
+///screenshot controller
+ScreenshotController screenshotController = ScreenshotController();
+
+class _PlannerState extends State<Planner> {
+  static DateTime startDate = DateTime(2022, 9);
+  static DateTime endDate = DateTime(2022, 9, 30);
+  TimetableController simpleController = TimetableController(
+      start: startDate,
+      end: endDate,
+      timelineWidth: 60,
+      breakHeight: 35,
+      cellHeight: 110);
+  static DateTime dateTime = DateTime.now();
+
+  static bool isMobile = true;
+
+  GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  @override
+  Widget build(BuildContext context) => Scaffold(
+      key: scaffoldKey,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        centerTitle: true,
+        title: GestureDetector(
+          onTap: () {
+            // DatePicker.showPicker(context,
+            //         pickerModel: CustomMonthPicker(
+            //             minTime: DateTime(
+            //               2020,
+            //             ),
+            //             maxTime: DateTime.now(),
+            //             currentTime: dateTime))
+            //     .then((DateTime? value) {
+            //   if (value != null) {
+            //     log(dateTime.toString());
+            //     dateTime = value;
+
+            //     setState(() {});
+            //     simpleController.changeDate(
+            //         DateTime(dateTime.year, dateTime.month),
+            //         dateTime.lastDayOfMonth);
+            //   }
+            // });
+          },
+          child: Text(
+            DateFormat('MMMM-y').format(dateTime),
+         
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.menu,
+            color: Colors.black,
+          ),
+          onPressed: () {
+            showDialog<Widget>(
+                context: context,
+                builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Your id is'),
+                      content: Text(BlocProvider.of<TimeTableCubit>(context,
+                                  listen: false)
+                              .id ??
+                          'No  id received'),
+                    ));
+          },
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(
+              Icons.search,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              simpleController.jumpTo(DateTime.now());
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.calendar_month,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              scaffoldKey.currentState!.openEndDrawer();
+              return;
+            },
+          ),
+        ],
+      ),
+      endDrawer: SettingDrawer(
+        startDate: startDate,
+        endDate: endDate,
+        onDateChange: (DateTime start, DateTime end) {
+          setState(() {
+            startDate = start;
+            endDate = end;
+            simpleController.changeDate(startDate, endDate);
+          });
+        },
+      ),
+      body:
+          LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
+        isMobile = value.maxWidth < 600;
+        return BlocBuilder<TimeTableCubit, TimeTableState>(
+            builder: (BuildContext context, TimeTableState state) {
+          if (state is ErrorState) {
+            return const Center(
+              child: Icon(Icons.close),
+            );
+          } else {
+            return Screenshot<Widget>(
+              controller: screenshotController,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder:
+                    (Widget child, Animation<double> animation) =>
+                        ScaleTransition(scale: animation, child: child),
+                child: IndexedStack(
+                  index: state is LoadedState ? getIndex(state.viewType) : 0,
+                  children: <Widget>[
+                    SchedulePlanner(
+                      isMobile: isMobile,
+                      timetableController: simpleController,
+                    ),
+                    DayPlanner(
+                      timetableController: simpleController,
+                    ),
+                    WeekPlanner(
+                      timetableController: simpleController,
+                    ),
+                    MonthPlanner(
+                      timetableController: simpleController,
+                      onMonthChanged: (Month month) {
+                        log('month changed$month');
+                        setState(() {
+                          dateTime = DateTime(month.year, month.month, 15);
+                        });
+                      },
+                    ),
+                    TermPlanner(
+                      timetableController: simpleController,
+                      onMonthChanged: (Month month) {
+                        log('month changed$month');
+                        setState(() {
+                          dateTime = DateTime(month.year, month.month, 15);
+                        });
+                      },
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
+        });
+      }));
+}
+
+///get index of the index stack
+int getIndex(CalendarViewType viewType) {
+  switch (viewType) {
+    case CalendarViewType.scheduleView:
+      return 0;
+    case CalendarViewType.dayView:
+      return 1;
+    case CalendarViewType.weekView:
+      return 2;
+    case CalendarViewType.monthView:
+      return 3;
+    case CalendarViewType.termView:
+      return 4;
+    default:
+      return 2;
+  }
+}

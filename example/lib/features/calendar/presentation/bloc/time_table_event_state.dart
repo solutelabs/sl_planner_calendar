@@ -1,5 +1,5 @@
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
 import 'package:equatable/equatable.dart';
-import 'package:example/features/calendar/data/event_model.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///event state
@@ -39,7 +39,7 @@ class ErrorState extends TimeTableState {
 }
 
 ///adding event state
-class AddeingEvent extends TimeTableState {
+class AddingEvent extends TimeTableState {
   @override
   List<Object> get props => <Object>[];
 }

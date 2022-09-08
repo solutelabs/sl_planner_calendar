@@ -1,33 +1,35 @@
-import 'dart:developer';
-
-import 'package:example/core/date_extension.dart';
-import 'package:example/core/static.dart';
-import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
-import 'package:example/features/calendar/presentation/pages/add_plan.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:edgar_planner_calendar_flutter/core/colors.dart';
+import 'package:edgar_planner_calendar_flutter/core/constants.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/static.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/event_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart'; 
 
 ///planner
 class WeekPlanner extends StatefulWidget {
-  ///
-  const WeekPlanner({Key? key, this.id}) : super(key: key);
+  /// initialize week planner
+  const WeekPlanner({required this.timetableController, Key? key, this.id})
+      : super(key: key);
 
-  ///id that we will recived from native ios
+  ///id that we will received from native ios
   final String? id;
+
+  ///timetable controller
+  final TimetableController timetableController;
 
   @override
   State<WeekPlanner> createState() => _WeekPlannerState();
 }
 
 ///current date time
-DateTime now = DateTime.now().subtract(const Duration(days: 1));
-
-///custom timeperiods for the timetable
+DateTime now = DateTime.now().subtract(const Duration(days: 30));
 
 class _WeekPlannerState extends State<WeekPlanner> {
   TimetableController simpleController = TimetableController(
@@ -41,24 +43,27 @@ class _WeekPlannerState extends State<WeekPlanner> {
 
   @override
   void initState() {
-    super.initState();
+    simpleController = widget.timetableController;
+    setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       currentMonth = simpleController.visibleDateStart;
       setState(() {});
       Future<dynamic>.delayed(const Duration(milliseconds: 100), () {
-        simpleController.jumpTo(now);
+        simpleController.jumpTo(dateTime);
       });
     });
+    super.initState();
   }
 
   DateTime currentMonth = DateTime.now();
 
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
-
+  final bool showSameHeader = true;
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
         final bool isMobile = value.maxWidth < 600;
+
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {
           if (state is ErrorState) {
@@ -73,44 +78,16 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     : const SizedBox.shrink(),
                 Expanded(
                   child: SlWeekView<Event>(
+                    fullWeek: true,
                     timelines: customPeriods,
                     onEventDragged: (CalendarEvent<Event> old,
                         CalendarEvent<Event> newEvent, Period period) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .updateEvent(old, newEvent);
+                          .updateEvent(old, newEvent, period);
                     },
-                    onWillAccept: (CalendarEvent<Event>? event, Period period) {
-                      if (event != null) {
-                        if (state is LoadingState) {
-                          final List<CalendarEvent<dynamic>> ovelapingEvents =
-                              BlocProvider.of<TimeTableCubit>(context,
-                                      listen: false)
-                                  .events
-                                  .where((CalendarEvent<dynamic> element) =>
-                                      !isTimeIsEqualOrLess(
-                                          element.startTime, event.startTime) &&
-                                      isTimeIsEqualOrLess(
-                                          element.endTime, event.endTime))
-                                  .toList();
-                          if (ovelapingEvents.isEmpty) {
-                            log('Slot available: ${event.toMap}');
-                            return true;
-                          } else {
-                            log('Slot Not available-> Start Time: '
-                                '${ovelapingEvents.first.startTime}'
-                                'End Time: ${ovelapingEvents.first.endTime}');
-
-                            return false;
-                          }
-                        } else {
-                          return false;
-                        }
-                      } else {
-                        return false;
-                      }
-                    },
+                    onWillAccept:
+                        (CalendarEvent<Event>? event, Period period) => true,
                     nowIndicatorColor: Colors.red,
-                    fullWeek: true,
                     cornerBuilder: (DateTime current) =>
                         const SizedBox.shrink(),
                     items: state is LoadedState
@@ -118,107 +95,72 @@ class _WeekPlannerState extends State<WeekPlanner> {
                         : <CalendarEvent<Event>>[],
                     onTap: (DateTime date, Period period,
                         CalendarEvent<Event>? event) {
-                      log(date.toString());
-                      log(period.toMap.toString());
-                      log(event.toString());
-
-                      Navigator.push<Widget>(
-                          context,
-                          CupertinoPageRoute<Widget>(
-                              builder: (BuildContext context) => AddPlan(
-                                    date: date,
-                                    periods: customPeriods,
-                                    period: period,
-                                    timetableItem: event,
-                                  )));
+                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                          .onTap(dateTime);
                     },
-                    headerHeight: isMobile ? 38 : 40,
+                    headerHeight:
+                        showSameHeader || isMobile ? headerHeight : 40,
                     headerCellBuilder: (DateTime date) => isMobile
                         ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               Text(
-                                DateFormat('E').format(date),
-                                style: const TextStyle(fontSize: 10),
+                                DateFormat('E').format(date).toUpperCase(),
+                                style: context.hourLabelMobile,
                               ),
                               Container(
-                                  width: 25,
-                                  height: 25,
+                                  width: 24,
+                                  height: 24,
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12.5),
                                       color: isSameDate(date)
-                                          ? Colors.pink
+                                          ? primaryPink
                                           : Colors.transparent),
                                   child: Center(
                                     child: Text(
                                       date.day.toString(),
-                                      style: TextStyle(
-                                          fontSize: 16,
+                                      style: context.headline2Fw500.copyWith(
+                                          fontSize: isMobile ? 16 : 24,
                                           color: isSameDate(date)
                                               ? Colors.white
                                               : null),
                                     ),
-                                  ))
+                                  )),
+                              const SizedBox(
+                                height: 2,
+                              ),
                             ],
                           )
                         : Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              Expanded(
-                                child: Container(
-                                    height: 15,
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            width: 0.5),
-                                        // borderRadius:
-                                        //     BorderRadius.circular(12.5),
-                                        color: isSameDate(date)
-                                            ? Colors.black87
-                                            : Colors.transparent),
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Flexible(
-                                            child: Text(
-                                              DateFormat('E')
-                                                  .format(date)
-                                                  .toUpperCase(),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Icon(
-                                            Icons.circle,
-                                            color: isSameDate(date)
-                                                ? Colors.white
-                                                : null,
-                                            size: 6,
-                                          ),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Flexible(
-                                            child: Text(
-                                              DateFormat('d MMM').format(date),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )),
-                              )
+                              Text(
+                                DateFormat('E').format(date).toUpperCase(),
+                                style: context.subtitle,
+                              ),
+                              Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12.5),
+                                      color: isSameDate(date)
+                                          ? primaryPink
+                                          : Colors.transparent),
+                                  child: Center(
+                                    child: Text(
+                                      date.day.toString(),
+                                      style: context.headline1WithNotoSans
+                                          .copyWith(
+                                              color: isSameDate(date)
+                                                  ? Colors.white
+                                                  : null),
+                                    ),
+                                  )),
+                              const SizedBox(
+                                height: 2,
+                              ),
                             ],
                           ),
                     hourLabelBuilder: (Period period) {
@@ -231,19 +173,25 @@ class _WeekPlannerState extends State<WeekPlanner> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Text(period.title ?? '',
-                                      style: const TextStyle(fontSize: 10)),
+                                      style: isMobile
+                                          ? context.hourLabelMobile
+                                          : context.hourLabelTablet),
                                 ],
                               )
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Text(start.format(context).substring(0, 5),
-                                      style: const TextStyle(fontSize: 10)),
+                                      style: isMobile
+                                          ? context.hourLabelMobile
+                                          : context.hourLabelTablet),
                                   const SizedBox(
                                     height: 8,
                                   ),
                                   Text(end.format(context).substring(0, 5),
-                                      style: const TextStyle(fontSize: 10)),
+                                      style: isMobile
+                                          ? context.hourLabelMobile
+                                          : context.hourLabelTablet),
                                 ],
                               ),
                       );
@@ -252,92 +200,39 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     itemBuilder: (CalendarEvent<Event> item, double width) =>
                         Container(
                       margin: const EdgeInsets.all(4),
-                      padding: const EdgeInsets.all(6),
-                      height: item.eventData!.period.isBreak
-                          ? simpleController.breakHeight
-                          : simpleController.cellHeight,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: item.eventData!.color),
-                      child: item.eventData!.period.isBreak
-                          ? Container(
-                              height: simpleController.breakHeight,
-                              child: Center(
-                                  child: Text(
-                                item.eventData!.title,
-                                style: const TextStyle(color: Colors.white),
-                              )),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    const Icon(
-                                      Icons.circle,
-                                      color: Colors.black,
-                                      size: 10,
-                                    ),
-                                    const SizedBox(
-                                      width: 4,
-                                    ),
-                                    Flexible(
+                      child: Container(
+                          padding: const EdgeInsets.all(6),
+                          height: item.eventData!.period.isBreak
+                              ? simpleController.breakHeight
+                              : simpleController.cellHeight,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              color: item.eventData!.color),
+                          child: item.eventData!.period.isBreak
+                              ? Container(
+                                  height: simpleController.breakHeight,
+                                  child: Center(
                                       child: Text(
-                                        item.eventData!.title,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : Flexible(
-                                        child: Text(
-                                          item.eventData!.description,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : const Spacer(),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : item.eventData!.documents.isNotEmpty
-                                        ? Wrap(
-                                            runSpacing: 8,
-                                            spacing: 8,
-                                            children: item.eventData!.documents
-                                                .map((String e) => Container(
-                                                    padding: const EdgeInsets
-                                                            .symmetric(
-                                                        horizontal: 4,
-                                                        vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20)),
-                                                    child: Text(
-                                                      e,
-                                                      style: const TextStyle(
-                                                          fontSize: 10),
-                                                    )))
-                                                .toList())
-                                        : const SizedBox.shrink(),
-                              ],
-                            ),
+                                    item.eventData!.title,
+                                    style: context.subtitle,
+                                  )),
+                                )
+                              : EventTile(
+                                  item: item,
+                                  height: item.eventData!.period.isBreak
+                                      ? simpleController.breakHeight
+                                      : simpleController.cellHeight,
+                                  width: width,
+                                )),
                     ),
                     cellBuilder: (Period period) => Container(
                       height: period.isBreak
                           ? simpleController.breakHeight
                           : simpleController.cellHeight,
                       decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.grey.withOpacity(0.5), width: 0.5),
-                          color: period.isBreak
-                              ? Colors.grey.withOpacity(0.2)
-                              : Colors.transparent),
+                          border: Border.all(color: grey),
+                          color:
+                              period.isBreak ? lightGrey : Colors.transparent),
                     ),
                   ),
                 ),

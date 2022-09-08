@@ -1,17 +1,25 @@
 import 'dart:developer';
-import 'package:example/core/utils.dart';
-import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/colors.dart';
+import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
+import 'package:edgar_planner_calendar_flutter/core/static.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/schedule_view_event_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///planner
 class SchedulePlanner extends StatefulWidget {
-  ///
-  const SchedulePlanner({Key? key, this.id, this.isMobile = true})
+  /// initialize schedule planner
+  const SchedulePlanner(
+      {required this.timetableController,
+      Key? key,
+      this.id,
+      this.isMobile = true})
       : super(key: key);
 
   ///id that we will received from native ios
@@ -20,66 +28,18 @@ class SchedulePlanner extends StatefulWidget {
   ///bool isMobile
   final bool isMobile;
 
+  ///timetable controller for the calendar
+  final TimetableController timetableController;
+
   @override
   State<SchedulePlanner> createState() => _SchedulePlannerState();
 }
 
-///current date time
-DateTime now = DateTime.now().subtract(const Duration(days: 1));
-
-///custom Time Periods for the timetable
-List<Period> customPeriods = <Period>[
-  Period(
-    startTime: const TimeOfDay(hour: 9, minute: 30),
-    endTime: const TimeOfDay(hour: 9, minute: 45),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 9, minute: 45),
-    endTime: const TimeOfDay(hour: 10, minute: 30),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 10, minute: 30),
-    endTime: const TimeOfDay(hour: 11, minute: 0),
-    isBreak: true,
-    title: 'Recess',
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 11, minute: 0),
-    endTime: const TimeOfDay(hour: 11, minute: 45),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 11, minute: 45),
-    endTime: const TimeOfDay(hour: 12, minute: 30),
-  ),
-  Period(
-      startTime: const TimeOfDay(hour: 12, minute: 30),
-      endTime: const TimeOfDay(hour: 13, minute: 30),
-      isBreak: true,
-      title: 'Lunch'),
-  Period(
-    startTime: const TimeOfDay(hour: 13, minute: 30),
-    endTime: const TimeOfDay(hour: 14, minute: 15),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 14, minute: 15),
-    endTime: const TimeOfDay(hour: 15, minute: 0),
-  ),
-];
-
-///return true if date is same
-bool isSameDate(DateTime date) {
-  final DateTime now = DateTime.now();
-  if (now.year == date.year && now.month == date.month && now.day == date.day) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 class _SchedulePlannerState extends State<SchedulePlanner> {
   TimetableController simpleController = TimetableController(
-      start: DateTime(2022, 8),
-      end: DateTime(2022, 10),
+      start:
+          DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
+      end: dateTime.lastDayOfMonth,
       timelineWidth: 60,
       breakHeight: 35,
       cellHeight: 120);
@@ -87,20 +47,23 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
 
   @override
   void initState() {
-    super.initState();
+    simpleController = widget.timetableController;
+    setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       currentMonth = simpleController.visibleDateStart;
       setState(() {});
       Future<dynamic>.delayed(const Duration(milliseconds: 100), () {
-        simpleController.jumpTo(now);
+        simpleController.jumpTo(dateTime);
       });
     });
+    super.initState();
   }
 
   DateTime currentMonth = DateTime.now();
-  static double cellHeight = 51;
+
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
 
+  static double cellHeight = 51;
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<TimeTableCubit, TimeTableState>(
@@ -118,15 +81,16 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
               Expanded(
                 child: SlScheduleView<Event>(
                   timelines: customPeriods,
+                  cellHeight: cellHeight,
                   onEventDragged: (CalendarEvent<Event> old,
                       CalendarEvent<Event> newEvent) {
                     BlocProvider.of<TimeTableCubit>(context, listen: false)
-                        .updateEvent(old, newEvent);
+                        .updateEvent(old, newEvent, null);
                   },
                   onWillAccept: (CalendarEvent<Event>? event) {
                     if (event != null) {
                       if (state is LoadingState) {
-                        final List<CalendarEvent<dynamic>> overLappingEvents =
+                        final List<CalendarEvent<dynamic>> overleapingEvents =
                             BlocProvider.of<TimeTableCubit>(context,
                                     listen: false)
                                 .events
@@ -136,13 +100,13 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                                     isTimeIsEqualOrLess(
                                         element.endTime, event.endTime))
                                 .toList();
-                        if (overLappingEvents.isEmpty) {
+                        if (overleapingEvents.isEmpty) {
                           log('Slot available: ${event.toMap}');
                           return true;
                         } else {
                           log('Slot Not available-> Start Time: '
-                              '${overLappingEvents.first.startTime}'
-                              'End Time: ${overLappingEvents.first.endTime}');
+                              '${overleapingEvents.first.startTime}'
+                              'End Time: ${overleapingEvents.first.endTime}');
 
                           return false;
                         }
@@ -174,23 +138,23 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                       children: <Widget>[
                         Text(
                           DateFormat('E').format(date),
-                          style: const TextStyle(fontSize: 10),
+                          style: context.subtitle,
                         ),
                         Container(
-                            width: 25,
-                            height: 25,
+                            width: 24,
+                            height: 24,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12.5),
                                 color: isSameDate(date)
-                                    ? Colors.pink
+                                    ? primaryPink
                                     : Colors.transparent),
                             child: Center(
                               child: Text(
                                 date.day.toString(),
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color:
-                                        isSameDate(date) ? Colors.white : null),
+                                style: context.subtitle.copyWith(
+                                    color: isSameDate(date)
+                                        ? Colors.white
+                                        : textBlack),
                               ),
                             ))
                       ],
@@ -206,116 +170,44 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
                                 Text(period.title ?? '',
-                                    style: const TextStyle(fontSize: 10)),
+                                    style: context.subtitle),
                               ],
                             )
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
                                 Text(start.format(context).substring(0, 5),
-                                    style: const TextStyle(fontSize: 10)),
+                                    style: context.subtitle),
                                 const SizedBox(
                                   height: 8,
                                 ),
                                 Text(end.format(context).substring(0, 5),
-                                    style: const TextStyle(fontSize: 10)),
+                                    style: context.subtitle),
                               ],
                             ),
                     );
                   },
                   controller: simpleController,
-                  itemBuilder: (CalendarEvent<Event> item) => Container(
-                    margin: const EdgeInsets.all(4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                    height: 51,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        color: item.eventData!.color),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  const Icon(
-                                    Icons.circle,
-                                    color: Colors.black,
-                                    size: 10,
-                                  ),
-                                  const SizedBox(
-                                    width: 4,
-                                  ),
-                                  Flexible(
-                                    child: Text(
-                                      item.eventData!.title,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                  ),
-                                  // const Spacer(),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 6,
-                            ),
-                            SizedBox(
-                              width: 100,
-                              child: Text(
-                                getFormattedTime(
-                                    item.eventData!.period, context),
-                                style: const TextStyle(
-                                    fontSize: 10, fontWeight: FontWeight.w500),
-                              ),
-                            )
-                          ],
-                        ),
-                        item.eventData!.freeTime
-                            ? const SizedBox.shrink()
-                            : const Spacer(),
-                        item.eventData!.freeTime
-                            ? const SizedBox.shrink()
-                            : item.eventData!.documents.isNotEmpty
-                                ? Wrap(
-                                    runSpacing: 8,
-                                    spacing: 8,
-                                    children: item.eventData!.documents
-                                        .map((String e) => Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 4, vertical: 2),
-                                            decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(20)),
-                                            child: Text(
-                                              e,
-                                              style:
-                                                  const TextStyle(fontSize: 10),
-                                            )))
-                                        .toList())
-                                : const SizedBox.shrink(),
-                      ],
-                    ),
+                  itemBuilder: (CalendarEvent<Event> item) =>
+                      ScheduleViewEventTile(
+                    item: item,
+                    cellHeight: cellHeight,
                   ),
                   cellBuilder: (DateTime period) => Container(
                     height: cellHeight,
                     decoration: BoxDecoration(
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.5), width: 0.5),
-                      color: Colors.grey.withOpacity(0.2),
-                    ),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                            color: Colors.grey.withOpacity(0.5), width: 0.5),
+                        color: lightGrey),
                   ),
                 ),
-              )
+              ),
             ],
           );
         }
       });
+
+ 
+
 }

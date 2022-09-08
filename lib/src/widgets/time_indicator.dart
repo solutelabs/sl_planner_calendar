@@ -38,13 +38,13 @@ class TimeIndicator extends StatelessWidget {
               width: columnWidth + 1,
             ),
             Positioned(
-              top: -2,
-              left: -2,
+              top: -8,
+              left: -8,
               child: Container(
                 decoration: BoxDecoration(
                     shape: BoxShape.circle, color: nowIndicatorColor),
-                height: 6,
-                width: 6,
+                height: 16,
+                width: 16,
               ),
             ),
           ],

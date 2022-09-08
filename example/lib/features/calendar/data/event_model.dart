@@ -4,7 +4,7 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///event class
 class Event {
-  ///
+  /// initialized event model
   Event({
     required this.title,
     required this.description,
