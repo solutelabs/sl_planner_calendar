@@ -2,7 +2,8 @@ import 'dart:developer';
 
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/day_name.dart';
@@ -82,18 +83,18 @@ class _MonthPlannerState extends State<MonthPlanner> {
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
-                  child: SlMonthView<Event>(
+                  child: SlMonthView<EventData>(
                     timelines: customPeriods,
                     isSwipeEnable: true,
                     onMonthChanged: (Month month) {
                       widget.onMonthChanged(month);
                     },
-                    onEventDragged: (CalendarEvent<Event> old,
-                        CalendarEvent<Event> newEvent) {
+                    onEventDragged: (CalendarEvent<EventData> old,
+                        CalendarEvent<EventData> newEvent) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .updateEvent(old, newEvent,null);
                     },
-                    onWillAccept: (CalendarEvent<Event>? event,
+                    onWillAccept: (CalendarEvent<EventData>? event,
                         DateTime dateTime, Period period) {
                       if (event != null) {
                         if (state is LoadingState) {
@@ -132,7 +133,7 @@ class _MonthPlannerState extends State<MonthPlanner> {
                     ),
                     items: state is LoadedState
                         ? state.events
-                        : <CalendarEvent<Event>>[],
+                        : <CalendarEvent<EventData>>[],
                     onTap: (DateTime date) {
                       log('On Taped to dateCell $date');
                     },
@@ -169,7 +170,7 @@ class _MonthPlannerState extends State<MonthPlanner> {
                       );
                     },
                     controller: simpleController,
-                    itemBuilder: (List<CalendarEvent<Event>> item, Size size) =>
+                    itemBuilder: (List<CalendarEvent<EventData>> item, Size size) =>
                         item.isEmpty
                             ? const SizedBox.shrink()
                             : SizedBox(

@@ -12,11 +12,15 @@ class CalendarEvent<T> {
 
   ///extra data for the event
   T? eventData;
+ 
+
+
 
   ///return map object of the parameter
   Map<String, dynamic> get toMap => <String, dynamic>{
         'starTime': startTime.toString(),
         'endTime': endTime.toString(),
-        'eventData': eventData.toString()
+        'eventData': eventData.toString(),
+       
       };
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 /// period class for the timetable
 class Period {
@@ -8,6 +9,14 @@ class Period {
       required this.endTime,
       this.title,
       this.isBreak = false});
+
+  ///   objet from the from the json
+  factory Period.fromJson(Map<String, dynamic> json) => Period(
+        startTime: parseTimeOfDay(json['startTime']),
+        endTime: parseTimeOfDay(json['endTime']),
+        title: json['title'],
+        isBreak: json['isBreak'],
+      );
 
   ///Start Time
   TimeOfDay startTime;
@@ -27,6 +36,14 @@ class Period {
   Map<String, dynamic> get toMap => <String, dynamic>{
         'startTime': startTime,
         'endTime': endTime,
+        'title': title,
+        'isBreak': isBreak
+      };/// return json object
+
+      
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'startTime': startTime.toString(),
+        'endTime': endTime.toString(),
         'title': title,
         'isBreak': isBreak
       };

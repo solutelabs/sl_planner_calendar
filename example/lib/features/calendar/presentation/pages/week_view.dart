@@ -1,7 +1,8 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
-import 'package:edgar_planner_calendar_flutter/core/constants.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/event_tile.dart';
@@ -10,7 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///planner
 class WeekPlanner extends StatefulWidget {
@@ -77,24 +78,23 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
-                  child: SlWeekView<Event>(
+                  child: SlWeekView<EventData>(
                     fullWeek: true,
                     timelines: customPeriods,
-                    onEventDragged: (CalendarEvent<Event> old,
-                        CalendarEvent<Event> newEvent, Period period) {
+                    onEventDragged: (CalendarEvent<EventData> old,
+                        CalendarEvent<EventData> newEvent, Period period) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .updateEvent(old, newEvent, period);
                     },
                     onWillAccept:
-                        (CalendarEvent<Event>? event, Period period) => true,
+                        (CalendarEvent<EventData>? event, Period period) =>
+                            true,
                     nowIndicatorColor: Colors.red,
                     cornerBuilder: (DateTime current) =>
                         const SizedBox.shrink(),
-                    items: state is LoadedState
-                        ? state.events
-                        : <CalendarEvent<Event>>[],
+                    items: state is LoadedState ? state.events : [],
                     onTap: (DateTime date, Period period,
-                        CalendarEvent<Event>? event) {
+                        CalendarEvent<EventData>? event) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .onTap(dateTime);
                     },
@@ -197,7 +197,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
                       );
                     },
                     controller: simpleController,
-                    itemBuilder: (CalendarEvent<Event> item, double width) =>
+                    itemBuilder: (CalendarEvent<EventData> item, double width) =>
                         Container(
                       margin: const EdgeInsets.all(4),
                       child: Container(

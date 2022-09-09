@@ -503,3 +503,10 @@ List<CalendarDay> addPaddingDate(List<CalendarDay> myDateRange) {
   }
   return dateRange;
 }
+
+
+///.convert string to TimeOfTheDay
+  TimeOfDay parseTimeOfDay(String t) {
+    final DateTime dateTime = DateFormat('HH:mm').parse(t);
+    return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+  }

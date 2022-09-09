@@ -202,7 +202,6 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
       appLog('max column changed');
       await adjustColumnWidth();
     }
- 
   }
 
   double getHeightOfTheEvent(CalendarEvent<dynamic> item) {
@@ -259,7 +258,10 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
   static DateTime dateForHeader = DateTime.now();
   ValueNotifier<DateTime> headerDateNotifier =
       ValueNotifier<DateTime>(dateForHeader);
-      
+
+  List<Key> eventKeys = <Key>[];
+
+  Map<Key, double> eventMargin = <Key, double>{};
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,

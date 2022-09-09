@@ -1,4 +1,5 @@
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:edgar_planner_calendar_flutter/core/utils.dart' as utils;
@@ -14,7 +15,7 @@ class ScheduleViewEventTile extends StatelessWidget {
   }) : super(key: key);
 
   ///CalendarEvent object
-  final CalendarEvent<Event> item;
+  final CalendarEvent<EventData> item;
 
   ///double cell height
   final double cellHeight;

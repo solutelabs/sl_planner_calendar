@@ -4,7 +4,8 @@ import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart'; 
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/cell_border.dart';
@@ -79,16 +80,16 @@ class _DayPlannerState extends State<DayPlanner> {
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink(),
                 Expanded(
-                  child: SlDayView<Event>(
+                  child: SlDayView<EventData>(
                     timelines: customPeriods,
-                    onEventDragged: (CalendarEvent<Event> old,
-                        CalendarEvent<Event> newEvent) {
+                    onEventDragged: (CalendarEvent<EventData> old,
+                        CalendarEvent<EventData> newEvent) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .updateEvent(old, newEvent, null);
                     },
-                    onWillAccept: (CalendarEvent<Event>? event, DateTime date,
+                    onWillAccept: (CalendarEvent<EventData>? event, DateTime date,
                         Period period) {
-                      final List<CalendarEvent<Event>> events =
+                      final List<CalendarEvent<EventData>> events =
                           BlocProvider.of<TimeTableCubit>(context,
                                   listen: false)
                               .events;
@@ -101,9 +102,9 @@ class _DayPlannerState extends State<DayPlanner> {
                         const SizedBox.shrink(),
                     items: state is LoadedState
                         ? state.events
-                        : <CalendarEvent<Event>>[],
+                        : <CalendarEvent<EventData>>[],
                     onTap: (DateTime date, Period period,
-                        CalendarEvent<Event>? event) {
+                        CalendarEvent<EventData>? event) {
                       log(date.toString());
                       log(period.toMap.toString());
                       log(event.toString());
@@ -234,8 +235,9 @@ class _DayPlannerState extends State<DayPlanner> {
                               ),
                       );
                     },
+                    
                     controller: simpleController,
-                    itemBuilder: (CalendarEvent<Event> item) =>
+                    itemBuilder: (CalendarEvent<EventData> item) =>
                         SingleDayEventTile(
                             cellWidth:
                                 size.width - simpleController.timelineWidth,

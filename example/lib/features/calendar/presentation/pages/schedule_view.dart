@@ -2,7 +2,8 @@ import 'dart:developer';
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/schedule_view_event_tile.dart';
@@ -79,15 +80,15 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                   ? const LinearProgressIndicator()
                   : const SizedBox.shrink(),
               Expanded(
-                child: SlScheduleView<Event>(
+                child: SlScheduleView<EventData>(
                   timelines: customPeriods,
                   cellHeight: cellHeight,
-                  onEventDragged: (CalendarEvent<Event> old,
-                      CalendarEvent<Event> newEvent) {
+                  onEventDragged: (CalendarEvent<EventData> old,
+                      CalendarEvent<EventData> newEvent) {
                     BlocProvider.of<TimeTableCubit>(context, listen: false)
                         .updateEvent(old, newEvent, null);
                   },
-                  onWillAccept: (CalendarEvent<Event>? event) {
+                  onWillAccept: (CalendarEvent<EventData>? event) {
                     if (event != null) {
                       if (state is LoadingState) {
                         final List<CalendarEvent<dynamic>> overleapingEvents =
@@ -122,8 +123,8 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                   cornerBuilder: (DateTime current) => const SizedBox.shrink(),
                   items: state is LoadedState
                       ? state.events
-                      : <CalendarEvent<Event>>[],
-                  onTap: (DateTime dateTime, List<CalendarEvent<Event>>? p1) {
+                      : <CalendarEvent<EventData>>[],
+                  onTap: (DateTime dateTime, List<CalendarEvent<EventData>>? p1) {
                     log(dateTime.toString());
                     log(p1.toString());
                   },
@@ -188,7 +189,7 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                     );
                   },
                   controller: simpleController,
-                  itemBuilder: (CalendarEvent<Event> item) =>
+                  itemBuilder: (CalendarEvent<EventData> item) =>
                       ScheduleViewEventTile(
                     item: item,
                     cellHeight: cellHeight,

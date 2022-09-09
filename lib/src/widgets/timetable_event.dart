@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/colors.dart';
@@ -11,6 +13,7 @@ class TimeTableEvent<T> extends StatefulWidget {
     required this.event,
     required this.onWillAccept,
     required this.onAcceptWithDetails,
+    this.toHeightChanged,
     this.onAccept,
     this.isDraggable = true,
     this.onLeave,
@@ -59,6 +62,9 @@ class TimeTableEvent<T> extends StatefulWidget {
   /// Not doing anything. It is just a placeholder.
   final bool isDraggable;
 
+  ///double toHeight
+  final Function(double)? toHeightChanged;
+
   @override
   State<TimeTableEvent<T>> createState() => _TimeTableEventState<T>();
 }
@@ -66,44 +72,53 @@ class TimeTableEvent<T> extends StatefulWidget {
 class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
   bool isSlotAvailable = false;
   @override
-  Widget build(BuildContext context) => DragTarget<CalendarEvent<T>>(
-        builder: (
-          BuildContext context,
-          List<dynamic> accepted,
-          List<dynamic> rejected,
-        ) =>
-            Draggable<CalendarEvent<T>>(
-          // Data is the value this Draggable
-          // stores.
-          data: widget.event,
-          maxSimultaneousDrags: widget.isDraggable ? 1 : 0,
-          ignoringFeedbackSemantics: false,
+  Widget build(BuildContext context) => GestureDetector(
+        onPanStart: (DragStartDetails details) {
+          log(details.globalPosition.toString());
+        },
+        onPanUpdate: (DragUpdateDetails details) {
+          if (widget.toHeightChanged != null) {}
+          log(details.globalPosition.toString());
+        },
+        child: DragTarget<CalendarEvent<T>>(
+          builder: (
+            BuildContext context,
+            List<dynamic> accepted,
+            List<dynamic> rejected,
+          ) =>
+              Draggable<CalendarEvent<T>>(
+            // Data is the value this Draggable
+            // stores.
+            data: widget.event,
+            maxSimultaneousDrags: widget.isDraggable ? 1 : 0,
+            ignoringFeedbackSemantics: false,
 
-          feedback: Container(
-              width: widget.columnWidth,
-              child: BuildEvent<T>(
-                  event: widget.event,
-                  columnWidth: widget.columnWidth,
-                  itemBuilder: widget.itemBuilder)),
-          childWhenDragging: Container(
-              decoration: BoxDecoration(
-                  color: transparent,
-                  border: Border.all(width: 2, color: transparent),
-                  borderRadius: BorderRadius.circular(6))),
-          child: BuildEvent<T>(
-              event: widget.event,
-              columnWidth: widget.columnWidth,
-              itemBuilder: widget.itemBuilder),
+            feedback: Container(
+                width: widget.columnWidth,
+                child: BuildEvent<T>(
+                    event: widget.event,
+                    columnWidth: widget.columnWidth,
+                    itemBuilder: widget.itemBuilder)),
+            childWhenDragging: Container(
+                decoration: BoxDecoration(
+                    color: transparent,
+                    border: Border.all(width: 2, color: transparent),
+                    borderRadius: BorderRadius.circular(6))),
+            child: BuildEvent<T>(
+                event: widget.event,
+                columnWidth: widget.columnWidth,
+                itemBuilder: widget.itemBuilder),
+          ),
+          onAcceptWithDetails: (DragTargetDetails<CalendarEvent<T>> details) {
+            widget.onAcceptWithDetails(details);
+          },
+          onWillAccept: (CalendarEvent<T>? data) => widget.onWillAccept(data),
+          onAccept: (CalendarEvent<dynamic> data) {},
+          onLeave: (CalendarEvent<dynamic>? value) {},
+          onMove: (DragTargetDetails<CalendarEvent<T>> value) {
+            // appLog('On moved');
+          },
         ),
-        onAcceptWithDetails: (DragTargetDetails<CalendarEvent<T>> details) {
-          widget.onAcceptWithDetails(details);
-        },
-        onWillAccept: (CalendarEvent<T>? data) => widget.onWillAccept(data),
-        onAccept: (CalendarEvent<dynamic> data) {},
-        onLeave: (CalendarEvent<dynamic>? value) {},
-        onMove: (DragTargetDetails<CalendarEvent<T>> value) {
-          // appLog('On moved');
-        },
       );
 }
 

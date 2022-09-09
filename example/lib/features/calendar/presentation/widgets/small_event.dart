@@ -1,5 +1,6 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
@@ -18,7 +19,7 @@ class SmallEventTile extends StatelessWidget {
   final double? width;
 
   ///Calendar event
-  final CalendarEvent<Event> event;
+  final CalendarEvent<EventData> event;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -65,7 +66,7 @@ class ExtraSmallEventTile extends StatelessWidget {
   final double? width;
 
   ///Calendar event
-  final CalendarEvent<Event> event;
+  final CalendarEvent<EventData> event;
 
   @override
   Widget build(BuildContext context) => Container(

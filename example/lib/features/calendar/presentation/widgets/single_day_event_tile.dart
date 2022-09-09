@@ -1,4 +1,5 @@
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/event_model.dart';
+ 
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
@@ -15,7 +16,7 @@ class SingleDayEventTile extends StatelessWidget {
   }) : super(key: key);
 
   ///calendar event
-  final CalendarEvent<Event> item;
+  final CalendarEvent<EventData> item;
 
   ///height of the cell
   final double cellHeight;
@@ -101,7 +102,7 @@ class SingleDayEventTile extends StatelessWidget {
                                   runSpacing: 8,
                                   spacing: 8,
                                   children: item.eventData!.documents
-                                      .map((String e) => Container(
+                                      .map((Document e) => Container(
                                           width:
                                               MediaQuery.of(context).size.width,
                                           height: 18,
@@ -112,7 +113,7 @@ class SingleDayEventTile extends StatelessWidget {
                                               borderRadius:
                                                   BorderRadius.circular(20)),
                                           child: Center(
-                                            child: Text(e,
+                                            child: Text(e.documentName,
                                                 style: context.eventTitle),
                                           )))
                                       .toList())
