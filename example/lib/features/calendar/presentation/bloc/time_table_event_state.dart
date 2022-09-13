@@ -1,4 +1,3 @@
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
@@ -26,11 +25,31 @@ class LoadedState extends TimeTableState {
   ///list of events
   final List<PlannerEvent> events;
 
-  ///
+  /// view type of the calendar
   final CalendarViewType viewType;
 
   @override
   List<Object> get props => <Object>[events, viewType];
+}
+
+///View updated state
+class ViewUpdated implements LoadedState {
+  ///
+  ViewUpdated(this.events, this.viewType);
+
+  ///list of events
+  @override
+  final List<PlannerEvent> events;
+
+  /// view type of the calendar
+  @override
+  final CalendarViewType viewType;
+
+  @override
+  List<Object> get props => <Object>[events, viewType];
+
+  @override
+  bool? get stringify => false;
 }
 
 ///error state
@@ -46,15 +65,24 @@ class AddingEvent extends TimeTableState {
 }
 
 ///adding event state
-class UpdatingEvent extends LoadingState {
+class UpdatingEvent extends TimeTableState {
+  ///initialized updating event
+  UpdatingEvent();
+
   @override
   List<Object> get props => <Object>[];
 }
 
 ///date update event state
-class DateUpdated extends LoadingState {
+class DateUpdated implements LoadedState {
   ///initialize start
-  DateUpdated(this.endDate, this.startDate);
+  DateUpdated(this.endDate, this.startDate, this.events, this.viewType);
+
+  @override
+  final List<PlannerEvent> events;
+
+  @override
+  final CalendarViewType viewType;
 
   ///start date
   final DateTime startDate;
@@ -63,17 +91,99 @@ class DateUpdated extends LoadingState {
   final DateTime endDate;
 
   @override
-  List<Object> get props => <Object>[startDate, endDate];
+  List<Object> get props => <Object>[startDate, endDate, events, viewType];
+
+  @override
+  bool? get stringify => throw UnimplementedError();
 }
 
 ///PeriodsUpdated event state
-class PeriodsUpdated extends LoadingState {
+class PeriodsUpdated implements LoadedState {
   ///initialize start
-  PeriodsUpdated(this.periods);
+  PeriodsUpdated(this.periods, this.events, this.viewType);
 
-  ///list of the perioda
+  @override
+  final List<PlannerEvent> events;
+
+  @override
+  final CalendarViewType viewType;
+
+  ///list of the period
   final List<Period> periods;
 
   @override
-  List<Object> get props => <Object>[periods];
+  List<Object> get props => <Object>[periods, viewType, events];
+
+  @override
+  bool? get stringify => false;
+}
+
+///EventsAdded event state
+class EventsAdded implements LoadedState {
+  ///initialize start
+  EventsAdded(this.periods, this.events, this.viewType, this.addedEvents);
+
+  @override
+  final List<PlannerEvent> events;
+
+  ///added events
+  final List<PlannerEvent> addedEvents;
+
+  @override
+  final CalendarViewType viewType;
+
+  ///list of the period
+  final List<Period> periods;
+
+  @override
+  List<Object> get props => <Object>[periods, events, addedEvents, viewType];
+
+  @override
+  bool? get stringify => false;
+}
+
+///EventsUpdated event state
+class EventsUpdated implements LoadedState {
+  ///initialize start
+  EventsUpdated(this.periods, this.events, this.viewType, this.updatedEvents);
+
+  @override
+  final List<PlannerEvent> events;
+
+  ///updated events
+  final List<PlannerEvent> updatedEvents;
+  @override
+  final CalendarViewType viewType;
+
+  ///list of the period
+  final List<Period> periods;
+
+  @override
+  List<Object> get props => <Object>[periods, events, viewType, updatedEvents];
+
+  @override
+  bool? get stringify => false;
+}
+
+///EventsUpdated event state
+class DeletedEvents implements LoadedState {
+  ///initialize start
+  DeletedEvents(this.periods, this.events, this.viewType, this.deletedEvents);
+
+  @override
+  final List<PlannerEvent> events;
+
+  ///deleted events
+  final List<PlannerEvent> deletedEvents;
+  @override
+  final CalendarViewType viewType;
+
+  ///list of the period
+  final List<Period> periods;
+
+  @override
+  List<Object> get props => <Object>[periods, events, viewType, deletedEvents];
+
+  @override
+  bool? get stringify => false;
 }

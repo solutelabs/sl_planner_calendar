@@ -12,10 +12,12 @@ class SlScheduleView<T> extends StatefulWidget {
     required this.cellBuilder,
     Key? key,
     this.onEventDragged,
+    this.isCellDraggable,
     this.controller,
     this.headerCellBuilder,
     this.items = const <CalendarEvent<Never>>[],
     this.itemBuilder,
+    this.isDraggable = true,
     this.fullWeek = false,
     this.headerHeight = 45,
     this.cellHeight = 51,
@@ -90,6 +92,12 @@ class SlScheduleView<T> extends StatefulWidget {
   /// either [onAccept] and [onAcceptWithDetails], if the data is dropped, or
   /// [onLeave], if the drag leaves the target.
   final DragTargetWillAccept<CalendarEvent<T>> onWillAccept;
+
+  ///function will handle if event is draggable
+  final bool Function(CalendarEvent<T> event)? isCellDraggable;
+
+  ///bool isDraggable
+  final bool isDraggable;
 
   @override
   State<SlScheduleView<T>> createState() => _SlScheduleViewState<T>();
@@ -283,7 +291,31 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
                 leading: widget.headerCellBuilder!(date),
                 title: events.isEmpty
                     ? DragTarget<CalendarEvent<T>>(
-                        onWillAccept: (Object? data) => true,
+                        onWillAccept: (CalendarEvent<T>? data) =>
+                            widget.onWillAccept(data),
+                        onAcceptWithDetails:
+                            (DragTargetDetails<CalendarEvent<T>> details) {
+                          final CalendarEvent<T> event = details.data;
+                          final DateTime newStartTime = DateTime(
+                              date.year,
+                              date.month,
+                              date.day,
+                              event.startTime.hour,
+                              event.startTime.minute);
+                          final DateTime newEndTime = DateTime(
+                              date.year,
+                              date.month,
+                              date.day,
+                              event.endTime.hour,
+                              event.endTime.minute);
+
+                          final CalendarEvent<T> newEvent = CalendarEvent<T>(
+                              startTime: newStartTime,
+                              endTime: newEndTime,
+                              eventData: event.eventData);
+
+                          widget.onEventDragged!(details.data, newEvent);
+                        },
                         builder: (BuildContext content, List<Object?> obj,
                                 List<dynamic> data) =>
                             widget.cellBuilder(date))
@@ -293,6 +325,12 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
                                 Draggable<CalendarEvent<T>>(
                                     ignoringFeedbackSemantics: false,
                                     data: e,
+                                    maxSimultaneousDrags:
+                                        widget.isCellDraggable == null
+                                            ? 1
+                                            : widget.isCellDraggable!(e)
+                                                ? 1
+                                                : 0,
                                     childWhenDragging: widget.cellBuilder(date),
                                     feedback:
                                         Material(child: widget.itemBuilder!(e)),

@@ -2,9 +2,9 @@ import 'dart:developer';
 
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
-import 'package:edgar_planner_calendar_flutter/core/date_extension.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///planner
 class DayPlanner extends StatefulWidget {
@@ -30,6 +29,7 @@ class DayPlanner extends StatefulWidget {
 
   ///timetable controller for the calendar
   final TimetableController timetableController;
+
   @override
   State<DayPlanner> createState() => _DayPlannerState();
 }
@@ -87,8 +87,8 @@ class _DayPlannerState extends State<DayPlanner> {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
                           .updateEvent(old, newEvent, null);
                     },
-                    onWillAccept: (CalendarEvent<EventData>? event, DateTime date,
-                        Period period) {
+                    onWillAccept: (CalendarEvent<EventData>? event,
+                        DateTime date, Period period) {
                       final List<CalendarEvent<EventData>> events =
                           BlocProvider.of<TimeTableCubit>(context,
                                   listen: false)
@@ -235,13 +235,21 @@ class _DayPlannerState extends State<DayPlanner> {
                               ),
                       );
                     },
-                    
                     controller: simpleController,
+                    isCellDraggable: (CalendarEvent<EventData> event) {
+                      if (event.eventData!.period.isBreak) {
+                        return false;
+                      } else {
+                        return true;
+                      }
+                    },
                     itemBuilder: (CalendarEvent<EventData> item) =>
                         SingleDayEventTile(
                             cellWidth:
                                 size.width - simpleController.timelineWidth,
                             item: item,
+                            isDraggable: false,
+                            period: item.eventData!.period,
                             breakHeight: simpleController.breakHeight,
                             cellHeight: simpleController.cellHeight),
                     cellBuilder: (Period period) => CellBorder(

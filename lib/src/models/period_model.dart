@@ -38,9 +38,10 @@ class Period {
         'endTime': endTime,
         'title': title,
         'isBreak': isBreak
-      };/// return json object
+      };
 
-      
+  /// return json object
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'startTime': startTime.toString(),
         'endTime': endTime.toString(),

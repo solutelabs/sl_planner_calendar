@@ -2,7 +2,7 @@ import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:flutter/material.dart';
 
-///it will draw dead cell with angled strips in month and term view 
+///it will draw dead cell with angled strips in month and term view
 class DeadCell extends StatelessWidget {
   ///DeadCell
   const DeadCell({Key? key}) : super(key: key);

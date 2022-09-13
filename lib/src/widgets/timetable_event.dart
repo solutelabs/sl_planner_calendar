@@ -71,6 +71,7 @@ class TimeTableEvent<T> extends StatefulWidget {
 
 class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
   bool isSlotAvailable = false;
+
   @override
   Widget build(BuildContext context) => GestureDetector(
         onPanStart: (DragStartDetails details) {

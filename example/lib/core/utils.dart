@@ -1,13 +1,12 @@
- 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///return formatted tine
 String getFormattedTime(Period period, BuildContext context) =>
     '${period.startTime.format(context)}'
     ' - ${period.endTime.format(context)}';
-    ///return true if date is same
+
+///return true if date is same
 bool isSameDate(DateTime date) {
   final DateTime now = DateTime.now();
   if (now.year == date.year && now.month == date.month && now.day == date.day) {
@@ -39,4 +38,37 @@ String getWeekDay(int index) {
       return 'Day';
   }
 }
-///
+
+/// bool true if side Strip is available
+
+bool isSideStripsAvailable(CalendarViewType viewType) {
+  if (viewType == CalendarViewType.dayView ||
+      viewType == CalendarViewType.weekView ||
+      viewType == CalendarViewType.monthView ||
+      viewType == CalendarViewType.termView) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+///get the month list for current year
+List<DateTime> getMonth() {
+  final DateTime now = DateTime.now();
+  return <DateTime>[
+    DateTime(
+      now.year,
+    ),
+    DateTime(now.year, 2),
+    DateTime(now.year, 3),
+    DateTime(now.year, 4),
+    DateTime(now.year, 5),
+    DateTime(now.year, 6),
+    DateTime(now.year, 7),
+    DateTime(now.year, 8),
+    DateTime(now.year, 9),
+    DateTime(now.year, 10),
+    DateTime(now.year, 11),
+    DateTime(now.year, 12)
+  ];
+}

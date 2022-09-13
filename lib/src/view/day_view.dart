@@ -4,6 +4,7 @@ import 'package:sl_planner_calendar/src/widgets/cell.dart';
 import 'package:sl_planner_calendar/src/widgets/hour_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/time_indicator.dart';
 import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
+
 import '../core/app_log.dart';
 
 /// The [SlDayView] widget displays calendar like view of the events
@@ -27,6 +28,7 @@ class SlDayView<T> extends StatefulWidget {
     this.showNowIndicator = true,
     this.cornerBuilder,
     this.snapToDay = true,
+    this.isCellDraggable,
     this.onTap,
   }) : super(key: key);
 
@@ -44,7 +46,9 @@ class SlDayView<T> extends StatefulWidget {
   final List<CalendarEvent<T>> items;
 
   /// Renders event card from `TimetableItem<T>` for each item
-  final Widget Function(CalendarEvent<T>)? itemBuilder;
+  final Widget Function(
+    CalendarEvent<T>,
+  )? itemBuilder;
 
   /// Renders hour label given [TimeOfDay] for each hour
   final Widget Function(Period period)? hourLabelBuilder;
@@ -90,6 +94,9 @@ class SlDayView<T> extends StatefulWidget {
   /// either [onAccept] and [onAcceptWithDetails], if the data is dropped, or
   /// [onLeave], if the drag leaves the target.
   final Function(CalendarEvent<T>, DateTime, Period) onWillAccept;
+
+  ///function will handle if event is draggable
+  final bool Function(CalendarEvent<T> event)? isCellDraggable;
 
   @override
   State<SlDayView<T>> createState() => _SlDayViewState<T>();
@@ -262,6 +269,7 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
   List<Key> eventKeys = <Key>[];
 
   Map<Key, double> eventMargin = <Key, double>{};
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
@@ -332,12 +340,14 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                                         columnWidth: size.width,
                                         cellBuilder: widget.cellBuilder,
                                         period: period,
+                                        isDragEnable: !period.isBreak,
                                         breakHeight: controller.breakHeight,
                                         cellHeight: controller.cellHeight,
                                         dateTime: date,
                                         onTap: (DateTime dateTime, Period p1,
                                             CalendarEvent<T>? p2) {
                                           appLog('data');
+
                                           widget.onTap!(dateTime, p1, p2);
                                         },
                                         onAcceptWithDetails:
@@ -393,10 +403,12 @@ class _SlDayViewState<T> extends State<SlDayView<T>> {
                                       controller.breakHeight,
                                       event.endTime),
                                   child: TimeTableEvent<T>(
+                                    isDraggable:
+                                        widget.isCellDraggable == null ||
+                                            widget.isCellDraggable!(event),
                                     onAcceptWithDetails:
                                         (DragTargetDetails<CalendarEvent<T>>
                                             details) {
-                                      appLog(details.data.toMap.toString());
                                       final CalendarEvent<T> myEvents =
                                           details.data;
                                       final DateTime newStartTime = DateTime(

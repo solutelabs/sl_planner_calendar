@@ -30,17 +30,15 @@ dependencies:
   sl_planner_calendar:
     # only for devlopment
     path: /Users/Jemis/Desktop/plugins/sl_planner_calendar
-
     # git:
     #   url: https://github.com/solutelabs/sl_planner_calendar
     #   ref: master
   equatable: ^2.0.3
   flutter_bloc: ^8.0.1
   bloc: ^8.0.3
-  multiple_search_selection: ^2.1.0 
-  pdf: ^3.8.3   
+  multiple_search_selection: ^2.1.0
+  pdf: ^3.8.3
   intl: ^0.17.0
-
 
 dev_dependencies:
   flutter_test:
@@ -53,7 +51,6 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -67,10 +64,8 @@ flutter:
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
-
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
-
   # To add Flutter specific custom fonts to your application, add a fonts
   # section here, in this "flutter" section. Each entry in this list should
   # have a "family" key with the font family name, and a "fonts" key with a
@@ -88,20 +83,16 @@ flutter:
         #   style: medium
         # - asset: fonts/sofiapro-semibold.ttf
         #   style: semibold
- 
     - family: NotoSans
       fonts:
         - asset: assets/fonts/NotoSans-Regular.ttf
         - asset: assets/fonts/NotoSans-Bold.ttf
           weight: 700
-        - asset:  assets/fonts/NotoSans-Italic.ttf
-          style: italic 
-         
- 
+        - asset: assets/fonts/NotoSans-Italic.ttf
+          style: italic
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
-
   # This section identifies your Flutter project as a module meant for
   # embedding in a native host app.  These identifiers should _not_ ordinarily
   # be changed after generation - they are used to ensure that the tooling can
@@ -112,3 +103,5 @@ flutter:
     androidX: true
     androidPackage: com.example.edgar_planner_calendar_flutter
     iosBundleIdentifier: com.example.edgarPlannerCalendarFlutter
+flutter_intl:
+  enabled: true

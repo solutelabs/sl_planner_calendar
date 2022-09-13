@@ -1,8 +1,9 @@
 import 'dart:developer';
+
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
@@ -11,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///planner
 class SchedulePlanner extends StatefulWidget {
@@ -65,6 +65,7 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
 
   static double cellHeight = 51;
+
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<TimeTableCubit, TimeTableState>(
@@ -88,43 +89,15 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                     BlocProvider.of<TimeTableCubit>(context, listen: false)
                         .updateEvent(old, newEvent, null);
                   },
-                  onWillAccept: (CalendarEvent<EventData>? event) {
-                    if (event != null) {
-                      if (state is LoadingState) {
-                        final List<CalendarEvent<dynamic>> overleapingEvents =
-                            BlocProvider.of<TimeTableCubit>(context,
-                                    listen: false)
-                                .events
-                                .where((CalendarEvent<dynamic> element) =>
-                                    !isTimeIsEqualOrLess(
-                                        element.startTime, event.startTime) &&
-                                    isTimeIsEqualOrLess(
-                                        element.endTime, event.endTime))
-                                .toList();
-                        if (overleapingEvents.isEmpty) {
-                          log('Slot available: ${event.toMap}');
-                          return true;
-                        } else {
-                          log('Slot Not available-> Start Time: '
-                              '${overleapingEvents.first.startTime}'
-                              'End Time: ${overleapingEvents.first.endTime}');
-
-                          return false;
-                        }
-                      } else {
-                        return false;
-                      }
-                    } else {
-                      return false;
-                    }
-                  },
+                  onWillAccept: (CalendarEvent<EventData>? event) => true,
                   nowIndicatorColor: Colors.red,
                   fullWeek: true,
                   cornerBuilder: (DateTime current) => const SizedBox.shrink(),
                   items: state is LoadedState
                       ? state.events
                       : <CalendarEvent<EventData>>[],
-                  onTap: (DateTime dateTime, List<CalendarEvent<EventData>>? p1) {
+                  onTap:
+                      (DateTime dateTime, List<CalendarEvent<EventData>>? p1) {
                     log(dateTime.toString());
                     log(p1.toString());
                   },
@@ -188,6 +161,13 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                             ),
                     );
                   },
+                  isCellDraggable: (CalendarEvent<EventData> event) {
+                    if (event.eventData!.period.isBreak) {
+                      return false;
+                    } else {
+                      return true;
+                    }
+                  },
                   controller: simpleController,
                   itemBuilder: (CalendarEvent<EventData> item) =>
                       ScheduleViewEventTile(
@@ -208,7 +188,4 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
           );
         }
       });
-
- 
-
 }

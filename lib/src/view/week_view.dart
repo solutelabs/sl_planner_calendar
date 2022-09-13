@@ -21,8 +21,8 @@ class SlWeekView<T> extends StatefulWidget {
     this.controller,
     this.cellBuilder,
     this.headerCellBuilder,
-    // ignore: always_specify_types
-    this.items = const [],
+    this.isCellDraggable,
+    this.items = const <CalendarEvent<Never>>[],
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
@@ -95,6 +95,9 @@ class SlWeekView<T> extends StatefulWidget {
   /// either [onAccept] and [onAcceptWithDetails], if the data is dropped, or
   /// [onLeave], if the drag leaves the target.
   final bool Function(CalendarEvent<T>, Period) onWillAccept;
+
+  ///function will handle if event is draggable
+  final bool Function(CalendarEvent<T> event)? isCellDraggable;
 
   @override
   State<SlWeekView<T>> createState() => _SlWeekViewState<T>();
@@ -460,6 +463,9 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
                                             controller.breakHeight,
                                             event.endTime),
                                         child: TimeTableEvent<T>(
+                                          isDraggable: widget.isCellDraggable ==
+                                                  null ||
+                                              widget.isCellDraggable!(event),
                                           onAcceptWithDetails:
                                               (DragTargetDetails<
                                                       CalendarEvent<T>>

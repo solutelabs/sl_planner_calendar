@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/app_log.dart';
 import 'package:sl_planner_calendar/src/core/colors.dart';
-
 import 'package:sl_planner_calendar/src/core/text_styles.dart';
+
 ///DayCell for month and term view
 class DayCell<T> extends StatelessWidget {
   /// initialized dayCell
@@ -97,6 +97,7 @@ class DayCell<T> extends StatelessWidget {
 
   /// Renders upper left corner of the timetable given the first visible date
   final Widget Function(DateTime current) deadCellBuilder;
+
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: () {
@@ -112,95 +113,69 @@ class DayCell<T> extends StatelessWidget {
                   List<dynamic> accepted,
                   List<dynamic> rejected,
                 ) =>
-                    SizedBox(
-                  width: columnWidth,
-                  height: cellHeight,
-                  child: Stack(
-                    children: <Widget>[
-                      Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Text(dateTime.day.toString())),
-                      Center(
-                        child: cellBuilder != null
-                            ? cellBuilder!(dateTime)
-                            : Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 0.5,
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
+                    buildCell(context),
                 onAcceptWithDetails: onAcceptWithDetails,
-                onWillAccept: (CalendarEvent<T>? data) {
-                  appLog('Cell  Dragged:${data!.toMap}'); 
-                  return true;
-                },
+                onWillAccept: (CalendarEvent<T>? data) => true,
                 onAccept: (CalendarEvent<T> data) {
                   appLog(data.toMap.toString());
                 },
                 onLeave: (CalendarEvent<T>? value) {},
                 onMove: (DragTargetDetails<CalendarEvent<T>> value) {},
               )
-            : Container(
-                color: transparent,
-                width: columnWidth,
-                height: cellHeight,
-                child: Stack(
-                  children: <Widget>[
-                    Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: Column(
-                          children: <Widget>[
-                            calendarDay.deadCell
-                                ? deadCellBuilder(dateTime)
-                                : const SizedBox.shrink(),
-                          ],
-                        )),
-                    dateBuilder == null
-                        ? Positioned(
-                            top: 12,
-                            right: 12,
-                            child: Text(
-                              dateTime.day.toString(),
-                              style:context.headline1.copyWith(
-
-                                               color: calendarDay.deadCell
-                                      ? greyColor
-                                      : blackColor,
-                                  fontSize: 16,
-                              ),
-                            ))
-                        : Positioned(
-                            top: 0,
-                            right: 0,
-                            left: 0,
-                            bottom: 0,
-                            child: dateBuilder!(dateTime)),
-                    Center(
-                      child: cellBuilder != null
-                          ? cellBuilder!(dateTime)
-                          : Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).dividerColor,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                    ),
-                    calendarDay.deadCell
-                        ? const SizedBox.shrink()
-                        : Positioned(child: itemBuilder!(events!))
-                  ],
-                )),
+            : buildCell(context),
       );
+
+  ///build cell
+  Widget buildCell(BuildContext context) => Container(
+      color: transparent,
+      width: columnWidth,
+      height: cellHeight,
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Column(
+                children: <Widget>[
+                  calendarDay.deadCell
+                      ? deadCellBuilder(dateTime)
+                      : const SizedBox.shrink(),
+                ],
+              )),
+          dateBuilder == null
+              ? Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Text(
+                    dateTime.day.toString(),
+                    style: context.headline1.copyWith(
+                      color: calendarDay.deadCell ? greyColor : blackColor,
+                      fontSize: 16,
+                    ),
+                  ))
+              : Positioned(
+                  top: 0,
+                  right: 0,
+                  left: 0,
+                  bottom: 0,
+                  child: dateBuilder!(dateTime)),
+          Center(
+            child: cellBuilder != null
+                ? cellBuilder!(dateTime)
+                : Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).dividerColor,
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+          ),
+          calendarDay.deadCell
+              ? const SizedBox.shrink()
+              : Positioned(child: itemBuilder!(events!))
+        ],
+      ));
 }

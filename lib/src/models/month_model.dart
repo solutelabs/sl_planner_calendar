@@ -1,6 +1,6 @@
-   /// CalendarDay datatype it contain date and and deadCell info
+/// CalendarDay datatype it contain date and and deadCell info
 class CalendarDay {
-///initialized calendar day
+  ///initialized calendar day
   CalendarDay({required this.dateTime, this.deadCell = false});
 
   ///bool is deadCell

@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
@@ -12,9 +12,8 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/wi
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/small_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:intl/intl.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///TermPlaner which show continues date for view
 class TermPlanner extends StatefulWidget {
@@ -68,6 +67,7 @@ class _TermPlannerState extends State<TermPlanner> {
   DateTime currentMonth = DateTime.now();
 
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
+  bool isDragEnable = false;
 
   @override
   Widget build(BuildContext context) => Scaffold(body:
@@ -157,14 +157,11 @@ class _TermPlannerState extends State<TermPlanner> {
                     },
                     nowIndicatorColor: Colors.red,
                     fullWeek: true,
-                    items: state is LoadedState
-                        ? state.events
-                        : <PlannerEvent>[],
+                    items:
+                        state is LoadedState ? state.events : <PlannerEvent>[],
                     onTap: (DateTime date) {
-                      log('On Taped to dateCell $date');
-
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .onTap(date);
+                          .sendAddEventToNativeApp(date);
                     },
                     headerHeight: isMobile ? 38 : 40,
                     headerCellBuilder: (int index) => SizedBox(
@@ -172,66 +169,60 @@ class _TermPlannerState extends State<TermPlanner> {
                       child: DayName(index: index),
                     ),
                     controller: simpleController,
-                    itemBuilder: (List<CalendarEvent<EventData>> item, Size size,
-                            DateTime dateTime) =>
+                    itemBuilder: (List<CalendarEvent<EventData>> item,
+                            Size size, DateTime dateTime) =>
                         item.isEmpty
                             ? const SizedBox.shrink()
-                            : GestureDetector(
-                                onTap: () {
-                                  log(dateTime.toString());
-                                  log(item.toString());
-                                },
-                                child: Container(
-                                    width: size.width,
-                                    height: size.height,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        const SizedBox(
-                                          height: 35,
-                                        ),
-                                        SizedBox(
-                                          width: size.width,
-                                          height: 19,
-                                          child: Row(
-                                            children: <Widget>[
-                                              ExtraSmallEventTile(
-                                                event: item.first,
-                                                width: (size.width - 6) / 2,
-                                              ),
-                                              item.length >= 2
-                                                  ? ExtraSmallEventTile(
-                                                      event: item[1],
-                                                      width:
-                                                          (size.width - 6) / 2,
-                                                    )
-                                                  : const SizedBox.shrink(),
-                                            ],
+                            : Container(
+                                width: size.width,
+                                height: size.height,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    const SizedBox(
+                                      height: 35,
+                                    ),
+                                    SizedBox(
+                                      width: size.width,
+                                      height: 19,
+                                      child: Row(
+                                        children: <Widget>[
+                                          ExtraSmallEventTile(
+                                            event: item.first,
+                                            isDraggable: isDragEnable,
+                                            width: (size.width - 6) / 2,
                                           ),
-                                        ),
-                                        SizedBox(
-                                          width: size.width,
-                                          height: 19,
-                                          child: Row(
-                                            children: <Widget>[
-                                              item.length >= 3
-                                                  ? ExtraSmallEventTile(
-                                                      event: item.first,
-                                                      width:
-                                                          (size.width - 6) / 2,
-                                                    )
-                                                  : const SizedBox.shrink(),
-                                              item.skip(3).isEmpty
-                                                  ? const SizedBox.shrink()
-                                                  : Text(
-                                                      '+${item.skip(3).length}'
-                                                      ''),
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    )),
-                              ),
+                                          item.length >= 2
+                                              ? ExtraSmallEventTile(
+                                                  event: item[1],
+                                                  isDraggable: isDragEnable,
+                                                  width: (size.width - 6) / 2,
+                                                )
+                                              : const SizedBox.shrink(),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: size.width,
+                                      height: 19,
+                                      child: Row(
+                                        children: <Widget>[
+                                          item.length >= 3
+                                              ? ExtraSmallEventTile(
+                                                  event: item.first,
+                                                  isDraggable: isDragEnable,
+                                                  width: (size.width - 6) / 2,
+                                                )
+                                              : const SizedBox.shrink(),
+                                          item.skip(3).isEmpty
+                                              ? const SizedBox.shrink()
+                                              : Text('+${item.skip(3).length}'
+                                                  ''),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                )),
                     cellBuilder: (Period period) => Container(
                       height: period.isBreak
                           ? simpleController.breakHeight

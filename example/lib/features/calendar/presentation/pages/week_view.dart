@@ -1,7 +1,8 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
+import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
@@ -10,8 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///planner
 class WeekPlanner extends StatefulWidget {
@@ -60,6 +59,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
 
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
   final bool showSameHeader = true;
+
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
@@ -92,11 +92,12 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     nowIndicatorColor: Colors.red,
                     cornerBuilder: (DateTime current) =>
                         const SizedBox.shrink(),
-                    items: state is LoadedState ? state.events : [],
+                    items:
+                        state is LoadedState ? state.events : <PlannerEvent>[],
                     onTap: (DateTime date, Period period,
                         CalendarEvent<EventData>? event) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .onTap(dateTime);
+                          .onTap(dateTime, <PlannerEvent>[]);
                     },
                     headerHeight:
                         showSameHeader || isMobile ? headerHeight : 40,
@@ -196,9 +197,17 @@ class _WeekPlannerState extends State<WeekPlanner> {
                               ),
                       );
                     },
+                    isCellDraggable: (CalendarEvent<EventData> event) {
+                      if (event.eventData!.period.isBreak) {
+                        return false;
+                      } else {
+                        return true;
+                      }
+                    },
                     controller: simpleController,
-                    itemBuilder: (CalendarEvent<EventData> item, double width) =>
-                        Container(
+                    itemBuilder:
+                        (CalendarEvent<EventData> item, double width) =>
+                            Container(
                       margin: const EdgeInsets.all(4),
                       child: Container(
                           padding: const EdgeInsets.all(6),

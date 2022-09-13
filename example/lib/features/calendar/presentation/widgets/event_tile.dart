@@ -1,8 +1,7 @@
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 
 ///render event for the planner
 class EventTile extends StatelessWidget {
@@ -19,6 +18,7 @@ class EventTile extends StatelessWidget {
 
   ///double width
   final double width, height;
+
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.all(4),
@@ -61,7 +61,9 @@ class EventTile extends StatelessWidget {
                     ? Wrap(
                         runSpacing: 8,
                         spacing: 8,
-                        children: <String>[item.eventData!.documents.first.documentName]
+                        children: <String>[
+                          item.eventData!.documents.first.documentName
+                        ]
                             .map((String e) => Container(
                                 width: MediaQuery.of(context).size.width,
                                 padding: const EdgeInsets.symmetric(

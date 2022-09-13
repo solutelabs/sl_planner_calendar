@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///get events from json encoded string
 GetEvents getEventsFromJson(String str) => GetEvents.fromJson(json.decode(str));
@@ -29,6 +29,8 @@ class GetEvents {
   ///list of the events
 
   List<PlannerEvent> events;
+
+  ///convert to json object
   Map<String, dynamic> toJson() => <String, dynamic>{
         'events': List<dynamic>.from(
             events.map<dynamic>((PlannerEvent x) => x.toJson())),
@@ -39,10 +41,10 @@ class GetEvents {
 class PlannerEvent implements CalendarEvent<EventData> {
   ///initialize event model
   PlannerEvent({
-    this.id,
     required this.startTime,
     required this.endTime,
     required this.eventData,
+    this.id,
   });
 
   ///create event object from the json
@@ -91,6 +93,9 @@ class PlannerEvent implements CalendarEvent<EventData> {
             "${endTime.day.toString().padLeft(2, '0')}",
         'eventData': eventData!.toJson(),
       };
+
+  @override
+  String toString() => toJson().toString();
 }
 
 ///event data for the events
@@ -132,15 +137,20 @@ class EventData {
 
   ///list of the documents
   List<Document> documents;
+
+  ///convert to json object
   Map<String, dynamic> toJson() => <String, dynamic>{
         'title': title,
         'description': description,
         'period': period.toJson(),
-        'color': color,
+        'color': color.toHex(),
         'documents': List<dynamic>.from(
             documents.map<dynamic>((Document x) => x.toJson())),
         'freeTime': freeTime
       };
+
+  @override
+  String toString() => toJson().toString();
 }
 
 ///document class
@@ -162,4 +172,13 @@ class Document {
   Map<String, dynamic> toJson() => <String, dynamic>{
         'documentName': documentName,
       };
+}
+
+///convert color to hex value
+
+extension ColorExtension on Color {
+  ///convert color to hex
+
+  String toHex() =>
+      '#${(value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 }

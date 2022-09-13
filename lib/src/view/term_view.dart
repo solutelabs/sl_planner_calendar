@@ -11,7 +11,7 @@ import '../core/app_log.dart';
 /// The [SlTermView] widget displays calendar like view of the events
 /// that scrolls
 class SlTermView<T> extends StatefulWidget {
-   /// initialize TermView for the calendar
+  /// initialize TermView for the calendar
   const SlTermView({
     required this.timelines,
     required this.onWillAccept,
@@ -190,8 +190,8 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
     }
 
     if (event is TimetableVisibleDateChanged) {
-      appLog('visible data changed'); 
-      await adjustColumnWidth(); 
+      appLog('visible data changed');
+      await adjustColumnWidth();
       return;
     }
     if (event is TimetableDateChanged) {
@@ -257,6 +257,7 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
   double columnHeightForScrolling = 0;
 
   DateTime dateForHeader = DateTime.now();
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
@@ -302,6 +303,7 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
                           calendarDay: dateRange[index],
                           columnWidth: columnWidth,
                           dateBuilder: widget.dateBuilder,
+                          isDraggable: true,
                           deadCellBuilder: widget.deadCellBuilder!,
                           itemBuilder: (List<CalendarEvent<T>> dayEvents) =>
                               widget.itemBuilder!(
@@ -316,11 +318,30 @@ class _SlTermViewState<T> extends State<SlTermView<T>> {
                             }
                           },
                           onWillAccept:
-                              (CalendarEvent<Object?> event, Period period) =>
-                                  true,
+                              (CalendarEvent<T?> event, Period period) => true,
                           onAcceptWithDetails:
-                              (DragTargetDetails<CalendarEvent<Object?>>
-                                  event) {});
+                              (DragTargetDetails<CalendarEvent<T>> details) {
+                            final CalendarEvent<T> event = details.data;
+                            final DateTime newStartTime = DateTime(
+                                dateTime.year,
+                                dateTime.month,
+                                dateTime.day,
+                                event.startTime.hour,
+                                event.startTime.minute);
+                            final DateTime newEndTime = DateTime(
+                                dateTime.year,
+                                dateTime.month,
+                                dateTime.day,
+                                event.endTime.hour,
+                                event.endTime.minute);
+
+                            final CalendarEvent<T> newEvent = CalendarEvent<T>(
+                                startTime: newStartTime,
+                                endTime: newEndTime,
+                                eventData: event.eventData);
+
+                            widget.onEventDragged!(details.data, newEvent);
+                          });
                     },
                   )),
             ],

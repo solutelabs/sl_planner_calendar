@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:sl_planner_calendar/src/core/app_log.dart'; 
+import 'package:sl_planner_calendar/src/core/app_log.dart';
 
 ///check if give time is before or not
 bool isTimeBefore(TimeOfDay a, TimeOfDay b) {
@@ -383,7 +383,8 @@ List<Month> getMonthRange(DateTime first, DateTime second) {
 
   return tempList;
 }
-///get dates for current month 
+
+///get dates for current month
 
 List<CalendarDay> getDatesForMonth(
     Month month, List<Month> months, List<CalendarDay> dateRange) {
@@ -504,9 +505,8 @@ List<CalendarDay> addPaddingDate(List<CalendarDay> myDateRange) {
   return dateRange;
 }
 
-
 ///.convert string to TimeOfTheDay
-  TimeOfDay parseTimeOfDay(String t) {
-    final DateTime dateTime = DateFormat('HH:mm').parse(t);
-    return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
-  }
+TimeOfDay parseTimeOfDay(String t) {
+  final DateTime dateTime = DateFormat('HH:mm').parse(t);
+  return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+}

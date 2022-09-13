@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/event_model.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
@@ -12,7 +12,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/wi
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
+
 ///planner
 class MonthPlanner extends StatefulWidget {
   /// initialled  monthly planner
@@ -66,6 +66,8 @@ class _MonthPlannerState extends State<MonthPlanner> {
 
   ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
 
+  bool isDraggable = true;
+
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
@@ -85,14 +87,14 @@ class _MonthPlannerState extends State<MonthPlanner> {
                 Expanded(
                   child: SlMonthView<EventData>(
                     timelines: customPeriods,
-                    isSwipeEnable: true,
+                    isDraggable: true,
                     onMonthChanged: (Month month) {
                       widget.onMonthChanged(month);
                     },
                     onEventDragged: (CalendarEvent<EventData> old,
                         CalendarEvent<EventData> newEvent) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .updateEvent(old, newEvent,null);
+                          .updateEvent(old, newEvent, null);
                     },
                     onWillAccept: (CalendarEvent<EventData>? event,
                         DateTime dateTime, Period period) {
@@ -127,7 +129,6 @@ class _MonthPlannerState extends State<MonthPlanner> {
                     },
                     nowIndicatorColor: Colors.red,
                     fullWeek: true,
-                    
                     deadCellBuilder: (DateTime current) => const Expanded(
                       child: DeadCell(),
                     ),
@@ -164,13 +165,14 @@ class _MonthPlannerState extends State<MonthPlanner> {
                                     height: 8,
                                   ),
                                   Text(end.format(context).substring(0, 5),
-                                      style:context.subtitle),
+                                      style: context.subtitle),
                                 ],
                               ),
                       );
                     },
                     controller: simpleController,
-                    itemBuilder: (List<CalendarEvent<EventData>> item, Size size) =>
+                    itemBuilder: (List<CalendarEvent<EventData>> item,
+                            Size size) =>
                         item.isEmpty
                             ? const SizedBox.shrink()
                             : SizedBox(
@@ -185,16 +187,19 @@ class _MonthPlannerState extends State<MonthPlanner> {
                                       SmallEventTile(
                                         event: item.first,
                                         width: size.width,
+                                        isDraggable: isDraggable,
                                       ),
                                     if (item.length == 2)
                                       Column(
                                         children: <Widget>[
                                           SmallEventTile(
                                             event: item.first,
+                                            isDraggable: isDraggable,
                                             width: size.width,
                                           ),
                                           SmallEventTile(
                                             event: item[1],
+                                            isDraggable: isDraggable,
                                             width: size.width,
                                           )
                                         ],
@@ -207,15 +212,18 @@ class _MonthPlannerState extends State<MonthPlanner> {
                                             SmallEventTile(
                                               event: item.first,
                                               width: size.width,
+                                              isDraggable: isDraggable,
                                             ),
                                             SmallEventTile(
                                               event: item[1],
                                               width: size.width,
+                                              isDraggable: isDraggable,
                                             ),
                                             Row(children: <Widget>[
                                               SizedBox(
                                                 width: size.width - 90,
                                                 child: SmallEventTile(
+                                                    isDraggable: isDraggable,
                                                     event: item[2],
                                                     width: size.width - 60),
                                               ),

@@ -45,6 +45,7 @@ extension TextThemes on BuildContext {
         fontFamily: Fonts.notoSans,
         fontWeight: FontWeight.bold,
       );
+
   ///subtitle
   TextStyle get subtitle => const TextStyle(
         fontSize: 10,
@@ -74,6 +75,11 @@ extension TextThemes on BuildContext {
 
   ///texTheme for the term planner
 
-  TextStyle get termPlannerTitle2=> const TextStyle(
+  TextStyle get termPlannerTitle2 => const TextStyle(
       color: darkestGrey, fontSize: 14, fontWeight: FontWeight.w500);
+
+  ///texTheme for the side strips
+
+  TextStyle get stripsTheme => const TextStyle(
+      color: textGrey, fontSize: 14, fontWeight: FontWeight.w700);
 }

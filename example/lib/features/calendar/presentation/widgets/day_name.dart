@@ -1,7 +1,8 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/core/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
+
 ///render dayName for the month view and tern view
 class DayName extends StatelessWidget {
   ///dayName constructor
@@ -18,9 +19,8 @@ class DayName extends StatelessWidget {
                 height: 15,
                 decoration: const BoxDecoration(color: lightGrey),
                 child: Center(
-                  child: Text(
-                    ' ${getWeekDay(index)}',
-                    style: context.headline1WithNotoSans),
+                  child: Text(' ${getWeekDay(index)}',
+                      style: context.headline1WithNotoSans),
                 )),
           )
         ],

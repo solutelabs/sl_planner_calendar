@@ -30,6 +30,7 @@ class SettingDrawer extends StatefulWidget {
 
 class _SettingDrawerState extends State<SettingDrawer> {
   late DateTime startDate, endDate;
+
   @override
   void initState() {
     startDate = widget.startDate;

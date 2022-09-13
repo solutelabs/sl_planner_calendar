@@ -206,8 +206,8 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
     }
 
     if (event is TimetableVisibleDateChanged) {
-      appLog('visible data changed'); 
-      await adjustColumnWidth(); 
+      appLog('visible data changed');
+      await adjustColumnWidth();
       return;
     }
     if (event is TimetableDateChanged) {
@@ -271,6 +271,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
   }
 
   DateTime dateForHeader = DateTime.now();
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
@@ -299,7 +300,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
               ),
               SizedBox(
                 height: size.height - controller.headerHeight,
-                child: PageView.builder( 
+                child: PageView.builder(
                     controller: pageController,
                     padEnds: false,
                     physics: widget.isSwipeEnable
@@ -310,7 +311,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                       setState(() {});
                       widget.onMonthChanged(monthRange[value]);
                     },
-                    itemCount: monthRange.length, 
+                    itemCount: monthRange.length,
                     itemBuilder: (BuildContext context, int index) {
                       final Month month = monthRange[index];
                       List<CalendarDay> dates =
@@ -318,7 +319,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                       dates = addPaddingDate(dates);
                       return GridView.builder(
                         shrinkWrap: true,
-                        itemCount: 35,
+                        itemCount: dates.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             childAspectRatio: aspectRatio, crossAxisCount: 7),
                         itemBuilder: (BuildContext context, int index) {
@@ -331,6 +332,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                           return DayCell<T>(
                               calendarDay: dates[index],
                               columnWidth: columnWidth,
+                              isDraggable: widget.isDraggable,
                               deadCellBuilder: widget.deadCellBuilder!,
                               itemBuilder: (List<CalendarEvent<T>> dayEvents) =>
                                   widget.itemBuilder!(dayEvents,
@@ -348,8 +350,30 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
                                       Period period) =>
                                   true,
                               onAcceptWithDetails:
-                                  (DragTargetDetails<CalendarEvent<Object?>>
-                                      event) {});
+                                  (DragTargetDetails<CalendarEvent<T>>
+                                      details) {
+                                final CalendarEvent<T> event = details.data;
+                                final DateTime newStartTime = DateTime(
+                                    dateTime.year,
+                                    dateTime.month,
+                                    dateTime.day,
+                                    event.startTime.hour,
+                                    event.startTime.minute);
+                                final DateTime newEndTime = DateTime(
+                                    dateTime.year,
+                                    dateTime.month,
+                                    dateTime.day,
+                                    event.endTime.hour,
+                                    event.endTime.minute);
+
+                                final CalendarEvent<T> newEvent =
+                                    CalendarEvent<T>(
+                                        startTime: newStartTime,
+                                        endTime: newEndTime,
+                                        eventData: event.eventData);
+
+                                widget.onEventDragged!(details.data, newEvent);
+                              });
                         },
                       );
                     }),
@@ -358,7 +382,7 @@ class _SlMonthViewState<T> extends State<SlMonthView<T>> {
           ),
         );
       });
- 
+
   final Duration _animationDuration = const Duration(milliseconds: 300);
   final Curve _animationCurve = Curves.linear;
 
