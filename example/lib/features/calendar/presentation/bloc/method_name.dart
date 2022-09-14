@@ -53,4 +53,9 @@ class SendMethods {
   ///eventDragged called when user drag event from one cell to another cell
 
   static const String eventDragged = 'eventDragged';
+
+  /// showRecord called when user tap on the record button on
+  /// the right side strip on tablet view
+
+  static const String showRecord = 'showRecord';
 }

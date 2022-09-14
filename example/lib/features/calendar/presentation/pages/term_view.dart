@@ -72,7 +72,7 @@ class _TermPlannerState extends State<TermPlanner> {
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        final bool isMobile = value.maxWidth < 600;
+        final bool isMobile = value.maxWidth < mobileThreshold;
         log(value.biggest.width.toString());
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {
@@ -160,8 +160,11 @@ class _TermPlannerState extends State<TermPlanner> {
                     items:
                         state is LoadedState ? state.events : <PlannerEvent>[],
                     onTap: (DateTime date) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .sendAddEventToNativeApp(date);
+                      final TimeTableCubit provider =
+                          BlocProvider.of<TimeTableCubit>(context,
+                              listen: false);
+                      provider.nativeCallBack
+                          .sendAddEventToNativeApp(date, provider.viewType);
                     },
                     headerHeight: isMobile ? 38 : 40,
                     headerCellBuilder: (int index) => SizedBox(

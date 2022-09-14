@@ -133,10 +133,9 @@ class RightStrip extends StatelessWidget {
                     child: RightSideButton(
                   title: S.of(context).records,
                   onTap: () {
-                    if (viewType != CalendarViewType.dayView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .changeViewType(CalendarViewType.dayView);
-                    }
+                    BlocProvider.of<TimeTableCubit>(context, listen: false)
+                        .nativeCallBack
+                        .sendShowRecordToNativeApp();
                   },
                 )),
               ],

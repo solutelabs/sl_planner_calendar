@@ -9,6 +9,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/cha
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/date_change_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_periods_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/callbacks.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/method_name.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:flutter/foundation.dart';
@@ -20,6 +21,7 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 class TimeTableCubit extends Cubit<TimeTableState> {
   /// initialized timetable cubit
   TimeTableCubit() : super(InitialState()) {
+    nativeCallBack.initializeChannel('com.example.demo/data');
     getDummyEvents();
     setListener();
   }
@@ -45,10 +47,13 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   /// set method handler to receive data from flutter
   static const MethodChannel platform = MethodChannel('com.example.demo/data');
 
+  ///object of the native callback class
+  NativeCallBack nativeCallBack = NativeCallBack();
+
   ///code related to native callback and data listener
 
   void setListener() {
-    platform.setMethodCallHandler((MethodCall call) async {
+    nativeCallBack.onDataReceived.stream.listen((MethodCall call) async {
       switch (call.method) {
 
         ///receive method name and data from native app and it handle / update
@@ -135,86 +140,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
     });
   }
 
-  ///send onTap callback to native app
-  Future<bool> onTap(DateTime dateTime, List<PlannerEvent> events) async {
-    final Map<String, dynamic> data = <String, dynamic>{
-      'events': events.toString(),
-      'date': dateTime.toString()
-    };
-    await sendToNativeApp(SendMethods.onTap, data);
-    return true;
-  }
-
-  ///send addEvent callback to native app
-  Future<bool> sendAddEventToNativeApp(DateTime dateTime) async {
-    final Map<String, dynamic> data = <String, dynamic>{
-      'viewType': viewType.toString(),
-      'date': dateTime.toString()
-    };
-    await sendToNativeApp(SendMethods.addEvent, data);
-    return true;
-  }
-
-  ///send dateChanged to native app
-
-  Future<bool> sendDateChangeToNativeApp(
-      DateTime startTime, DateTime endTime) async {
-    final DateChange dateChange =
-        DateChange(startTime: startTime, endTime: endTime);
-    await sendToNativeApp(SendMethods.dateChanged, dateChange.toJson());
-    return true;
-  }
-
-  ///send viewChanged to native app
-  Future<bool> sendViewChangedToNativeApp(
-      CalendarViewType calendarViewType) async {
-    final Map<String, dynamic> data = <String, dynamic>{
-      'viewType': calendarViewType.name
-    };
-    await sendToNativeApp(SendMethods.viewChanged, data);
-    return true;
-  }
-
-  ///send viewChanged to native app
-  Future<bool> sendEventDraggedToNativeApp(
-      PlannerEvent old, PlannerEvent newEvent) async {
-    final Map<String, dynamic> data = <String, dynamic>{
-      'oldEvent': old.toJson(),
-      'newEvent': newEvent.toJson(),
-      'viewType': viewType.toString(),
-    };
-    await sendToNativeApp(SendMethods.eventDragged, data);
-    return true;
-  }
-
-  ///send showEvent callback to native app
-  Future<bool> sendShowEventToNativeApp(
-      DateTime dateTime, List<CalendarEvent<EventData>> events) async {
-    final Map<String, dynamic> data = <String, dynamic>{
-      'viewType': viewType.toString(),
-      'date': dateTime.toString(),
-      'events': events.toString()
-    };
-    log(data.toString());
-    await sendToNativeApp(SendMethods.showEvent, data);
-    return true;
-  }
-
-  ///send data to native app
-  Future<bool> sendToNativeApp(String methodName, dynamic data) {
-    log('MethodName: $methodName');
-    log('Data: $data');
-    platform
-        .invokeMethod<dynamic>(
-          methodName,
-          data,
-        )
-        .then((dynamic value) {});
-
-    return Future<bool>.value(true);
-  }
-
-///all cade related to state management inside the flutter module
+  ///all cade related to state management inside the flutter module
   ///get event
   List<PlannerEvent> get events => _events;
 
@@ -228,7 +154,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   bool changeDate(DateTime first, DateTime end) {
     endDate = end;
     startDate = first;
-    sendDateChangeToNativeApp(first, end);
+    nativeCallBack.sendDateChangeToNativeApp(first, end);
     emit(DateUpdated(endDate, startDate, _events, viewType));
     return true;
   }
@@ -306,7 +232,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   ///chang calendar view
   void changeViewType(CalendarViewType viewType) {
     this.viewType = viewType;
-    sendViewChangedToNativeApp(viewType);
+    nativeCallBack.sendViewChangedToNativeApp(viewType);
     emit(ViewUpdated(events, viewType));
   }
 }

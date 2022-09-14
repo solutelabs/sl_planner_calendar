@@ -65,7 +65,7 @@ class _DayPlannerState extends State<DayPlanner> {
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        final bool isMobile = value.maxWidth < 600;
+        final bool isMobile = value.maxWidth < mobileThreshold;
         final Size size = value.biggest;
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {

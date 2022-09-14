@@ -19,3 +19,6 @@ const double subMarginHalf = 7;
 
 ///double static height for the header
 const double headerHeight = 50;
+
+///threshold for the mobile size
+const double mobileThreshold = 600;

@@ -42,7 +42,7 @@ class _SettingDrawerState extends State<SettingDrawer> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    final bool isMobile = size.width < 600;
+    final bool isMobile = size.width < mobileThreshold;
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[

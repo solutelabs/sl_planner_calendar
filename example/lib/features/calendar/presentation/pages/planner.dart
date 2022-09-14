@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/day_view.dart';
@@ -9,6 +10,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pa
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/term_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/week_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/left_strip.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/resizable_event.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/right_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -135,7 +137,7 @@ class _PlannerState extends State<Planner> {
       ),
       body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        isMobile = value.maxWidth < 600;
+        isMobile = value.maxWidth < mobileThreshold;
         return Row(
           children: <Widget>[
             isMobile ? const SizedBox.shrink() : const LeftStrip(),
@@ -168,6 +170,7 @@ class _PlannerState extends State<Planner> {
                       index:
                           state is LoadedState ? getIndex(state.viewType) : 0,
                       children: <Widget>[
+                        ResizableEvent(),
                         SchedulePlanner(
                           isMobile: isMobile,
                           timetableController: simpleController,

@@ -63,7 +63,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        final bool isMobile = value.maxWidth < 600;
+        final bool isMobile = value.maxWidth < mobileThreshold;
 
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {
@@ -97,6 +97,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     onTap: (DateTime date, Period period,
                         CalendarEvent<EventData>? event) {
                       BlocProvider.of<TimeTableCubit>(context, listen: false)
+                          .nativeCallBack
                           .onTap(dateTime, <PlannerEvent>[]);
                     },
                     headerHeight:

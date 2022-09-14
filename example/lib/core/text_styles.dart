@@ -1,4 +1,5 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
+import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/fonts.dart';
 import 'package:flutter/material.dart';
 
@@ -7,7 +8,7 @@ import 'package:flutter/material.dart';
 ///because we are using custom ui for calendar component
 extension TextThemes on BuildContext {
   ///true if mobile size is less then 600
-  bool get isMobile => MediaQuery.of(this).size.width < 600;
+  bool get isMobile => MediaQuery.of(this).size.width < mobileThreshold;
 
   ///textStyle for hour label in mobile
   TextStyle get hourLabelMobile => const TextStyle(

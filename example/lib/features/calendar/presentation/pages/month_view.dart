@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
@@ -71,7 +72,7 @@ class _MonthPlannerState extends State<MonthPlanner> {
   @override
   Widget build(BuildContext context) => Scaffold(body:
           LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        final bool isMobile = value.maxWidth < 600;
+        final bool isMobile = value.maxWidth < mobileThreshold;
         return BlocBuilder<TimeTableCubit, TimeTableState>(
             builder: (BuildContext context, TimeTableState state) {
           if (state is ErrorState) {
