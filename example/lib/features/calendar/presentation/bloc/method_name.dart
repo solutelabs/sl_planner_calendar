@@ -19,7 +19,7 @@ class ReceiveMethods {
   static const String setEvents = 'setEvents';
 
   ///add event called from native app
-  static const String addEvent = 'addEvent';
+  static const String addEvent = 'addEvents';
 
   ///update event called from native app
   static const String updateEvent = 'updateEvent';
@@ -42,7 +42,7 @@ class SendMethods {
 
   static const String showEvent = 'showEvent';
 
-  ///dateChanged method called when user tap on the side strips
+  ///dateChanged method called when user ch tap on the side strips
 
   static const String dateChanged = 'dateChanged';
 

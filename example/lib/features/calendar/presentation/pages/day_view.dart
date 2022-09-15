@@ -1,9 +1,6 @@
-import 'dart:developer';
-
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
-import 'package:edgar_planner_calendar_flutter/core/static.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
@@ -18,11 +15,15 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 ///planner
 class DayPlanner extends StatefulWidget {
   /// initialized day planner
-  const DayPlanner({
-    required this.timetableController,
-    Key? key,
-    this.id,
-  }) : super(key: key);
+  const DayPlanner(
+      {required this.timetableController,
+      required this.customPeriods,
+      Key? key,
+      this.id})
+      : super(key: key);
+
+  ///custom periods for the timetable
+  final List<Period> customPeriods;
 
   ///id that we will received from native ios
   final String? id;
@@ -81,18 +82,16 @@ class _DayPlannerState extends State<DayPlanner> {
                     : const SizedBox.shrink(),
                 Expanded(
                   child: SlDayView<EventData>(
-                    timelines: customPeriods,
+                    timelines: widget.customPeriods,
                     onEventDragged: (CalendarEvent<EventData> old,
                         CalendarEvent<EventData> newEvent) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .updateEvent(old, newEvent, null);
                     },
                     onWillAccept: (CalendarEvent<EventData>? event,
                         DateTime date, Period period) {
                       final List<CalendarEvent<EventData>> events =
-                          BlocProvider.of<TimeTableCubit>(context,
-                                  listen: false)
-                              .events;
+                          BlocProvider.of<TimeTableCubit>(context).events;
                       return isSlotAvlForSingleDay(
                           events, event!, date, period);
                     },
@@ -105,9 +104,10 @@ class _DayPlannerState extends State<DayPlanner> {
                         : <CalendarEvent<EventData>>[],
                     onTap: (DateTime date, Period period,
                         CalendarEvent<EventData>? event) {
-                      log(date.toString());
-                      log(period.toMap.toString());
-                      log(event.toString());
+                      final TimeTableCubit provider =
+                          BlocProvider.of<TimeTableCubit>(context);
+                      provider.nativeCallBack.sendAddEventToNativeApp(
+                          dateTime, provider.viewType, period);
                     },
                     headerHeight: isMobile ? headerHeight : 40,
                     headerCellBuilder: (DateTime date) => isMobile

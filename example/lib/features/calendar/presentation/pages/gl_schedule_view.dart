@@ -1,5 +1,5 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
-import 'package:edgar_planner_calendar_flutter/core/date_extension.dart'; 
+import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
@@ -11,9 +11,9 @@ import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///planner
-class SchedulePlanner extends StatefulWidget {
+class GlSchedulePlanner extends StatefulWidget {
   /// initialize schedule planner
-  const SchedulePlanner({
+  const GlSchedulePlanner({
     required this.timetableController,
     required this.customPeriods,
     Key? key,
@@ -34,10 +34,10 @@ class SchedulePlanner extends StatefulWidget {
   final TimetableController timetableController;
 
   @override
-  State<SchedulePlanner> createState() => _SchedulePlannerState();
+  State<GlSchedulePlanner> createState() => _GlSchedulePlannerState();
 }
 
-class _SchedulePlannerState extends State<SchedulePlanner> {
+class _GlSchedulePlannerState extends State<GlSchedulePlanner> {
   TimetableController simpleController = TimetableController(
       start:
           DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
@@ -82,7 +82,7 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                   ? const LinearProgressIndicator()
                   : const SizedBox.shrink(),
               Expanded(
-                child: SlScheduleView<EventData>(
+                child: GlScheduleView<EventData>(
                   timelines: widget.customPeriods,
                   cellHeight: cellHeight,
                   onEventDragged: (CalendarEvent<EventData> old,
@@ -178,7 +178,7 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                     cellHeight: cellHeight,
                   ),
                   cellBuilder: (DateTime period) => Container(
-                    height: cellHeight,
+                    height: 0,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(

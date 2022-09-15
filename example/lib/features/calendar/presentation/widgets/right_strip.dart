@@ -20,13 +20,12 @@ class RightStrip extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => SizedBox(
         width: width,
         child: BlocBuilder<TimeTableCubit, TimeTableState>(
           builder: (BuildContext context, TimeTableState state) {
             final CalendarViewType viewType =
-                BlocProvider.of<TimeTableCubit>(context, listen: false)
-                    .viewType;
+                BlocProvider.of<TimeTableCubit>(context).viewType;
             return Column(
               children: <Widget>[
                 Expanded(
@@ -34,7 +33,7 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).day,
                   onTap: () {
                     if (viewType != CalendarViewType.dayView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.dayView);
                     }
                   },
@@ -45,7 +44,7 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).week,
                   onTap: () {
                     if (viewType != CalendarViewType.weekView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.weekView);
                     }
                   },
@@ -56,7 +55,7 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).month,
                   onTap: () {
                     if (viewType != CalendarViewType.monthView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.monthView);
                     }
                   },
@@ -67,7 +66,7 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).term1,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
                     final DateTime e = DateTime.now();
@@ -75,7 +74,7 @@ class RightStrip extends StatelessWidget {
                     final DateTime lastDate =
                         DateTime(e.year, 4).subtract(const Duration(days: 1));
 
-                    BlocProvider.of<TimeTableCubit>(context, listen: false)
+                    BlocProvider.of<TimeTableCubit>(context)
                         .changeDate(firstDate, lastDate);
                   },
                 )),
@@ -84,7 +83,7 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).term2,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
                     final DateTime e = DateTime.now();
@@ -92,7 +91,7 @@ class RightStrip extends StatelessWidget {
                     final DateTime lastDate =
                         DateTime(e.year, 7).subtract(const Duration(days: 1));
 
-                    BlocProvider.of<TimeTableCubit>(context, listen: false)
+                    BlocProvider.of<TimeTableCubit>(context)
                         .changeDate(firstDate, lastDate);
                   },
                 )),
@@ -101,7 +100,7 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).term3,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
                     final DateTime e = DateTime.now();
@@ -109,7 +108,7 @@ class RightStrip extends StatelessWidget {
                     final DateTime lastDate =
                         DateTime(e.year, 10).subtract(const Duration(days: 1));
 
-                    BlocProvider.of<TimeTableCubit>(context, listen: false)
+                    BlocProvider.of<TimeTableCubit>(context)
                         .changeDate(firstDate, lastDate);
                   },
                 )),
@@ -118,14 +117,14 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).term4,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
                     final DateTime e = DateTime.now();
                     final DateTime firstDate = DateTime(e.year, 10);
                     final DateTime lastDate = DateTime(e.year, 12, 31);
 
-                    BlocProvider.of<TimeTableCubit>(context, listen: false)
+                    BlocProvider.of<TimeTableCubit>(context)
                         .changeDate(firstDate, lastDate);
                   },
                 )),
@@ -133,7 +132,7 @@ class RightStrip extends StatelessWidget {
                     child: RightSideButton(
                   title: S.of(context).records,
                   onTap: () {
-                    BlocProvider.of<TimeTableCubit>(context, listen: false)
+                    BlocProvider.of<TimeTableCubit>(context)
                         .nativeCallBack
                         .sendShowRecordToNativeApp();
                   },

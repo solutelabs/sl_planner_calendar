@@ -9,6 +9,7 @@ export 'src/models/period_model.dart';
 export 'src/view/day_view.dart';
 export 'src/view/month_view.dart';
 export 'src/view/schedule_view.dart';
+export 'src/view/gl_schedule_view.dart';
 export 'src/view/term_view.dart';
 export 'src/view/timetable_controller.dart';
 export 'src/view/week_view.dart';

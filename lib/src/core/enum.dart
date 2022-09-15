@@ -13,7 +13,9 @@ enum CalendarViewType {
   monthView,
 
   ///termView of the calendar
-  termView
+  termView,
+///glScheduleView view of the calendar,similar to google calendar scheduleView
+  glScheduleView,
 }
 
 ///return calendar view based on string

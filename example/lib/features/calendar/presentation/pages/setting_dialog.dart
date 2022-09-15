@@ -11,6 +11,7 @@ class SettingDrawer extends StatefulWidget {
     required this.endDate,
     required this.startDate,
     required this.onDateChange,
+    this.isMobile = false,
     Key? key,
   }) : super(key: key);
 
@@ -22,6 +23,10 @@ class SettingDrawer extends StatefulWidget {
 
   /// give callback when date changed
 
+  ///bool isMobile
+  final bool isMobile;
+
+  ///onDateChange function will called on date changed
   final Function(DateTime startDate, DateTime endDate) onDateChange;
 
   @override
@@ -61,36 +66,46 @@ class _SettingDrawerState extends State<SettingDrawer> {
                   ElevatedButton(
                       child: const Text('Day view'),
                       onPressed: () {
-                        BlocProvider.of<TimeTableCubit>(context, listen: false)
+                        BlocProvider.of<TimeTableCubit>(context)
                             .changeViewType(CalendarViewType.dayView);
                       }),
                   ElevatedButton(
                     child: const Text('Week view'),
                     onPressed: () {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.weekView);
                     },
                   ),
                   ElevatedButton(
                       child: const Text('Schedule view'),
                       onPressed: () {
-                        BlocProvider.of<TimeTableCubit>(context, listen: false)
+                        BlocProvider.of<TimeTableCubit>(context)
                             .changeViewType(CalendarViewType.scheduleView);
                       }),
+                  isMobile
+                      ? const SizedBox.shrink()
+                      : ElevatedButton(
+                          child: const Text('Month view'),
+                          onPressed: () {
+                            BlocProvider.of<TimeTableCubit>(context)
+                                .changeViewType(CalendarViewType.monthView);
+                          },
+                        ),
+                  isMobile
+                      ? const SizedBox.shrink()
+                      : ElevatedButton(
+                          child: const Text('Term view'),
+                          onPressed: () {
+                            BlocProvider.of<TimeTableCubit>(context)
+                                .changeViewType(CalendarViewType.termView);
+                          },
+                        ),
                   ElevatedButton(
-                    child: const Text('Month view'),
-                    onPressed: () {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .changeViewType(CalendarViewType.monthView);
-                    },
-                  ),
-                  ElevatedButton(
-                    child: const Text('Term view'),
-                    onPressed: () {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .changeViewType(CalendarViewType.termView);
-                    },
-                  ),
+                      child: const Text('Gl Schedule view'),
+                      onPressed: () {
+                        BlocProvider.of<TimeTableCubit>(context)
+                            .changeViewType(CalendarViewType.glScheduleView);
+                      }),
                 ],
               ),
               const SizedBox(

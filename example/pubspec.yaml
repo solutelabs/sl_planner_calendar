@@ -28,7 +28,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   sl_planner_calendar:
-    # only for devlopment
+    # only for development
     path: /Users/Jemis/Desktop/plugins/sl_planner_calendar
     # git:
     #   url: https://github.com/solutelabs/sl_planner_calendar
@@ -39,7 +39,8 @@ dependencies:
   multiple_search_selection: ^2.1.0
   pdf: ^3.8.3
   intl: ^0.17.0
-
+  flutter_localizations:
+    sdk: flutter
 dev_dependencies:
   flutter_test:
     sdk: flutter

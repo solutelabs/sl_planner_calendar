@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 ///drag
 class DraggleWidget extends StatefulWidget {
+/// A named parameter.
+  const DraggleWidget({super.key});
+
   @override
-  _DraggleWidgetState createState() => _DraggleWidgetState();
+  DraggleWidgetState createState() => DraggleWidgetState();
 }
 
-class _DraggleWidgetState extends State<DraggleWidget> {
+class DraggleWidgetState extends State<DraggleWidget> {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(60),
@@ -21,19 +24,22 @@ class _DraggleWidgetState extends State<DraggleWidget> {
 ///resizable widget
 class ResizableWidget extends StatefulWidget {
   /// initialized
-  const ResizableWidget({required this.child});
+  const ResizableWidget({
+    required this.child,
+    super.key,
+  });
 
   ///child
   final Widget child;
 
   @override
-  _ResizableWidgetState createState() => _ResizableWidgetState();
+  ResizableWidgetState createState() => ResizableWidgetState();
 }
 
 ///ball diameter
 const double ballDiameter = 30;
 
-class _ResizableWidgetState extends State<ResizableWidget> {
+class ResizableWidgetState extends State<ResizableWidget> {
   double height = 400;
   double width = 200;
 
@@ -220,16 +226,16 @@ class _ResizableWidgetState extends State<ResizableWidget> {
 ///ball for drag
 class ManipulatingBall extends StatefulWidget {
   ///initialize the app
-  const ManipulatingBall({required this.onDrag});
+  const ManipulatingBall({required this.onDrag, super.key});
 
   ///onj drag method
   final Function onDrag;
 
   @override
-  _ManipulatingBallState createState() => _ManipulatingBallState();
+  ManipulatingBallState createState() => ManipulatingBallState();
 }
 
-class _ManipulatingBallState extends State<ManipulatingBall> {
+class ManipulatingBallState extends State<ManipulatingBall> {
   late double initX;
   late double initY;
 

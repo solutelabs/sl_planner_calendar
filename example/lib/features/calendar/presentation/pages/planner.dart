@@ -1,21 +1,21 @@
 import 'dart:developer';
 
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
+import 'package:edgar_planner_calendar_flutter/core/static.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/day_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/gl_schedule_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/month_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/schedule_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/setting_dialog.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/term_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/week_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/left_strip.dart';
-import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/resizable_event.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/right_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; 
 import 'package:screenshot/screenshot.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -46,7 +46,9 @@ class _PlannerState extends State<Planner> {
       timelineWidth: 60,
       breakHeight: 35,
       cellHeight: 110);
-  static DateTime dateTime = DateTime.now();
+
+  /// Used to display the current month in the app bar.
+  DateTime dateTime = DateTime.now();
 
   static bool isMobile = true;
 
@@ -60,31 +62,31 @@ class _PlannerState extends State<Planner> {
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         centerTitle: true,
-        title: GestureDetector(
-          onTap: () {
-            // DatePicker.showPicker(context,
-            //         pickerModel: CustomMonthPicker(
-            //             minTime: DateTime(
-            //               2020,
-            //             ),
-            //             maxTime: DateTime.now(),
-            //             currentTime: dateTime))
-            //     .then((DateTime? value) {
-            //   if (value != null) {
-            //     log(dateTime.toString());
-            //     dateTime = value;
+        // title: GestureDetector(
+        //   onTap: () {
+        //     // DatePicker.showPicker(context,
+        //     //         pickerModel: CustomMonthPicker(
+        //     //             minTime: DateTime(
+        //     //               2020,
+        //     //             ),
+        //     //             maxTime: DateTime.now(),
+        //     //             currentTime: dateTime))
+        //     //     .then((DateTime? value) {
+        //     //   if (value != null) {
+        //     //     log(dateTime.toString());
+        //     //     dateTime = value;
 
-            //     setState(() {});
-            //     simpleController.changeDate(
-            //         DateTime(dateTime.year, dateTime.month),
-            //         dateTime.lastDayOfMonth);
-            //   }
-            // });
-          },
-          child: Text(
-            DateFormat('MMMM-y').format(dateTime),
-          ),
-        ),
+        //     //     setState(() {});
+        //     //     simpleController.changeDate(
+        //     //         DateTime(dateTime.year, dateTime.month),
+        //     //         dateTime.lastDayOfMonth);
+        //     //   }
+        //     // });
+        //   },
+        //   child: Text(
+        //     DateFormat('MMMM-y').format(dateTime),
+        //   ),
+        // ),
         leading: IconButton(
           icon: const Icon(
             Icons.menu,
@@ -95,37 +97,37 @@ class _PlannerState extends State<Planner> {
                 context: context,
                 builder: (BuildContext context) => AlertDialog(
                       title: const Text('Your id is'),
-                      content: Text(BlocProvider.of<TimeTableCubit>(context,
-                                  listen: false)
-                              .id ??
-                          'No  id received'),
+                      content: Text(
+                          BlocProvider.of<TimeTableCubit>(context).id ??
+                              'No  id received'),
                     ));
           },
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(
-              Icons.search,
-              color: Colors.black,
-            ),
-            onPressed: () async {
-              simpleController.jumpTo(DateTime.now());
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.calendar_month,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              scaffoldKey.currentState!.openEndDrawer();
-              return;
-            },
-          ),
-        ],
+        // actions: <Widget>[
+        //   IconButton(
+        //     icon: const Icon(
+        //       Icons.search,
+        //       color: Colors.black,
+        //     ),
+        //     onPressed: () async {
+        //       simpleController.jumpTo(DateTime.now());
+        //     },
+        //   ),
+        //   IconButton(
+        //     icon: const Icon(
+        //       Icons.calendar_month,
+        //       color: Colors.black,
+        //     ),
+        //     onPressed: () {
+        //       scaffoldKey.currentState!.openEndDrawer();
+        //       return;
+        //     },
+        //   ),
+        // ],
       ),
       endDrawer: SettingDrawer(
         startDate: startDate,
+        isMobile: isMobile,
         endDate: endDate,
         onDateChange: (DateTime start, DateTime end) {
           setState(() {
@@ -170,15 +172,23 @@ class _PlannerState extends State<Planner> {
                       index:
                           state is LoadedState ? getIndex(state.viewType) : 0,
                       children: <Widget>[
-                        ResizableEvent(),
                         SchedulePlanner(
                           isMobile: isMobile,
+                          customPeriods: state is LoadedState
+                              ? state.periods
+                              : customStaticPeriods,
                           timetableController: simpleController,
                         ),
                         DayPlanner(
+                          customPeriods: state is LoadedState
+                              ? state.periods
+                              : customStaticPeriods,
                           timetableController: simpleController,
                         ),
                         WeekPlanner(
+                          customPeriods: state is LoadedState
+                              ? state.periods
+                              : customStaticPeriods,
                           timetableController: simpleController,
                         ),
                         MonthPlanner(
@@ -198,7 +208,14 @@ class _PlannerState extends State<Planner> {
                               dateTime = DateTime(month.year, month.month, 15);
                             });
                           },
-                        )
+                        ),
+                        GlSchedulePlanner(
+                          isMobile: isMobile,
+                          customPeriods: state is LoadedState
+                              ? state.periods
+                              : customStaticPeriods,
+                          timetableController: simpleController,
+                        ),
                       ],
                     ),
                   ),
@@ -224,6 +241,8 @@ int getIndex(CalendarViewType viewType) {
       return 3;
     case CalendarViewType.termView:
       return 4;
+    case CalendarViewType.glScheduleView:
+      return 5;
     default:
       return 2;
   }

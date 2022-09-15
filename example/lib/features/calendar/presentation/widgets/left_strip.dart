@@ -20,13 +20,13 @@ class LeftStrip extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => SizedBox(
         width: 48,
         child: BlocConsumer<TimeTableCubit, TimeTableState>(
           listener: (BuildContext context, TimeTableState state) {},
           builder: (BuildContext context, TimeTableState state) {
             final int currentMonth =
-                BlocProvider.of<TimeTableCubit>(context, listen: false)
+                BlocProvider.of<TimeTableCubit>(context)
                     .startDate
                     .month;
             return Column(
@@ -40,8 +40,7 @@ class LeftStrip extends StatelessWidget {
                                 DateTime(e.year, e.month + 1)
                                     .subtract(const Duration(days: 1));
 
-                            BlocProvider.of<TimeTableCubit>(context,
-                                    listen: false)
+                            BlocProvider.of<TimeTableCubit>(context)
                                 .changeDate(firstDate, lastDate);
                           },
                           child: Container(

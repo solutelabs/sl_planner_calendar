@@ -1,7 +1,6 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/constants.dart';
 import 'package:edgar_planner_calendar_flutter/core/date_extension.dart';
-import 'package:edgar_planner_calendar_flutter/core/static.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
@@ -15,8 +14,15 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 ///planner
 class WeekPlanner extends StatefulWidget {
   /// initialize week planner
-  const WeekPlanner({required this.timetableController, Key? key, this.id})
-      : super(key: key);
+  const WeekPlanner({
+    required this.timetableController,
+    required this.customPeriods,
+    Key? key,
+    this.id,
+  }) : super(key: key);
+
+  ///custom periods for the timetable
+  final List<Period> customPeriods;
 
   ///id that we will received from native ios
   final String? id;
@@ -80,10 +86,10 @@ class _WeekPlannerState extends State<WeekPlanner> {
                 Expanded(
                   child: SlWeekView<EventData>(
                     fullWeek: true,
-                    timelines: customPeriods,
+                    timelines: widget.customPeriods,
                     onEventDragged: (CalendarEvent<EventData> old,
                         CalendarEvent<EventData> newEvent, Period period) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .updateEvent(old, newEvent, period);
                     },
                     onWillAccept:
@@ -96,9 +102,10 @@ class _WeekPlannerState extends State<WeekPlanner> {
                         state is LoadedState ? state.events : <PlannerEvent>[],
                     onTap: (DateTime date, Period period,
                         CalendarEvent<EventData>? event) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .nativeCallBack
-                          .onTap(dateTime, <PlannerEvent>[]);
+                      final TimeTableCubit provider =
+                          BlocProvider.of<TimeTableCubit>(context);
+                      provider.nativeCallBack.sendAddEventToNativeApp(
+                          dateTime, provider.viewType, period);
                     },
                     headerHeight:
                         showSameHeader || isMobile ? headerHeight : 40,
@@ -219,7 +226,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
                               borderRadius: BorderRadius.circular(6),
                               color: item.eventData!.color),
                           child: item.eventData!.period.isBreak
-                              ? Container(
+                              ? SizedBox(
                                   height: simpleController.breakHeight,
                                   child: Center(
                                       child: Text(

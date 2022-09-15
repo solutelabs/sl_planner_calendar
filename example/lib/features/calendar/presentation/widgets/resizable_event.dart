@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 ///resizable event
 class ResizableEvent extends StatefulWidget {
+  const ResizableEvent({super.key});
+
   @override
-  _ResizableEventState createState() => _ResizableEventState();
+  ResizableEventState createState() => ResizableEventState();
 }
 
-class _ResizableEventState extends State<ResizableEvent> {
+class ResizableEventState extends State<ResizableEvent> {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(60),
@@ -21,28 +23,48 @@ class _ResizableEventState extends State<ResizableEvent> {
 ///resizable widget
 class ResizableWidget extends StatefulWidget {
   /// initialized
-  const ResizableWidget(
-      {required this.child, this.bottom, this.top, this.height, this.width});
+  const ResizableWidget({
+    required this.child,
+    this.bottom,
+    this.top,
+    this.height,
+    this.width,
+    super.key,
+  });
 
+  ///height,with and all margin
   final double? height, width, top, bottom;
 
   ///child
   final Widget child;
 
   @override
-  _ResizableWidgetState createState() => _ResizableWidgetState();
+  ResizableWidgetState createState() => ResizableWidgetState();
 }
 
 ///ball diameter
 const double ballDiameter = 12;
 
-class _ResizableWidgetState extends State<ResizableWidget> {
+class ResizableWidgetState extends State<ResizableWidget> {
+  /// The height of the widget.
   double height = 400;
+
+  /// Setting the width of the widget to 200.
   double width = 200;
 
-  double top = 0;
-  double left = 0;
+  /// Setting the top and left position of the widget.
 
+  double top = 0, left = 0;
+
+  /// If the new height or width is greater than 0, then set the height or width
+  /// to the new height or
+  /// width. Otherwise, set the height or width to 0
+  ///
+  /// Args:
+  ///  dx (double): The horizontal distance that the pointer has moved since
+  /// the last report.
+  /// dy (double): The vertical distance that the pointer has moved since the
+  /// previous update.
   void onDrag(double dx, double dy) {
     final double newHeight = height + dy;
     final double newWidth = width + dx;
@@ -116,17 +138,23 @@ class _ResizableWidgetState extends State<ResizableWidget> {
 ///ball for drag
 class ManipulatingBall extends StatefulWidget {
   ///initialize the app
-  const ManipulatingBall({required this.onDrag});
+  const ManipulatingBall({required this.onDrag, super.key});
 
   ///onj drag method
   final Function onDrag;
 
   @override
-  _ManipulatingBallState createState() => _ManipulatingBallState();
+  ManipulatingBallState createState() => ManipulatingBallState();
 }
 
-class _ManipulatingBallState extends State<ManipulatingBall> {
+///ball that drag edge
+class ManipulatingBallState extends State<ManipulatingBall> {
+  /// A new feature in Dart 2.12. It is a way to tell the compiler that the
+  /// variable will be initialized later.
   late double initX;
+
+  /// A new feature in Dart 2.12. It is a way to tell the compiler that the
+  /// variable will be initialized  later.
   late double initY;
 
   void _handleDrag(DragStartDetails details) {
@@ -161,7 +189,6 @@ class _ManipulatingBallState extends State<ManipulatingBall> {
 // class TryDemo extends StatelessWidget {
 //   const TryDemo({Key? key}) : super(key: key);
 //   final double maxTop, maxBottom, top, height;
-
 
 //   @override
 //   Widget build(BuildContext context) {}

@@ -87,14 +87,14 @@ class _MonthPlannerState extends State<MonthPlanner> {
                     : const SizedBox.shrink(),
                 Expanded(
                   child: SlMonthView<EventData>(
-                    timelines: customPeriods,
+                    timelines: customStaticPeriods,
                     isDraggable: true,
                     onMonthChanged: (Month month) {
                       widget.onMonthChanged(month);
                     },
                     onEventDragged: (CalendarEvent<EventData> old,
                         CalendarEvent<EventData> newEvent) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .updateEvent(old, newEvent, null);
                     },
                     onWillAccept: (CalendarEvent<EventData>? event,
@@ -102,8 +102,7 @@ class _MonthPlannerState extends State<MonthPlanner> {
                       if (event != null) {
                         if (state is LoadingState) {
                           final List<CalendarEvent<dynamic>> overleapingEvents =
-                              BlocProvider.of<TimeTableCubit>(context,
-                                      listen: false)
+                              BlocProvider.of<TimeTableCubit>(context)
                                   .events
                                   .where((CalendarEvent<dynamic> element) =>
                                       !isTimeIsEqualOrLess(
@@ -137,7 +136,10 @@ class _MonthPlannerState extends State<MonthPlanner> {
                         ? state.events
                         : <CalendarEvent<EventData>>[],
                     onTap: (DateTime date) {
-                      log('On Taped to dateCell $date');
+                      final TimeTableCubit provider =
+                          BlocProvider.of<TimeTableCubit>(context);
+                      provider.nativeCallBack.sendAddEventToNativeApp(
+                          dateTime, provider.viewType, null);
                     },
                     headerHeight: isMobile ? 38 : 40,
                     headerCellBuilder: (int index) => SizedBox(

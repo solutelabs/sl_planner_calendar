@@ -42,11 +42,14 @@ class NativeCallBack {
 
   ///send addEvent callback to native app
   Future<bool> sendAddEventToNativeApp(
-      DateTime dateTime, CalendarViewType viewType) async {
+      DateTime dateTime, CalendarViewType viewType, Period? period) async {
     final Map<String, dynamic> data = <String, dynamic>{
       'viewType': viewType.toString(),
-      'date': dateTime.toString()
+      'date': dateTime.toString(),
     };
+    if (period != null) {
+      data.putIfAbsent('period', () => period.toJson().toString());
+    }
     await sendToNativeApp(SendMethods.addEvent, data);
     return true;
   }
@@ -71,7 +74,7 @@ class NativeCallBack {
     return true;
   }
 
-  ///send viewChanged to native app
+  ///send eventDragged  to native app
   Future<bool> sendEventDraggedToNativeApp(PlannerEvent old,
       PlannerEvent newEvent, CalendarViewType viewType) async {
     final Map<String, dynamic> data = <String, dynamic>{

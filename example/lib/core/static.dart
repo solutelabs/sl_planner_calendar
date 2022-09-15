@@ -192,7 +192,7 @@ List<PlannerEvent> dummyEventData = <PlannerEvent>[
 ];
 
 ///custom timePeriods for the timetable
-List<Period> customPeriods = <Period>[
+    List<Period> customStaticPeriods = <Period>[
   Period(
     startTime: const TimeOfDay(hour: 9, minute: 30),
     endTime: const TimeOfDay(hour: 9, minute: 45),

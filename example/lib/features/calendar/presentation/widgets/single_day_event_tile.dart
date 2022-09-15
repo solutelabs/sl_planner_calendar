@@ -50,7 +50,7 @@ class SingleDayEventTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                   color: item.eventData!.color),
               child: item.eventData!.period.isBreak
-                  ? Container(
+                  ? SizedBox(
                       height: breakHeight,
                       child: Center(
                           child: Text(

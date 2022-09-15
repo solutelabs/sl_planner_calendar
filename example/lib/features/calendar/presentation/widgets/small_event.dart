@@ -32,8 +32,8 @@ class SmallEventTile extends StatelessWidget {
         feedback: Card(child: buildTile(context)),
         maxSimultaneousDrags: isDraggable ? 1 : 0,
         data: event,
-        child: buildTile(context),
         childWhenDragging: const SizedBox.shrink(),
+        child: buildTile(context),
       );
 
   ///render the tile
@@ -95,8 +95,8 @@ class ExtraSmallEventTile extends StatelessWidget {
         feedback: Card(child: buildTile(context)),
         maxSimultaneousDrags: isDraggable ? 1 : 0,
         data: event,
-        child: buildTile(context),
         childWhenDragging: const SizedBox.shrink(),
+        child: buildTile(context),
       );
 
   ///build tile

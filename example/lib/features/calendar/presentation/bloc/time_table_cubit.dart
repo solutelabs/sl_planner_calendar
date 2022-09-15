@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:edgar_planner_calendar_flutter/core/static.dart';
@@ -39,10 +38,10 @@ class TimeTableCubit extends Cubit<TimeTableState> {
       DateTime(now.year, now.month + 1).subtract(const Duration(days: 1));
 
   ///view of the calendar
-  CalendarViewType viewType = CalendarViewType.termView;
+  CalendarViewType viewType = CalendarViewType.dayView;
 
   ///list of the periods of the timetable
-  List<Period> periods = customPeriods;
+  List<Period> periods = customStaticPeriods;
 
   /// set method handler to receive data from flutter
   static const MethodChannel platform = MethodChannel('com.example.demo/data');
@@ -71,7 +70,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
               DateChange.fromJson(jsonDecode(call.arguments));
           startDate = dateChange.startTime;
           endDate = dateChange.endTime;
-          emit(DateUpdated(endDate, startDate, _events, viewType));
+          emit(DateUpdated(endDate, startDate, _events, viewType, periods));
           break;
 
         ///handle view change
@@ -108,7 +107,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
               GetEvents.fromJson(jsonDecode(call.arguments));
 
           _events.addAll(getEvents.events);
-          emit(LoadedState(_events, viewType));
+          emit(LoadedState(_events, viewType, periods));
           break;
 
         ///handle update event methods
@@ -155,7 +154,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
     endDate = end;
     startDate = first;
     nativeCallBack.sendDateChangeToNativeApp(first, end);
-    emit(DateUpdated(endDate, startDate, _events, viewType));
+    emit(DateUpdated(endDate, startDate, _events, viewType, periods));
     return true;
   }
 
@@ -164,7 +163,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
     final Map<String, dynamic> jData = await jsonDecode(data);
 
     id = jData['id'].toString();
-    emit(LoadedState(_events, viewType));
+    emit(LoadedState(_events, viewType, periods));
   }
 
   ///get dummy events
@@ -173,7 +172,8 @@ class TimeTableCubit extends Cubit<TimeTableState> {
       emit(LoadingState());
       await Future<dynamic>.delayed(const Duration(seconds: 3));
       _events = dummyEventData;
-      emit(LoadedState(_events, viewType));
+ 
+      emit(LoadedState(_events, viewType, periods));
     } on Exception catch (e) {
       debugPrint(e.toString());
       emit(ErrorState());
@@ -188,7 +188,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
 
     if (state is LoadedState) {}
     _events.add(value);
-    emit(LoadedState(_events, viewType));
+    emit(LoadedState(_events, viewType, periods));
   }
 
   ///remove pld event and add new event
@@ -205,7 +205,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
         startTime: newEvent.startTime,
         endTime: newEvent.endTime,
         eventData: newEvent.eventData));
-    emit(LoadedState(_events, viewType));
+    emit(LoadedState(_events, viewType, periods));
     log('added${newEvent.toMap}');
     return true;
   }
@@ -218,11 +218,11 @@ class TimeTableCubit extends Cubit<TimeTableState> {
           build: (pw.Context context) =>
               pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
 
-    final Directory? path = Directory('path for my edgar planner save method');
+    final Directory path = Directory('path for my edgar planner save method');
     try {
       // await FileSaver.instance
       //     .saveFile("example", image, "pdf", mimeType: MimeType.PDF);
-      final File file = File('${path!.path}/example.pdf');
+      final File file = File('${path.path}/example.pdf');
       await file.writeAsBytes(await pdf.save());
     } on FileSystemException catch (e) {
       debugPrint(e.message);
@@ -233,6 +233,6 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   void changeViewType(CalendarViewType viewType) {
     this.viewType = viewType;
     nativeCallBack.sendViewChangedToNativeApp(viewType);
-    emit(ViewUpdated(events, viewType));
+    emit(ViewUpdated(events, viewType, periods));
   }
 }

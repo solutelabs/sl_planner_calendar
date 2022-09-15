@@ -20,7 +20,7 @@ class LoadingState extends TimeTableState {
 ///loaded state
 class LoadedState extends TimeTableState {
   ///
-  LoadedState(this.events, this.viewType);
+  LoadedState(this.events, this.viewType, this.periods);
 
   ///list of events
   final List<PlannerEvent> events;
@@ -28,14 +28,17 @@ class LoadedState extends TimeTableState {
   /// view type of the calendar
   final CalendarViewType viewType;
 
+  ///list of the period
+  final List<Period> periods;
+
   @override
-  List<Object> get props => <Object>[events, viewType];
+  List<Object> get props => <Object>[events, viewType, periods];
 }
 
 ///View updated state
 class ViewUpdated implements LoadedState {
   ///
-  ViewUpdated(this.events, this.viewType);
+  ViewUpdated(this.events, this.viewType, this.periods);
 
   ///list of events
   @override
@@ -45,6 +48,9 @@ class ViewUpdated implements LoadedState {
   @override
   final CalendarViewType viewType;
 
+  ///list of the period
+  @override
+  final List<Period> periods;
   @override
   List<Object> get props => <Object>[events, viewType];
 
@@ -76,7 +82,8 @@ class UpdatingEvent extends TimeTableState {
 ///date update event state
 class DateUpdated implements LoadedState {
   ///initialize start
-  DateUpdated(this.endDate, this.startDate, this.events, this.viewType);
+  DateUpdated(
+      this.endDate, this.startDate, this.events, this.viewType, this.periods);
 
   @override
   final List<PlannerEvent> events;
@@ -90,8 +97,13 @@ class DateUpdated implements LoadedState {
   ///end Date
   final DateTime endDate;
 
+  ///list of the period
   @override
-  List<Object> get props => <Object>[startDate, endDate, events, viewType];
+  final List<Period> periods;
+
+  @override
+  List<Object> get props =>
+      <Object>[startDate, endDate, events, viewType, periods];
 
   @override
   bool? get stringify => throw UnimplementedError();
@@ -109,6 +121,7 @@ class PeriodsUpdated implements LoadedState {
   final CalendarViewType viewType;
 
   ///list of the period
+  @override
   final List<Period> periods;
 
   @override
@@ -133,6 +146,7 @@ class EventsAdded implements LoadedState {
   final CalendarViewType viewType;
 
   ///list of the period
+  @override
   final List<Period> periods;
 
   @override
@@ -156,6 +170,7 @@ class EventsUpdated implements LoadedState {
   final CalendarViewType viewType;
 
   ///list of the period
+  @override
   final List<Period> periods;
 
   @override
@@ -179,6 +194,7 @@ class DeletedEvents implements LoadedState {
   final CalendarViewType viewType;
 
   ///list of the period
+  @override
   final List<Period> periods;
 
   @override

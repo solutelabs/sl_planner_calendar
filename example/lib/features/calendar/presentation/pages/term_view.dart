@@ -88,7 +88,7 @@ class _TermPlannerState extends State<TermPlanner> {
                     : const SizedBox.shrink(),
                 Expanded(
                   child: SlTermView<EventData>(
-                    timelines: customPeriods,
+                    timelines: customStaticPeriods,
                     isSwipeEnable: true,
                     deadCellBuilder: (DateTime current) => const Expanded(
                       child: DeadCell(),
@@ -121,7 +121,7 @@ class _TermPlannerState extends State<TermPlanner> {
                     },
                     onEventDragged: (CalendarEvent<EventData> old,
                         CalendarEvent<EventData> newEvent) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
+                      BlocProvider.of<TimeTableCubit>(context)
                           .updateEvent(old, newEvent, null);
                     },
                     onWillAccept: (CalendarEvent<EventData>? event,
@@ -129,8 +129,7 @@ class _TermPlannerState extends State<TermPlanner> {
                       if (event != null) {
                         if (state is LoadingState) {
                           final List<CalendarEvent<dynamic>> overleapingEvents =
-                              BlocProvider.of<TimeTableCubit>(context,
-                                      listen: false)
+                              BlocProvider.of<TimeTableCubit>(context)
                                   .events
                                   .where((CalendarEvent<dynamic> element) =>
                                       !isTimeIsEqualOrLess(
@@ -161,10 +160,9 @@ class _TermPlannerState extends State<TermPlanner> {
                         state is LoadedState ? state.events : <PlannerEvent>[],
                     onTap: (DateTime date) {
                       final TimeTableCubit provider =
-                          BlocProvider.of<TimeTableCubit>(context,
-                              listen: false);
-                      provider.nativeCallBack
-                          .sendAddEventToNativeApp(date, provider.viewType);
+                          BlocProvider.of<TimeTableCubit>(context);
+                      provider.nativeCallBack.sendAddEventToNativeApp(
+                          dateTime, provider.viewType, null);
                     },
                     headerHeight: isMobile ? 38 : 40,
                     headerCellBuilder: (int index) => SizedBox(
@@ -176,7 +174,7 @@ class _TermPlannerState extends State<TermPlanner> {
                             Size size, DateTime dateTime) =>
                         item.isEmpty
                             ? const SizedBox.shrink()
-                            : Container(
+                            : SizedBox(
                                 width: size.width,
                                 height: size.height,
                                 child: Column(
