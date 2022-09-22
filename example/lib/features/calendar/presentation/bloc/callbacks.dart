@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/date_change_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/method_name.dart';
-
 import 'package:flutter/services.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 

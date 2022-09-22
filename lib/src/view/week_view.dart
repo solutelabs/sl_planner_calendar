@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/widgets/cell.dart';
 import 'package:sl_planner_calendar/src/widgets/corner_cell.dart';
@@ -16,6 +18,7 @@ class SlWeekView<T> extends StatefulWidget {
   const SlWeekView({
     required this.timelines,
     required this.onWillAccept,
+    required this.onImageCapture,
     Key? key,
     this.onEventDragged,
     this.controller,
@@ -99,6 +102,9 @@ class SlWeekView<T> extends StatefulWidget {
   ///function will handle if event is draggable
   final bool Function(CalendarEvent<T> event)? isCellDraggable;
 
+  ///function return unit8List when user ask for screenshot
+
+  final Function(Uint8List data) onImageCapture;
   @override
   State<SlWeekView<T>> createState() => _SlWeekViewState<T>();
 }
@@ -216,6 +222,12 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
       appLog('max column changed');
       await adjustColumnWidth();
     }
+
+    if (event is TimeTableSave) {
+      await ScreenshotController()
+          .captureFromWidget(keyForSS.currentWidget!)
+          .then((Uint8List value) => widget.onImageCapture);
+    }
     if (mounted) {
       setState(() {});
     }
@@ -270,54 +282,62 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
 
   bool _isTableScrolling = false;
   bool _isHeaderScrolling = false;
-
+  GlobalKey<ScaffoldState> keyForSS = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
       builder: (BuildContext context, BoxConstraints constraints) {
         adjustColumnWidth();
+        final Size side = constraints.biggest;
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            SizedBox(
-              height: widget.headerHeight,
-              child: Row(
-                children: <Widget>[
-                  CornerCell(
-                      controller: controller,
-                      cornerBuilder: widget.cornerBuilder,
-                      headerHeight: widget.headerHeight),
-                  Expanded(
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: (ScrollNotification notification) {
-                        if (_isTableScrolling) {
+            Screenshot<Widget>(
+              key: keyForSS,
+              controller: ScreenshotController(),
+              child: SizedBox(
+                height: widget.headerHeight,
+                width: side.width,
+                child: Row(
+                  children: <Widget>[
+                    CornerCell(
+                        controller: controller,
+                        cornerBuilder: widget.cornerBuilder,
+                        headerHeight: widget.headerHeight),
+                    Expanded(
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: (ScrollNotification notification) {
+                          if (_isTableScrolling) {
+                            return false;
+                          }
+                          if (notification is ScrollEndNotification) {
+                            _snapToCloset();
+                            // _updateVisibleDate();
+                            _isHeaderScrolling = false;
+                            return true;
+                          }
+                          _isHeaderScrolling = true;
+                          _dayScrollController.jumpTo(
+                              _dayHeadingScrollController.position.pixels);
                           return false;
-                        }
-                        if (notification is ScrollEndNotification) {
-                          _snapToCloset();
-                          // _updateVisibleDate();
-                          _isHeaderScrolling = false;
-                          return true;
-                        }
-                        _isHeaderScrolling = true;
-                        _dayScrollController.jumpTo(
-                            _dayHeadingScrollController.position.pixels);
-                        return false;
-                      },
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        controller: _dayHeadingScrollController,
-                        itemExtent: columnWidth,
-                        itemCount: dateRange.length,
-                        itemBuilder: (BuildContext context, int index) =>
-                            HeaderCell(
-                          dateTime: dateRange[index],
-                          columnWidth: columnWidth,
-                          headerCellBuilder: widget.headerCellBuilder,
+                        },
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          controller: _dayHeadingScrollController,
+                          itemExtent: columnWidth,
+                          itemCount: dateRange.length,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (BuildContext context, int index) =>
+                              HeaderCell(
+                            dateTime: dateRange[index],
+                            columnWidth: columnWidth,
+                            headerCellBuilder: widget.headerCellBuilder,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const Divider(
@@ -325,33 +345,32 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
               height: 2,
             ),
             Expanded(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification notification) {
-                  if (_isHeaderScrolling) {
-                    return false;
-                  }
+              child: SingleChildScrollView(
+                controller: _timeScrollController,
+                child: SizedBox(
+                  height: getTimelineHeight(widget.timelines,
+                      controller.cellHeight, controller.breakHeight),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification notification) {
+                      if (_isHeaderScrolling) {
+                        return false;
+                      }
 
-                  if (notification is ScrollEndNotification) {
-                    _snapToCloset();
+                      if (notification is ScrollEndNotification) {
+                        _snapToCloset();
 
-                    _isTableScrolling = false;
-                    return true;
-                  }
-                  _isTableScrolling = true;
-                  _dayHeadingScrollController
-                      .jumpTo(_dayScrollController.position.pixels);
-                  return true;
-                },
-                child: SingleChildScrollView(
-                  controller: _timeScrollController,
-                  child: SizedBox(
-                    height: getTimelineHeight(widget.timelines,
-                        controller.cellHeight, controller.breakHeight),
+                        _isTableScrolling = false;
+                        return true;
+                      }
+                      _isTableScrolling = true;
+                      _dayHeadingScrollController
+                          .jumpTo(_dayScrollController.position.pixels);
+                      return true;
+                    },
                     child: Row(
                       children: <Widget>[
                         SizedBox(
                           width: controller.timelineWidth,
-                          height: controller.cellHeight * 24.0,
                           child: Column(
                             children: <Widget>[
                               // SizedBox(height: controller.cellHeight / 2),
@@ -385,7 +404,6 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
 
                               return Container(
                                 width: columnWidth,
-                                height: controller.cellHeight * 24.0,
                                 child: Stack(
                                   clipBehavior: Clip.none,
                                   children: <Widget>[

@@ -72,7 +72,6 @@ extension TextThemes on BuildContext {
   ///texTheme for the term planner
 
   TextStyle get termPlannerTitle => const TextStyle(
-    
       color: darkestGrey, fontSize: 12, fontWeight: FontWeight.w500);
 
   ///texTheme for the term planner

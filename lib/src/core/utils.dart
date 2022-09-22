@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/app_log.dart';
+import 'package:sl_planner_calendar/src/core/time_extension.dart';
+import 'package:sl_planner_calendar/src/models/resize_model.dart';
 
 ///check if give time is before or not
 bool isTimeBefore(TimeOfDay a, TimeOfDay b) {
@@ -198,59 +200,59 @@ double getEventMarginFromTop(List<Period> timelines, double cellHeight,
 
 ///get top margin for event
 double getEventMarginFromBottom(List<Period> timelines, double cellHeight,
-    double breakHeight, DateTime start) {
+    double breakHeight, DateTime end) {
   double totalHeightOfThePlanner = 0;
   for (final Period p in timelines) {
     totalHeightOfThePlanner =
         totalHeightOfThePlanner + (p.isBreak ? breakHeight : cellHeight);
   }
   final List<Period> t = timelines;
-  final List<Period> ts = t
+  final List<Period> myTs = t
       .where((Period element) =>
-          DateTime(start.year, start.month, start.day, element.endTime.hour,
+          DateTime(end.year, end.month, end.day, element.endTime.hour,
                   element.endTime.minute)
-              .isAtSameMomentAs(start) ||
+              .isAtSameMomentAs(end) ||
           isTimeBefore(
               element.endTime,
               TimeOfDay(
-                hour: start.hour,
-                minute: start.minute,
+                hour: end.hour,
+                minute: end.minute,
               )))
       .toList();
 
-  appLog('No  of periods before current time:${ts.length}');
-  double total = 0;
-  for (final Period item in ts) {
-    total = total + (item.isBreak ? breakHeight : cellHeight);
+  appLog('No  of periods before current time:${myTs.length}');
+  double totalHeight = 0;
+  for (final Period item in myTs) {
+    totalHeight = totalHeight + (item.isBreak ? breakHeight : cellHeight);
   }
   final List<Period> times = t
       .where((Period element) => isDateBeetWeen(
-          DateTime(start.year, start.month, start.day, element.startTime.hour,
+          DateTime(end.year, end.month, end.day, element.startTime.hour,
               element.startTime.minute),
-          DateTime(start.year, start.month, start.day, element.endTime.hour,
+          DateTime(end.year, end.month, end.day, element.endTime.hour,
               element.endTime.minute),
-          start))
+          end))
       .toList();
 
   if (times.isNotEmpty) {
     final Period time = times.first;
     appLog('Period during current time${time.toMap}');
 
-    appLog('Total top margin:$total');
+    appLog('Total top margin:$totalHeight');
     final Duration d = diffTime(time.endTime, time.startTime);
 
     appLog('Duration of the period:${d.inMinutes}');
     final double rm =
         time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
     appLog('size of the minute:$rm');
-    final Duration duration = start.difference(DateTime(start.year, start.month,
-        start.day, time.startTime.hour, time.startTime.minute));
+    final Duration duration = end.difference(DateTime(end.year, end.month,
+        end.day, time.startTime.hour, time.startTime.minute));
 
     appLog('Duration from start to now ${duration.inMinutes}');
-    total = total + rm * duration.inMinutes;
-    return totalHeightOfThePlanner - total;
+    totalHeight = totalHeight + rm * duration.inMinutes;
+    return totalHeightOfThePlanner - totalHeight;
   } else {
-    return totalHeightOfThePlanner - total;
+    return totalHeightOfThePlanner - totalHeight;
   }
 }
 
@@ -509,4 +511,290 @@ List<CalendarDay> addPaddingDate(List<CalendarDay> myDateRange) {
 TimeOfDay parseTimeOfDay(String t) {
   final DateTime dateTime = DateFormat('HH:mm').parse(t);
   return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+}
+
+/// return details for the size
+Future<ResizeModel> getResizeDetails(List<Period> timelines, double cellHeight,
+    double breakHeight, DateTime start, DateTime end) async {
+  final ResizeModel resizeModel = ResizeModel(isNextPeriodAvl: true);
+  double totalHeightOfThePlanner = 0;
+  for (final Period p in timelines) {
+    totalHeightOfThePlanner =
+        totalHeightOfThePlanner + (p.isBreak ? breakHeight : cellHeight);
+  }
+  final List<Period> times = timelines
+      .where((Period element) => isDateBeetWeen(
+          DateTime(start.year, start.month, start.day, element.startTime.hour,
+              element.startTime.minute),
+          DateTime(start.year, start.month, start.day, element.endTime.hour,
+              element.endTime.minute),
+          start))
+      .toList();
+
+  if (times.isNotEmpty) {
+    final Period time = times.first;
+    appLog('Period during current time${time.toMap}');
+
+    appLog('Total top margin:$totalHeightOfThePlanner');
+    final Duration d = diffTime(time.endTime, time.startTime);
+
+    appLog('Duration of the period:${d.inMinutes}');
+    final double rm =
+        time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
+    appLog('size of the minute:$rm');
+    final Duration duration = start.difference(DateTime(start.year, start.month,
+        start.day, time.startTime.hour, time.startTime.minute));
+
+    appLog('Duration from start to now ${duration.inMinutes}');
+    // return total = total + rm * duration.inMinutes;
+    resizeModel.top = totalHeightOfThePlanner + rm * duration.inMinutes;
+  } else {
+    // return total;
+    resizeModel.top = totalHeightOfThePlanner;
+  }
+
+  final List<Period> t = timelines;
+  final List<Period> ts = t
+      .where((Period element) =>
+          DateTime(start.year, start.month, start.day, element.endTime.hour,
+                  element.endTime.minute)
+              .isAtSameMomentAs(start) ||
+          isTimeBefore(
+              element.endTime,
+              TimeOfDay(
+                hour: start.hour,
+                minute: start.minute,
+              )))
+      .toList();
+
+  appLog('No  of periods before current time:${ts.length}');
+  double total1 = 0;
+  for (final Period item in ts) {
+    total1 = total1 + (item.isBreak ? breakHeight : cellHeight);
+  }
+  final List<Period> times1 = timelines
+      .where((Period element) => isDateBeetWeen(
+          DateTime(start.year, start.month, start.day, element.startTime.hour,
+              element.startTime.minute),
+          DateTime(start.year, start.month, start.day, element.endTime.hour,
+              element.endTime.minute),
+          start))
+      .toList();
+
+  if (times1.isNotEmpty) {
+    final Period time = times1.first;
+    appLog('Period during current time${time.toMap}');
+
+    appLog('Total top margin:$total1');
+    final Duration d = diffTime(time.endTime, time.startTime);
+
+    appLog('Duration of the period:${d.inMinutes}');
+    final double rm =
+        time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
+    appLog('size of the minute:$rm');
+    final Duration duration = start.difference(DateTime(start.year, start.month,
+        start.day, time.startTime.hour, time.startTime.minute));
+
+    appLog('Duration from start to now ${duration.inMinutes}');
+    total1 = total1 + rm * duration.inMinutes;
+
+    resizeModel
+      ..bottom = totalHeightOfThePlanner - total1
+      ..hight = totalHeightOfThePlanner;
+  } else {
+    resizeModel
+      ..bottom = totalHeightOfThePlanner - total1
+      ..hight = totalHeightOfThePlanner;
+  }
+  return resizeModel;
+}
+
+///get parameter for the resize
+Future<ResizeModel> getParameterForResize(List<Period> timelines,
+    double cellHeight, double breakHeight, DateTime start, DateTime end) async {
+  final ResizeModel resizeModel = ResizeModel();
+  double totalHeightOfThePlanner = 0;
+  for (final Period p in timelines) {
+    totalHeightOfThePlanner =
+        totalHeightOfThePlanner + (p.isBreak ? breakHeight : cellHeight);
+  }
+  final List<Period> t = timelines;
+  final List<Period> ts = t
+      .where((Period element) =>
+          DateTime(start.year, start.month, start.day, element.endTime.hour,
+                  element.endTime.minute)
+              .isAtSameMomentAs(start) ||
+          isTimeBefore(
+              element.endTime,
+              TimeOfDay(
+                hour: start.hour,
+                minute: start.minute,
+              )))
+      .toList();
+
+  appLog('No  of periods before current time:${ts.length}');
+  double total = 0;
+  for (final Period item in ts) {
+    total = total + (item.isBreak ? breakHeight : cellHeight);
+  }
+  final List<Period> times = t
+      .where((Period element) => isDateBeetWeen(
+          DateTime(start.year, start.month, start.day, element.startTime.hour,
+              element.startTime.minute),
+          DateTime(start.year, start.month, start.day, element.endTime.hour,
+              element.endTime.minute),
+          start))
+      .toList();
+
+  if (times.isNotEmpty) {
+    final Period time = times.first;
+    appLog('Period during current time${time.toMap}');
+
+    appLog('Total top margin:$total');
+    final Duration d = diffTime(time.endTime, time.startTime);
+
+    appLog('Duration of the period:${d.inMinutes}');
+    final double rm =
+        time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
+    appLog('size of the minute:$rm');
+    final Duration duration = start.difference(DateTime(start.year, start.month,
+        start.day, time.startTime.hour, time.startTime.minute));
+
+    appLog('Duration from start to now ${duration.inMinutes}');
+    resizeModel.top = total + rm * duration.inMinutes;
+  } else {
+    resizeModel.top = total;
+  }
+
+  ///calculation for the bottom
+  final List<Period> t2 = timelines;
+  final List<Period> myTs = t2
+      .where((Period element) =>
+          DateTime(end.year, end.month, end.day, element.endTime.hour,
+                  element.endTime.minute)
+              .isAtSameMomentAs(end) ||
+          isTimeBefore(
+              element.endTime,
+              TimeOfDay(
+                hour: end.hour,
+                minute: end.minute,
+              )))
+      .toList();
+
+  appLog('No  of periods before current time:${myTs.length}');
+  double totalHeight = 0;
+  for (final Period item in myTs) {
+    totalHeight = totalHeight + (item.isBreak ? breakHeight : cellHeight);
+  }
+  final List<Period> times1 = t2
+      .where((Period element) => isDateBeetWeen(
+          DateTime(end.year, end.month, end.day, element.startTime.hour,
+              element.startTime.minute),
+          DateTime(end.year, end.month, end.day, element.endTime.hour,
+              element.endTime.minute),
+          end))
+      .toList();
+
+  if (times1.isNotEmpty) {
+    final Period time = times1.first;
+    appLog('Period during current time${time.toMap}');
+
+    appLog('Total top margin:$totalHeight');
+    final Duration d = diffTime(time.endTime, time.startTime);
+
+    appLog('Duration of the period:${d.inMinutes}');
+    final double rm =
+        time.isBreak ? (breakHeight / d.inMinutes) : (cellHeight / d.inMinutes);
+    appLog('size of the minute:$rm');
+    final Duration duration = end.difference(DateTime(end.year, end.month,
+        end.day, time.startTime.hour, time.startTime.minute));
+
+    appLog('Duration from start to now ${duration.inMinutes}');
+    totalHeight = totalHeight + rm * duration.inMinutes;
+    resizeModel.bottom = totalHeightOfThePlanner - totalHeight;
+  } else {
+    resizeModel.bottom = totalHeightOfThePlanner - totalHeight;
+  }
+  final List<Period> forAfter = t2
+      .where((Period element) =>
+          DateTime(end.year, end.month, end.day, element.endTime.hour,
+                  element.endTime.minute)
+              .isAtSameMomentAs(end) ||
+          !isTimeBefore(
+              element.endTime,
+              TimeOfDay(
+                hour: end.hour,
+                minute: end.minute,
+              )))
+      .toList();
+
+  resizeModel
+    ..isPreviousPeriodAvl = ts.isNotEmpty &&
+        isNotSame(
+            ts.last.endTime, TimeOfDay(hour: start.hour, minute: start.minute))
+    ..isNextPeriodAvl = forAfter.isNotEmpty &&
+        isNotSame(forAfter.first.endTime,
+            TimeOfDay(hour: start.hour, minute: start.minute));
+
+  if (ts.isEmpty) {
+    if (start.getTime.isSame(timelines.first.startTime)) {
+      resizeModel.isPreviousPeriodAvl = false;
+    } else {}
+  } else {
+    if (ts.length == 1) {
+      if (ts.first.isBreak) {
+        resizeModel
+          ..isPreviousPeriodAvl = false
+          ..minDragOffset = 0;
+      } else {
+        resizeModel
+          ..isPreviousPeriodAvl = true
+          ..minDragOffset = cellHeight
+          ..minTime = ts.first.endTime;
+      }
+    } else {
+      final Period lastPeriod = ts.last;
+      if (lastPeriod.isBreak) {
+        resizeModel
+          ..isPreviousPeriodAvl = false
+          ..minDragOffset = 0;
+      } else {
+        resizeModel
+          ..isPreviousPeriodAvl = true
+          ..minDragOffset = cellHeight;
+      }
+    }
+  }
+
+  if (forAfter.isEmpty) {
+    if (end.getTime.isSame(timelines.last.endTime)) {
+      resizeModel.isNextPeriodAvl = false;
+    } else {
+      if (forAfter.length == 1) {
+        if (forAfter.first.isBreak) {
+          resizeModel
+            ..isNextPeriodAvl = false
+            ..maxDargOffset = 0;
+        } else {
+          resizeModel
+            ..isNextPeriodAvl = true
+            ..maxDargOffset = cellHeight
+            ..maxTime = ts.first.endTime;
+        }
+      } else {
+        final Period lastPeriod = forAfter.first;
+        if (lastPeriod.isBreak) {
+          resizeModel
+            ..isNextPeriodAvl = false
+            ..maxDargOffset = 0;
+        } else {
+          resizeModel
+            ..isNextPeriodAvl = true
+            ..maxDargOffset = cellHeight
+            ..maxTime = lastPeriod.startTime;
+        }
+      }
+    }
+  }
+  return resizeModel;
 }

@@ -211,6 +211,11 @@ class TimetableController {
   void saveToImage(double pixelRatio) {
     dispatch(TimeTableSave(pixelRatio));
   }
+
+  ///reload table
+  void reloadTable() {
+    dispatch(TimeTableRefresh());
+  }
 }
 
 /// A generic event that can be dispatched from the timetable controller
@@ -299,4 +304,10 @@ class TimeTableSave extends TimetableControllerEvent {
 
   ///pixel ratio
   double pixelRatio;
+}
+
+///Save timetable to local storage
+class TimeTableRefresh extends TimetableControllerEvent {
+  ///
+  TimeTableRefresh();
 }

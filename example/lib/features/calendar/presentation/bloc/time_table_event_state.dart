@@ -51,6 +51,7 @@ class ViewUpdated implements LoadedState {
   ///list of the period
   @override
   final List<Period> periods;
+
   @override
   List<Object> get props => <Object>[events, viewType];
 

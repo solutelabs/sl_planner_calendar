@@ -89,26 +89,23 @@ class TimeTableCell<T> extends StatelessWidget {
             List<dynamic> accepted,
             List<dynamic> rejected,
           ) =>
-              SizedBox(
+              Container(
+            // color: Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
+            //     .withOpacity(1.0),
+            // color: Colors.blue,
             width: columnWidth,
             height: period.isBreak ? breakHeight : cellHeight,
-            child: GestureDetector(
-              onTap: () {
-                appLog('onTap');
-                onTap!(dateTime, period, null);
-              },
-              child: Center(
-                child: cellBuilder != null
-                    ? cellBuilder!(period)
-                    : Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).dividerColor,
-                            width: 0.5,
-                          ),
+            child: Center(
+              child: cellBuilder != null
+                  ? cellBuilder!(period)
+                  : Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                          width: 0.5,
                         ),
                       ),
-              ),
+                    ),
             ),
           ),
           onAcceptWithDetails: onAcceptWithDetails,

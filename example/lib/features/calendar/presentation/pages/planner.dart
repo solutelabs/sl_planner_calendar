@@ -7,6 +7,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bl
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/day_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/gl_schedule_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/month_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/new_day_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/schedule_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/setting_dialog.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/term_view.dart';
@@ -15,7 +16,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/wi
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/right_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -137,95 +138,110 @@ class _PlannerState extends State<Planner> {
           });
         },
       ),
-      body:
-          LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        isMobile = value.maxWidth < mobileThreshold;
-        return Row(
-          children: <Widget>[
-            isMobile ? const SizedBox.shrink() : const LeftStrip(),
-            Expanded(
-                child: BlocConsumer<TimeTableCubit, TimeTableState>(
-                    listener: (BuildContext context, TimeTableState state) {
-              if (state is DateUpdated) {
-                simpleController.changeDate(state.startDate, state.endDate);
-              } else if (state is ViewUpdated) {}
-            }, buildWhen: (TimeTableState previous, TimeTableState current) {
-              if (current is LoadedState) {
-                return true;
-              } else {
-                return false;
-              }
-            }, builder: (BuildContext context, TimeTableState state) {
-              if (state is ErrorState) {
-                return const Center(
-                  child: Icon(Icons.close),
-                );
-              } else {
-                return Screenshot<Widget>(
-                  controller: screenshotController,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 500),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) =>
-                            ScaleTransition(scale: animation, child: child),
-                    child: IndexedStack(
-                      index:
-                          state is LoadedState ? getIndex(state.viewType) : 0,
-                      children: <Widget>[
-                        SchedulePlanner(
-                          isMobile: isMobile,
-                          customPeriods: state is LoadedState
-                              ? state.periods
-                              : customStaticPeriods,
-                          timetableController: simpleController,
-                        ),
-                        DayPlanner(
-                          customPeriods: state is LoadedState
-                              ? state.periods
-                              : customStaticPeriods,
-                          timetableController: simpleController,
-                        ),
-                        WeekPlanner(
-                          customPeriods: state is LoadedState
-                              ? state.periods
-                              : customStaticPeriods,
-                          timetableController: simpleController,
-                        ),
-                        MonthPlanner(
-                          timetableController: simpleController,
-                          onMonthChanged: (Month month) {
-                            log('month changed$month');
-                            setState(() {
-                              dateTime = DateTime(month.year, month.month, 15);
-                            });
-                          },
-                        ),
-                        TermPlanner(
-                          timetableController: simpleController,
-                          onMonthChanged: (Month month) {
-                            log('month changed$month');
-                            setState(() {
-                              dateTime = DateTime(month.year, month.month, 15);
-                            });
-                          },
-                        ),
-                        GlSchedulePlanner(
-                          isMobile: isMobile,
-                          customPeriods: state is LoadedState
-                              ? state.periods
-                              : customStaticPeriods,
-                          timetableController: simpleController,
-                        ),
-                      ],
+      body: SafeArea(
+        child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints value) {
+          isMobile = value.maxWidth < mobileThreshold;
+          return Row(
+            children: <Widget>[
+              isMobile ? const SizedBox.shrink() : const LeftStrip(),
+              Expanded(
+                  child: BlocConsumer<TimeTableCubit, TimeTableState>(
+                      listener: (BuildContext context, TimeTableState state) {
+                if (state is DateUpdated) {
+                  simpleController.changeDate(state.startDate, state.endDate);
+                } else if (state is ViewUpdated) {}
+              }, buildWhen: (TimeTableState previous, TimeTableState current) {
+                if (current is LoadedState) {
+                  return true;
+                } else {
+                  return false;
+                }
+              }, builder: (BuildContext context, TimeTableState state) {
+                if (state is ErrorState) {
+                  return const Center(
+                    child: Icon(Icons.close),
+                  );
+                } else {
+                  return Screenshot<Widget>(
+                    controller: screenshotController,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) =>
+                              ScaleTransition(scale: animation, child: child),
+                      child: IndexedStack(
+                        index:
+                            state is LoadedState ? getIndex(state.viewType) : 0,
+                        children: <Widget>[
+                          SchedulePlanner(
+                            isMobile: isMobile,
+                            customPeriods: state is LoadedState
+                                ? state.periods
+                                : customStaticPeriods,
+                            timetableController: simpleController,
+                          ),
+                          DayPlanner(
+                            customPeriods: state is LoadedState
+                                ? state.periods
+                                : customStaticPeriods,
+                            timetableController: simpleController,
+                          ),
+                          WeekPlanner(
+                            onImageCapture: (Uint8List p0) {
+                              BlocProvider.of<TimeTableCubit>(context)
+                                  .saveToPdf(p0);
+                            },
+                            customPeriods: state is LoadedState
+                                ? state.periods
+                                : customStaticPeriods,
+                            timetableController: simpleController,
+                          ),
+                          MonthPlanner(
+                            timetableController: simpleController,
+                            onMonthChanged: (Month month) {
+                              log('month changed$month');
+                              setState(() {
+                                dateTime =
+                                    DateTime(month.year, month.month, 15);
+                              });
+                            },
+                          ),
+                          TermPlanner(
+                            timetableController: simpleController,
+                            onMonthChanged: (Month month) {
+                              log('month changed$month');
+                              setState(() {
+                                dateTime =
+                                    DateTime(month.year, month.month, 15);
+                              });
+                            },
+                          ),
+                          // MainWidget(),
+                          NewDayPlanner(
+                            customPeriods: state is LoadedState
+                                ? state.periods
+                                : customStaticPeriods,
+                            timetableController: simpleController,
+                          ),
+                          GlSchedulePlanner(
+                            isMobile: isMobile,
+                            customPeriods: state is LoadedState
+                                ? state.periods
+                                : customStaticPeriods,
+                            timetableController: simpleController,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }
-            })),
-            isMobile ? const SizedBox.shrink() : const RightStrip(),
-          ],
-        );
-      }));
+                  );
+                }
+              })),
+              isMobile ? const SizedBox.shrink() : const RightStrip(),
+            ],
+          );
+        }),
+      ));
 }
 
 ///get index of the index stack

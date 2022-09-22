@@ -32,10 +32,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           scrollBehavior: const MaterialScrollBehavior().copyWith(
             dragDevices: <PointerDeviceKind>{
-              PointerDeviceKind.mouse,
               PointerDeviceKind.touch,
-              PointerDeviceKind.stylus,
-              PointerDeviceKind.unknown
             },
           ),
           routes: <String, WidgetBuilder>{

@@ -386,14 +386,15 @@ class _GlScheduleViewState<T> extends State<GlScheduleView<T>> {
             element.month == date.month &&
             element.day == date.day));
     final double datePosition = 65.0 + 3 * (index + 1);
-
-    await Future.wait<void>(<Future<void>>[
-      _dayScrollController.animateTo(
-        datePosition,
-        duration: _animationDuration,
-        curve: _animationCurve,
-      ),
-    ]);
+    if (_dayScrollController.hasClients) {
+      await Future.wait<void>(<Future<void>>[
+        _dayScrollController.animateTo(
+          datePosition,
+          duration: _animationDuration,
+          curve: _animationCurve,
+        ),
+      ]);
+    }
   }
 
   void getDate(DateTime firstDate, DateTime endDate, int firstDay) {

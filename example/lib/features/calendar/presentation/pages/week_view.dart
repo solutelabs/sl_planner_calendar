@@ -6,9 +6,11 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/event_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///planner
@@ -17,6 +19,7 @@ class WeekPlanner extends StatefulWidget {
   const WeekPlanner({
     required this.timetableController,
     required this.customPeriods,
+    required this.onImageCapture,
     Key? key,
     this.id,
   }) : super(key: key);
@@ -30,6 +33,9 @@ class WeekPlanner extends StatefulWidget {
   ///timetable controller
   final TimetableController timetableController;
 
+  ///function return unit8List when user ask for screenshot
+
+  final Function(Uint8List) onImageCapture;
   @override
   State<WeekPlanner> createState() => _WeekPlannerState();
 }
@@ -85,6 +91,7 @@ class _WeekPlannerState extends State<WeekPlanner> {
                     : const SizedBox.shrink(),
                 Expanded(
                   child: SlWeekView<EventData>(
+                    onImageCapture: widget.onImageCapture,
                     fullWeek: true,
                     timelines: widget.customPeriods,
                     onEventDragged: (CalendarEvent<EventData> old,

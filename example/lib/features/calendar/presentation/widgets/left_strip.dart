@@ -26,9 +26,7 @@ class LeftStrip extends StatelessWidget {
           listener: (BuildContext context, TimeTableState state) {},
           builder: (BuildContext context, TimeTableState state) {
             final int currentMonth =
-                BlocProvider.of<TimeTableCubit>(context)
-                    .startDate
-                    .month;
+                BlocProvider.of<TimeTableCubit>(context).startDate.month;
             return Column(
               children: getMonth()
                   .map((DateTime e) => Expanded(

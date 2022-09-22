@@ -13,6 +13,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bl
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -38,7 +39,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
       DateTime(now.year, now.month + 1).subtract(const Duration(days: 1));
 
   ///view of the calendar
-  CalendarViewType viewType = CalendarViewType.dayView;
+  CalendarViewType viewType = CalendarViewType.weekView;
 
   ///list of the periods of the timetable
   List<Period> periods = customStaticPeriods;
@@ -172,7 +173,7 @@ class TimeTableCubit extends Cubit<TimeTableState> {
       emit(LoadingState());
       await Future<dynamic>.delayed(const Duration(seconds: 3));
       _events = dummyEventData;
- 
+
       emit(LoadedState(_events, viewType, periods));
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -218,17 +219,21 @@ class TimeTableCubit extends Cubit<TimeTableState> {
           build: (pw.Context context) =>
               pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
 
-    final Directory path = Directory('path for my edgar planner save method');
+    final Directory? path = await getDownloadsDirectory();
     try {
       // await FileSaver.instance
       //     .saveFile("example", image, "pdf", mimeType: MimeType.PDF);
-      final File file = File('${path.path}/example.pdf');
+      final File file = File('${path!.path}/example.pdf');
       await file.writeAsBytes(await pdf.save());
     } on FileSystemException catch (e) {
       debugPrint(e.message);
     }
   }
 
+// Future<void> saveTomImage(Uint8List image)
+// {
+
+// }
   ///chang calendar view
   void changeViewType(CalendarViewType viewType) {
     this.viewType = viewType;
