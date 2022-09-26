@@ -8,6 +8,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pa
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/gl_schedule_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/month_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/new_day_view.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/preview.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/schedule_view.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/setting_dialog.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/term_view.dart';
@@ -55,6 +56,7 @@ class _PlannerState extends State<Planner> {
 
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+  ScreenshotController screenshotController = ScreenshotController();
   @override
   Widget build(BuildContext context) => Scaffold(
       key: scaffoldKey,
@@ -104,27 +106,97 @@ class _PlannerState extends State<Planner> {
                     ));
           },
         ),
-        // actions: <Widget>[
-        //   IconButton(
-        //     icon: const Icon(
-        //       Icons.search,
-        //       color: Colors.black,
-        //     ),
-        //     onPressed: () async {
-        //       simpleController.jumpTo(DateTime.now());
-        //     },
-        //   ),
-        //   IconButton(
-        //     icon: const Icon(
-        //       Icons.calendar_month,
-        //       color: Colors.black,
-        //     ),
-        //     onPressed: () {
-        //       scaffoldKey.currentState!.openEndDrawer();
-        //       return;
-        //     },
-        //   ),
-        // ],
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(
+              Icons.download,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              final TimeTableCubit cubit =
+                  BlocProvider.of<TimeTableCubit>(context);
+
+              Preview.exportWeekView(DateTime(2022, 9, 19),
+                  DateTime(2022, 9, 26), cubit.periods, cubit.events, context);
+              // PdfService.generateLessonPlanPdf();
+              // saveImage();
+              // simpleController.saveToImage(10);
+
+              // await ScreenshotController()
+              //     .captureFromWidget(
+              //   MaterialApp(
+              //     home: SizedBox(
+              //       height: 1000 * 15,
+              //       child: ListView.builder(
+              //           shrinkWrap: true,
+              //           itemCount: 1000,
+              //           itemBuilder: (context, index) {
+              //             return Material(child: Text("Count $index"));
+              //           }),
+              //     ),
+              //   )
+              //   //       BlocProvider<TimeTableCubit>(
+              //   //   create: (BuildContext context) => TimeTableCubit(),
+              //   //   child: MaterialApp(
+              //   //     theme: ThemeData(fontFamily: Fonts.sofiaPro),
+              //   //     localizationsDelegates: const <
+              //   //         LocalizationsDelegate<dynamic>>[
+              //   //       S.delegate,
+              //   //       GlobalMaterialLocalizations.delegate,
+              //   //       GlobalWidgetsLocalizations.delegate,
+              //   //       GlobalCupertinoLocalizations.delegate,
+              //   //     ],
+              //   //     supportedLocales: S.delegate.supportedLocales,
+              //   //     debugShowCheckedModeBanner: false,
+              //   //     scrollBehavior: const MaterialScrollBehavior().copyWith(
+              //   //       dragDevices: <PointerDeviceKind>{
+              //   //         PointerDeviceKind.touch,
+              //   //       },
+              //   //     ),
+              //   //     routes: <String, WidgetBuilder>{
+              //   //       '/': (BuildContext context) => TermPlanner(
+              //   //             timetableController: simpleController,
+              //   //             onMonthChanged: (Month month) {
+              //   //               log('month changed$month');
+              //   //               setState(() {
+              //   //                 dateTime = DateTime(month.year, month.month, 15);
+              //   //               });
+              //   //             },
+              //   //           ),
+              //   //     },
+              //   //   ),
+              //   // )
+
+              //   ,
+              //   pixelRatio: 10,
+              // )
+              //     // await screenshotController
+              //     //     .capture(pixelRatio: MediaQuery.of(context).devicePixelRatio)
+              //     .then((Uint8List? value) {
+              //  BlocProvider.of<TimeTableCubit>(context).saveTomImage(value!);
+              // });
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.search,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              simpleController.jumpTo(DateTime.now());
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.calendar_month,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              scaffoldKey.currentState!.openEndDrawer();
+              return;
+            },
+          ),
+        ],
       ),
       endDrawer: SettingDrawer(
         startDate: startDate,
@@ -138,34 +210,35 @@ class _PlannerState extends State<Planner> {
           });
         },
       ),
-      body: SafeArea(
-        child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints value) {
-          isMobile = value.maxWidth < mobileThreshold;
-          return Row(
-            children: <Widget>[
-              isMobile ? const SizedBox.shrink() : const LeftStrip(),
-              Expanded(
-                  child: BlocConsumer<TimeTableCubit, TimeTableState>(
-                      listener: (BuildContext context, TimeTableState state) {
-                if (state is DateUpdated) {
-                  simpleController.changeDate(state.startDate, state.endDate);
-                } else if (state is ViewUpdated) {}
-              }, buildWhen: (TimeTableState previous, TimeTableState current) {
-                if (current is LoadedState) {
-                  return true;
-                } else {
-                  return false;
-                }
-              }, builder: (BuildContext context, TimeTableState state) {
-                if (state is ErrorState) {
-                  return const Center(
-                    child: Icon(Icons.close),
-                  );
-                } else {
-                  return Screenshot<Widget>(
-                    controller: screenshotController,
-                    child: AnimatedSwitcher(
+      body: Screenshot<Widget>(
+        controller: screenshotController,
+        child: SafeArea(
+          child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints value) {
+            isMobile = value.maxWidth < mobileThreshold;
+            return Row(
+              children: <Widget>[
+                isMobile ? const SizedBox.shrink() : const LeftStrip(),
+                Expanded(
+                    child: BlocConsumer<TimeTableCubit, TimeTableState>(
+                        listener: (BuildContext context, TimeTableState state) {
+                  if (state is DateUpdated) {
+                    simpleController.changeDate(state.startDate, state.endDate);
+                  } else if (state is ViewUpdated) {}
+                }, buildWhen:
+                            (TimeTableState previous, TimeTableState current) {
+                  if (current is LoadedState) {
+                    return true;
+                  } else {
+                    return false;
+                  }
+                }, builder: (BuildContext context, TimeTableState state) {
+                  if (state is ErrorState) {
+                    return const Center(
+                      child: Icon(Icons.close),
+                    );
+                  } else {
+                    return AnimatedSwitcher(
                       duration: const Duration(milliseconds: 500),
                       transitionBuilder:
                           (Widget child, Animation<double> animation) =>
@@ -176,12 +249,22 @@ class _PlannerState extends State<Planner> {
                         children: <Widget>[
                           SchedulePlanner(
                             isMobile: isMobile,
+                            onImageCapture: (Uint8List p0) {
+                              log('Schedule View image received from planner');
+                              BlocProvider.of<TimeTableCubit>(context)
+                                  .saveTomImage(p0);
+                            },
                             customPeriods: state is LoadedState
                                 ? state.periods
                                 : customStaticPeriods,
                             timetableController: simpleController,
                           ),
                           DayPlanner(
+                            onImageCapture: (Uint8List p0) {
+                              log('Day view image received from planner');
+                              BlocProvider.of<TimeTableCubit>(context)
+                                  .saveTomImage(p0);
+                            },
                             customPeriods: state is LoadedState
                                 ? state.periods
                                 : customStaticPeriods,
@@ -189,8 +272,9 @@ class _PlannerState extends State<Planner> {
                           ),
                           WeekPlanner(
                             onImageCapture: (Uint8List p0) {
+                              log(' Week view image received from planner');
                               BlocProvider.of<TimeTableCubit>(context)
-                                  .saveToPdf(p0);
+                                  .saveTomImage(p0);
                             },
                             customPeriods: state is LoadedState
                                 ? state.periods
@@ -233,14 +317,14 @@ class _PlannerState extends State<Planner> {
                           ),
                         ],
                       ),
-                    ),
-                  );
-                }
-              })),
-              isMobile ? const SizedBox.shrink() : const RightStrip(),
-            ],
-          );
-        }),
+                    );
+                  }
+                })),
+                isMobile ? const SizedBox.shrink() : const RightStrip(),
+              ],
+            );
+          }),
+        ),
       ));
 }
 

@@ -5,6 +5,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/schedule_view_event_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ class SchedulePlanner extends StatefulWidget {
   const SchedulePlanner({
     required this.timetableController,
     required this.customPeriods,
+    required this.onImageCapture,
     Key? key,
     this.id,
     this.isMobile = true,
@@ -33,6 +35,9 @@ class SchedulePlanner extends StatefulWidget {
   ///timetable controller for the calendar
   final TimetableController timetableController;
 
+  ///function return unit8List when user ask for screenshot
+
+  final Function(Uint8List) onImageCapture;
   @override
   State<SchedulePlanner> createState() => _SchedulePlannerState();
 }
@@ -83,8 +88,15 @@ class _SchedulePlannerState extends State<SchedulePlanner> {
                   : const SizedBox.shrink(),
               Expanded(
                 child: SlScheduleView<EventData>(
+                  backgroundColor: white,
                   timelines: widget.customPeriods,
                   cellHeight: cellHeight,
+                  onImageCapture: (Uint8List data) {
+                    if (BlocProvider.of<TimeTableCubit>(context).viewType ==
+                        CalendarViewType.scheduleView) {
+                      widget.onImageCapture(data);
+                    }
+                  },
                   onEventDragged: (CalendarEvent<EventData> old,
                       CalendarEvent<EventData> newEvent) {
                     BlocProvider.of<TimeTableCubit>(context)

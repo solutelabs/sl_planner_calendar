@@ -7,6 +7,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bl
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/cell_border.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/single_day_event_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +19,7 @@ class DayPlanner extends StatefulWidget {
   const DayPlanner(
       {required this.timetableController,
       required this.customPeriods,
+      required this.onImageCapture,
       Key? key,
       this.id})
       : super(key: key);
@@ -30,6 +32,10 @@ class DayPlanner extends StatefulWidget {
 
   ///timetable controller for the calendar
   final TimetableController timetableController;
+
+  ///function return unit8List when user ask for screenshot
+
+  final Function(Uint8List) onImageCapture;
 
   @override
   State<DayPlanner> createState() => _DayPlannerState();
@@ -82,6 +88,13 @@ class _DayPlannerState extends State<DayPlanner> {
                     : const SizedBox.shrink(),
                 Expanded(
                   child: SlDayView<EventData>(
+                    onImageCapture: (Uint8List data) {
+                      if (BlocProvider.of<TimeTableCubit>(context).viewType ==
+                          CalendarViewType.dayView) {
+                        widget.onImageCapture(data);
+                      }
+                    },
+                    backgroundColor: white,
                     timelines: widget.customPeriods,
                     onEventDragged: (CalendarEvent<EventData> old,
                         CalendarEvent<EventData> newEvent) {

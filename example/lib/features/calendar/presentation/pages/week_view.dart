@@ -9,8 +9,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/wi
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'package:path/path.dart';
+import 'package:intl/intl.dart'; 
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///planner
@@ -84,183 +83,210 @@ class _WeekPlannerState extends State<WeekPlanner> {
               child: Icon(Icons.close),
             );
           } else {
-            return Column(
-              children: <Widget>[
-                state is LoadingState
-                    ? const LinearProgressIndicator()
-                    : const SizedBox.shrink(),
-                Expanded(
-                  child: SlWeekView<EventData>(
-                    onImageCapture: widget.onImageCapture,
-                    fullWeek: true,
-                    timelines: widget.customPeriods,
-                    onEventDragged: (CalendarEvent<EventData> old,
-                        CalendarEvent<EventData> newEvent, Period period) {
-                      BlocProvider.of<TimeTableCubit>(context)
-                          .updateEvent(old, newEvent, period);
-                    },
-                    onWillAccept:
-                        (CalendarEvent<EventData>? event, Period period) =>
-                            true,
-                    nowIndicatorColor: Colors.red,
-                    cornerBuilder: (DateTime current) =>
-                        const SizedBox.shrink(),
-                    items:
-                        state is LoadedState ? state.events : <PlannerEvent>[],
-                    onTap: (DateTime date, Period period,
-                        CalendarEvent<EventData>? event) {
-                      final TimeTableCubit provider =
-                          BlocProvider.of<TimeTableCubit>(context);
-                      provider.nativeCallBack.sendAddEventToNativeApp(
-                          dateTime, provider.viewType, period);
-                    },
-                    headerHeight:
-                        showSameHeader || isMobile ? headerHeight : 40,
-                    headerCellBuilder: (DateTime date) => isMobile
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                DateFormat('E').format(date).toUpperCase(),
-                                style: context.hourLabelMobile,
-                              ),
-                              Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.5),
-                                      color: isSameDate(date)
-                                          ? primaryPink
-                                          : Colors.transparent),
-                                  child: Center(
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: context.headline2Fw500.copyWith(
-                                          fontSize: isMobile ? 16 : 24,
-                                          color: isSameDate(date)
-                                              ? Colors.white
-                                              : null),
-                                    ),
-                                  )),
-                              const SizedBox(
-                                height: 2,
-                              ),
-                            ],
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                DateFormat('E').format(date).toUpperCase(),
-                                style: context.subtitle,
-                              ),
-                              Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.5),
-                                      color: isSameDate(date)
-                                          ? primaryPink
-                                          : Colors.transparent),
-                                  child: Center(
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: context.headline1WithNotoSans
-                                          .copyWith(
-                                              color: isSameDate(date)
-                                                  ? Colors.white
-                                                  : null),
-                                    ),
-                                  )),
-                              const SizedBox(
-                                height: 2,
-                              ),
-                            ],
-                          ),
-                    hourLabelBuilder: (Period period) {
-                      final TimeOfDay start = period.startTime;
-
-                      final TimeOfDay end = period.endTime;
-                      return Container(
-                        child: period.isBreak
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+            return Container(
+              color: white,
+              child: Column(
+                children: <Widget>[
+                  state is LoadingState
+                      ? const LinearProgressIndicator()
+                      : const SizedBox.shrink(),
+                  Expanded(
+                    child: SlWeekView<EventData>(
+                      backgroundColor: white,
+                      onImageCapture: (Uint8List data) {
+                        if (BlocProvider.of<TimeTableCubit>(context).viewType ==
+                            CalendarViewType.weekView) {
+                          widget.onImageCapture(data);
+                        }
+                      },
+                      fullWeek: true,
+                      timelines: widget.customPeriods,
+                      onEventDragged: (CalendarEvent<EventData> old,
+                          CalendarEvent<EventData> newEvent, Period period) {
+                        BlocProvider.of<TimeTableCubit>(context)
+                            .updateEvent(old, newEvent, period);
+                      },
+                      onWillAccept:
+                          (CalendarEvent<EventData>? event, Period period) =>
+                              true,
+                      nowIndicatorColor: Colors.red,
+                      cornerBuilder: (DateTime current) => Container(
+                        color: white,
+                      ),
+                      items: state is LoadedState
+                          ? state.events
+                          : <PlannerEvent>[],
+                      onTap: (DateTime date, Period period,
+                          CalendarEvent<EventData>? event) {
+                        final TimeTableCubit provider =
+                            BlocProvider.of<TimeTableCubit>(context);
+                        provider.nativeCallBack.sendAddEventToNativeApp(
+                            dateTime, provider.viewType, period);
+                      },
+                      headerHeight:
+                          showSameHeader || isMobile ? headerHeight : 40,
+                      headerCellBuilder: (DateTime date) => isMobile
+                          ? Container(
+                              color: white,
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
-                                  Text(period.title ?? '',
-                                      style: isMobile
-                                          ? context.hourLabelMobile
-                                          : context.hourLabelTablet),
-                                ],
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(start.format(context).substring(0, 5),
-                                      style: isMobile
-                                          ? context.hourLabelMobile
-                                          : context.hourLabelTablet),
-                                  const SizedBox(
-                                    height: 8,
+                                  Text(
+                                    DateFormat('E').format(date).toUpperCase(),
+                                    style: context.hourLabelMobile,
                                   ),
-                                  Text(end.format(context).substring(0, 5),
-                                      style: isMobile
-                                          ? context.hourLabelMobile
-                                          : context.hourLabelTablet),
+                                  Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(12.5),
+                                          color: isSameDate(date)
+                                              ? primaryPink
+                                              : Colors.transparent),
+                                      child: Center(
+                                        child: Text(
+                                          date.day.toString(),
+                                          style: context.headline2Fw500
+                                              .copyWith(
+                                                  fontSize: isMobile ? 16 : 24,
+                                                  color: isSameDate(date)
+                                                      ? Colors.white
+                                                      : null),
+                                        ),
+                                      )),
+                                  const SizedBox(
+                                    height: 2,
+                                  ),
                                 ],
                               ),
-                      );
-                    },
-                    isCellDraggable: (CalendarEvent<EventData> event) {
-                      if (event.eventData!.period.isBreak) {
-                        return false;
-                      } else {
-                        return true;
-                      }
-                    },
-                    controller: simpleController,
-                    itemBuilder:
-                        (CalendarEvent<EventData> item, double width) =>
-                            Container(
-                      margin: const EdgeInsets.all(4),
-                      child: Container(
-                          padding: const EdgeInsets.all(6),
-                          height: item.eventData!.period.isBreak
-                              ? simpleController.breakHeight
-                              : simpleController.cellHeight,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                              color: item.eventData!.color),
-                          child: item.eventData!.period.isBreak
-                              ? SizedBox(
-                                  height: simpleController.breakHeight,
-                                  child: Center(
-                                      child: Text(
-                                    item.eventData!.title,
+                            )
+                          :
+
+                          /// Creating a container widget.
+                          Container(
+                              color: white,
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Text(
+                                    DateFormat('E').format(date).toUpperCase(),
                                     style: context.subtitle,
-                                  )),
+                                  ),
+                                  Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(12.5),
+                                          color: isSameDate(date)
+                                              ? primaryPink
+                                              : Colors.transparent),
+                                      child: Center(
+                                        child: Text(
+                                          date.day.toString(),
+                                          style: context.headline1WithNotoSans
+                                              .copyWith(
+                                                  color: isSameDate(date)
+                                                      ? Colors.white
+                                                      : null),
+                                        ),
+                                      )),
+                                  const SizedBox(
+                                    height: 2,
+                                  ),
+                                ],
+                              ),
+                            ),
+                      hourLabelBuilder: (Period period) {
+                        final TimeOfDay start = period.startTime;
+
+                        final TimeOfDay end = period.endTime;
+                        return Container(
+                          color: white,
+                          child: period.isBreak
+                              ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(period.title ?? '',
+                                        style: isMobile
+                                            ? context.hourLabelMobile
+                                            : context.hourLabelTablet),
+                                  ],
                                 )
-                              : EventTile(
-                                  item: item,
-                                  height: item.eventData!.period.isBreak
-                                      ? simpleController.breakHeight
-                                      : simpleController.cellHeight,
-                                  width: width,
-                                )),
-                    ),
-                    cellBuilder: (Period period) => Container(
-                      height: period.isBreak
-                          ? simpleController.breakHeight
-                          : simpleController.cellHeight,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: grey),
-                          color:
-                              period.isBreak ? lightGrey : Colors.transparent),
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(start.format(context).substring(0, 5),
+                                        style: isMobile
+                                            ? context.hourLabelMobile
+                                            : context.hourLabelTablet),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Text(end.format(context).substring(0, 5),
+                                        style: isMobile
+                                            ? context.hourLabelMobile
+                                            : context.hourLabelTablet),
+                                  ],
+                                ),
+                        );
+                      },
+                      isCellDraggable: (CalendarEvent<EventData> event) {
+                        if (event.eventData!.period.isBreak) {
+                          return false;
+                        } else {
+                          return true;
+                        }
+                      },
+                      controller: simpleController,
+                      itemBuilder:
+                          (CalendarEvent<EventData> item, double width) =>
+                              Container(
+                        margin: const EdgeInsets.all(4),
+                        child: Container(
+                            padding: const EdgeInsets.all(6),
+                            height: item.eventData!.period.isBreak
+                                ? simpleController.breakHeight
+                                : simpleController.cellHeight,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: item.eventData!.color),
+                            child: item.eventData!.period.isBreak
+                                ? SizedBox(
+                                    height: simpleController.breakHeight,
+                                    child: Center(
+                                        child: Text(
+                                      item.eventData!.title,
+                                      style: context.subtitle,
+                                    )),
+                                  )
+                                : EventTile(
+                                    item: item,
+                                    height: item.eventData!.period.isBreak
+                                        ? simpleController.breakHeight
+                                        : simpleController.cellHeight,
+                                    width: width,
+                                  )),
+                      ),
+                      cellBuilder: (Period period) => Container(
+                        height: period.isBreak
+                            ? simpleController.breakHeight
+                            : simpleController.cellHeight,
+                        decoration: BoxDecoration(
+                            border: Border.all(color: grey),
+                            color: period.isBreak
+                                ? lightGrey
+                                : Colors.transparent),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           }
         });

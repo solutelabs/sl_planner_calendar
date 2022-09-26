@@ -8,6 +8,7 @@ class HourCell extends StatelessWidget {
   const HourCell(
       {required this.controller,
       required this.period,
+      this.backgroundColor = Colors.transparent,
       Key? key,
       this.hourLabelBuilder})
       : super(key: key);
@@ -21,6 +22,9 @@ class HourCell extends StatelessWidget {
   /// Renders hour label given [TimeOfDay] for each hour
   final Widget Function(Period period)? hourLabelBuilder;
 
+  ///Color background color
+  final Color backgroundColor;
+
   @override
   Widget build(BuildContext context) {
     final TimeOfDay start = TimeOfDay(
@@ -32,7 +36,8 @@ class HourCell extends StatelessWidget {
       hour: period.endTime.hour,
       minute: period.endTime.minute,
     );
-    return SizedBox(
+    return Container(
+        color: backgroundColor,
         height: period.isBreak ? controller.breakHeight : controller.cellHeight,
         child: Center(
             child: hourLabelBuilder != null

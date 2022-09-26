@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/app_log.dart';
 
@@ -10,6 +12,8 @@ class SlScheduleView<T> extends StatefulWidget {
     required this.timelines,
     required this.onWillAccept,
     required this.cellBuilder,
+    required this.onImageCapture,
+    this.backgroundColor = Colors.transparent,
     Key? key,
     this.onEventDragged,
     this.isCellDraggable,
@@ -98,6 +102,13 @@ class SlScheduleView<T> extends StatefulWidget {
 
   ///bool isDraggable
   final bool isDraggable;
+
+  ///function return unit8List when user ask for screenshot
+
+  final Function(Uint8List data) onImageCapture;
+
+  ///background color
+  final Color backgroundColor;
 
   @override
   State<SlScheduleView<T>> createState() => _SlScheduleViewState<T>();
@@ -211,6 +222,20 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
       appLog('max column changed');
       await adjustColumnWidth();
     }
+
+    if (event is TimeTableSave) {
+      isSavingTimeTable = true;
+      setState(() {});
+      await screenshotController
+          .capture(
+              pixelRatio: 10,
+              delay: const Duration(seconds: 1, milliseconds: 400))
+          .then((Uint8List? value) {
+        widget.onImageCapture(value!);
+        isSavingTimeTable = false;
+        setState(() {});
+      });
+    }
     if (mounted) {
       setState(() {});
     }
@@ -263,81 +288,99 @@ class _SlScheduleViewState<T> extends State<SlScheduleView<T>> {
     }
   }
 
+  ScreenshotController screenshotController = ScreenshotController();
+  bool isSavingTimeTable = false;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
       builder: (BuildContext context, BoxConstraints constraints) {
         adjustColumnWidth();
-        return ListView.separated(
-            controller: _dayScrollController,
-            padding: EdgeInsets.zero,
-            itemCount: dateRange.length,
-            separatorBuilder: (BuildContext context, int index) =>
-                const SizedBox(
-                  height: 3,
-                ),
-            itemBuilder: (BuildContext context, int index) {
-              final DateTime date = dateRange[index];
-              final List<CalendarEvent<T>> events = widget.items
-                  .where((CalendarEvent<T> event) =>
-                      DateUtils.isSameDay(date, event.startTime))
-                  .toList();
-              return ListTile(
-                onTap: () {
-                  if (widget.onTap != null) {
-                    widget.onTap!(date, events);
-                  }
-                },
-                leading: widget.headerCellBuilder!(date),
-                title: events.isEmpty
-                    ? DragTarget<CalendarEvent<T>>(
-                        onWillAccept: (CalendarEvent<T>? data) =>
-                            widget.onWillAccept(data),
-                        onAcceptWithDetails:
-                            (DragTargetDetails<CalendarEvent<T>> details) {
-                          final CalendarEvent<T> event = details.data;
-                          final DateTime newStartTime = DateTime(
-                              date.year,
-                              date.month,
-                              date.day,
-                              event.startTime.hour,
-                              event.startTime.minute);
-                          final DateTime newEndTime = DateTime(
-                              date.year,
-                              date.month,
-                              date.day,
-                              event.endTime.hour,
-                              event.endTime.minute);
+        return SingleChildScrollView(
+          primary: isSavingTimeTable,
+          child: Screenshot<Widget>(
+            controller: screenshotController,
+            child: Container(
+              color: widget.backgroundColor,
+              child: ListView.separated(
+                  controller: _dayScrollController,
+                  padding: EdgeInsets.zero,
+                  physics: isSavingTimeTable
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
+                  itemCount: dateRange.length,
+                  shrinkWrap: true,
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const SizedBox(
+                        height: 3,
+                      ),
+                  itemBuilder: (BuildContext context, int index) {
+                    final DateTime date = dateRange[index];
+                    final List<CalendarEvent<T>> events = widget.items
+                        .where((CalendarEvent<T> event) =>
+                            DateUtils.isSameDay(date, event.startTime))
+                        .toList();
+                    return ListTile(
+                      onTap: () {
+                        if (widget.onTap != null) {
+                          widget.onTap!(date, events);
+                        }
+                      },
+                      leading: widget.headerCellBuilder!(date),
+                      title: events.isEmpty
+                          ? DragTarget<CalendarEvent<T>>(
+                              onWillAccept: (CalendarEvent<T>? data) =>
+                                  widget.onWillAccept(data),
+                              onAcceptWithDetails:
+                                  (DragTargetDetails<CalendarEvent<T>>
+                                      details) {
+                                final CalendarEvent<T> event = details.data;
+                                final DateTime newStartTime = DateTime(
+                                    date.year,
+                                    date.month,
+                                    date.day,
+                                    event.startTime.hour,
+                                    event.startTime.minute);
+                                final DateTime newEndTime = DateTime(
+                                    date.year,
+                                    date.month,
+                                    date.day,
+                                    event.endTime.hour,
+                                    event.endTime.minute);
 
-                          final CalendarEvent<T> newEvent = CalendarEvent<T>(
-                              startTime: newStartTime,
-                              endTime: newEndTime,
-                              eventData: event.eventData);
+                                final CalendarEvent<T> newEvent =
+                                    CalendarEvent<T>(
+                                        startTime: newStartTime,
+                                        endTime: newEndTime,
+                                        eventData: event.eventData);
 
-                          widget.onEventDragged!(details.data, newEvent);
-                        },
-                        builder: (BuildContext content, List<Object?> obj,
-                                List<dynamic> data) =>
-                            widget.cellBuilder(date))
-                    : Column(
-                        children: events
-                            .map((CalendarEvent<T> e) =>
-                                Draggable<CalendarEvent<T>>(
-                                    ignoringFeedbackSemantics: false,
-                                    data: e,
-                                    maxSimultaneousDrags:
-                                        widget.isCellDraggable == null
-                                            ? 1
-                                            : widget.isCellDraggable!(e)
-                                                ? 1
-                                                : 0,
-                                    childWhenDragging: widget.cellBuilder(date),
-                                    feedback:
-                                        Material(child: widget.itemBuilder!(e)),
-                                    child: widget.itemBuilder!(e)))
-                            .toList()),
-              );
-            });
+                                widget.onEventDragged!(details.data, newEvent);
+                              },
+                              builder: (BuildContext content, List<Object?> obj,
+                                      List<dynamic> data) =>
+                                  widget.cellBuilder(date))
+                          : Column(
+                              children: events
+                                  .map((CalendarEvent<T> e) =>
+                                      Draggable<CalendarEvent<T>>(
+                                          ignoringFeedbackSemantics: false,
+                                          data: e,
+                                          maxSimultaneousDrags:
+                                              widget.isCellDraggable == null
+                                                  ? 1
+                                                  : widget.isCellDraggable!(e)
+                                                      ? 1
+                                                      : 0,
+                                          childWhenDragging:
+                                              widget.cellBuilder(date),
+                                          feedback: Material(
+                                              child: widget.itemBuilder!(e)),
+                                          child: widget.itemBuilder!(e)))
+                                  .toList()),
+                    );
+                  }),
+            ),
+          ),
+        );
       });
 
   // bool _isSnapping = false;

@@ -141,9 +141,11 @@ class ResizableCellState extends State<ResizableCell> {
       width = newWidth > 0 ? newWidth : 0;
     });
   }
-
+///initial height of rhe cell
   double initialHeight = 0;
+  ///initial width of the cell
   double initialWidth = 0;
+  ///initial top of the the cell
   double initialTop = 0;
   @override
   void initState() {

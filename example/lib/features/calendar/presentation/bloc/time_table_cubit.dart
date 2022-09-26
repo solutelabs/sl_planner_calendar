@@ -14,7 +14,6 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bl
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///timetable cubit
@@ -214,26 +213,37 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   ///void save image as psd
 
   Future<void> saveToPdf(Uint8List image) async {
-    final pw.Document pdf = pw.Document()
-      ..addPage(pw.Page(
-          build: (pw.Context context) =>
-              pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
+    // final pw.Document pdf = pw.Document()
+    //   ..addPage(pw.Page(
+    //       build: (pw.Context context) =>
+    //           pw.Image(pw.RawImage(bytes: image, width: 100, height: 100))));
 
     final Directory? path = await getDownloadsDirectory();
     try {
       // await FileSaver.instance
       //     .saveFile("example", image, "pdf", mimeType: MimeType.PDF);
-      final File file = File('${path!.path}/example.pdf');
-      await file.writeAsBytes(await pdf.save());
+      final File file = File('${path!.path}/example.png');
+      await file.writeAsBytes(image);
     } on FileSystemException catch (e) {
       debugPrint(e.message);
     }
   }
 
-// Future<void> saveTomImage(Uint8List image)
-// {
+  ///save time table as image
+  Future<void> saveTomImage(Uint8List image) async {
+    final Directory? path = Platform.isAndroid
+        ? await getExternalStorageDirectory() //FOR ANDROID
+        : Platform.isIOS
+            ? await getApplicationSupportDirectory()
+            : await getDownloadsDirectory(); //FOR iOS
 
-// }
+    final File file =
+        File('${path!.path}/${viewType.name}-${DateTime.now()}.png');
+    await file.writeAsBytes(image);
+    log('image Path:${file.path}');
+    return;
+  }
+
   ///chang calendar view
   void changeViewType(CalendarViewType viewType) {
     this.viewType = viewType;

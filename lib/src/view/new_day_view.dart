@@ -385,9 +385,10 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
                                                     (DragTargetDetails<
                                                             CalendarEvent<T>>
                                                         details) {
-                                                  appLog(
-                                                      'New period:${period.toMap}');
-                                                  appLog('Dragged event'
+                                                  appLog('New period:'
+                                                      '${period.toMap}');
+                                                  appLog('Dragged '
+                                                      'event'
                                                       '${details.data.toMap}');
                                                   final CalendarEvent<T> event =
                                                       details.data;
@@ -423,8 +424,8 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
                                                 onWillAccept:
                                                     (CalendarEvent<T>? data,
                                                         Period period) {
-                                                  appLog(
-                                                      'Dragged event${data!.toMap}');
+                                                  appLog('Dragged event'
+                                                      '${data!.toMap}');
                                                   return widget.onWillAccept(
                                                       data, date, period);
                                                 })
@@ -506,8 +507,8 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
                                                       final CalendarEvent<T>
                                                           myEvents =
                                                           details.data;
-                                                      final DateTime
-                                                          newStartTime = DateTime(
+                                                      final DateTime newTime =
+                                                          DateTime(
                                                               date.year,
                                                               date.month,
                                                               date.day,
@@ -525,8 +526,7 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
                                                               event.endTime
                                                                   .minute);
                                                       myEvents
-                                                        ..startTime =
-                                                            newStartTime
+                                                        ..startTime = newTime
                                                         ..endTime = newEndTime;
                                                       widget.onEventDragged!(
                                                           details.data,

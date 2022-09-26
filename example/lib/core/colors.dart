@@ -83,6 +83,10 @@ const Color textGrey = Color(0xFFBDBDBD);
 /// the hex code of 0xFFED5833.
 const Color timeIndicatorColor = Color(0xFFED5833);
 
+/// Creating a constant variable called white and assigning it the value of \the color white.
+
+const Color white = Colors.white;
+
 ///default color list
 
 List<Color> myColors = <Color>[
