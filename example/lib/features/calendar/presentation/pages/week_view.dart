@@ -9,7 +9,7 @@ import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/wi
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///planner

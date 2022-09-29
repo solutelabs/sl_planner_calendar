@@ -204,3 +204,41 @@ class DeletedEvents implements LoadedState {
   @override
   bool? get stringify => false;
 }
+
+///ChangeToCurrentDate event state
+class ChangeToCurrentDate implements LoadedState {
+  ///initialize ChangeToCurrentDate
+  ChangeToCurrentDate(
+      this.periods, this.events, this.viewType, this.deletedEvents,
+      {this.isDateChanged = false, this.isViewChanged = false});
+
+  @override
+  final List<PlannerEvent> events;
+
+  ///deleted events
+  final List<PlannerEvent> deletedEvents;
+  @override
+  final CalendarViewType viewType;
+
+  ///list of the period
+  @override
+  final List<Period> periods;
+
+  ///bool isDateChanged
+  final bool isDateChanged;
+
+  /// isViewChanged true when view changed because eof term view
+  final bool isViewChanged;
+  @override
+  List<Object> get props => <Object>[
+        periods,
+        events,
+        viewType,
+        deletedEvents,
+        isDateChanged,
+        isViewChanged
+      ];
+
+  @override
+  bool? get stringify => false;
+}

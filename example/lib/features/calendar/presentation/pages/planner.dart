@@ -96,14 +96,16 @@ class _PlannerState extends State<Planner> {
             color: Colors.black,
           ),
           onPressed: () {
-            showDialog<Widget>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                      title: const Text('Your id is'),
-                      content: Text(
-                          BlocProvider.of<TimeTableCubit>(context).id ??
-                              'No  id received'),
-                    ));
+            BlocProvider.of<TimeTableCubit>(context).jumpToCurrentDate();
+            return;
+            // showDialog<Widget>(
+            //     context: context,
+            //     builder: (BuildContext context) => AlertDialog(
+            //           title: const Text('Your id is'),
+            //           content: Text(
+            //               BlocProvider.of<TimeTableCubit>(context).id ??
+            //                   'No  id received'),
+            //         ));
           },
         ),
         actions: <Widget>[
@@ -116,65 +118,9 @@ class _PlannerState extends State<Planner> {
               final TimeTableCubit cubit =
                   BlocProvider.of<TimeTableCubit>(context);
 
-              Preview.exportWeekView(DateTime(2022, 9, 19),
-                  DateTime(2022, 9, 26), cubit.periods, cubit.events, context);
-              // PdfService.generateLessonPlanPdf();
-              // saveImage();
-              // simpleController.saveToImage(10);
-
-              // await ScreenshotController()
-              //     .captureFromWidget(
-              //   MaterialApp(
-              //     home: SizedBox(
-              //       height: 1000 * 15,
-              //       child: ListView.builder(
-              //           shrinkWrap: true,
-              //           itemCount: 1000,
-              //           itemBuilder: (context, index) {
-              //             return Material(child: Text("Count $index"));
-              //           }),
-              //     ),
-              //   )
-              //   //       BlocProvider<TimeTableCubit>(
-              //   //   create: (BuildContext context) => TimeTableCubit(),
-              //   //   child: MaterialApp(
-              //   //     theme: ThemeData(fontFamily: Fonts.sofiaPro),
-              //   //     localizationsDelegates: const <
-              //   //         LocalizationsDelegate<dynamic>>[
-              //   //       S.delegate,
-              //   //       GlobalMaterialLocalizations.delegate,
-              //   //       GlobalWidgetsLocalizations.delegate,
-              //   //       GlobalCupertinoLocalizations.delegate,
-              //   //     ],
-              //   //     supportedLocales: S.delegate.supportedLocales,
-              //   //     debugShowCheckedModeBanner: false,
-              //   //     scrollBehavior: const MaterialScrollBehavior().copyWith(
-              //   //       dragDevices: <PointerDeviceKind>{
-              //   //         PointerDeviceKind.touch,
-              //   //       },
-              //   //     ),
-              //   //     routes: <String, WidgetBuilder>{
-              //   //       '/': (BuildContext context) => TermPlanner(
-              //   //             timetableController: simpleController,
-              //   //             onMonthChanged: (Month month) {
-              //   //               log('month changed$month');
-              //   //               setState(() {
-              //   //                 dateTime = DateTime(month.year, month.month, 15);
-              //   //               });
-              //   //             },
-              //   //           ),
-              //   //     },
-              //   //   ),
-              //   // )
-
-              //   ,
-              //   pixelRatio: 10,
-              // )
-              //     // await screenshotController
-              //     //     .capture(pixelRatio: MediaQuery.of(context).devicePixelRatio)
-              //     .then((Uint8List? value) {
-              //  BlocProvider.of<TimeTableCubit>(context).saveTomImage(value!);
-              // });
+              await Preview.exportWeekView(DateTime(2022, 9),
+                  DateTime(2022, 10, 3), cubit.periods, cubit.events, context,
+                  saveImage: false);
             },
           ),
           IconButton(
@@ -224,7 +170,18 @@ class _PlannerState extends State<Planner> {
                         listener: (BuildContext context, TimeTableState state) {
                   if (state is DateUpdated) {
                     simpleController.changeDate(state.startDate, state.endDate);
-                  } else if (state is ViewUpdated) {}
+                  } else if (state is ViewUpdated) {
+                  } else if (state is ChangeToCurrentDate) {
+                    if (state.isDateChanged) {
+                      final TimeTableCubit cubit =
+                          BlocProvider.of<TimeTableCubit>(context);
+                      simpleController.changeDate(
+                          cubit.startDate, cubit.endDate);
+                    } else if (state.isViewChanged) {
+                      simpleController.changeView(state.viewType);
+                    }
+                    simpleController.jumpTo(DateTime.now());
+                  }
                 }, buildWhen:
                             (TimeTableState previous, TimeTableState current) {
                   if (current is LoadedState) {

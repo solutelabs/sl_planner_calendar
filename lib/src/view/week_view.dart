@@ -158,7 +158,7 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
     appLog('Setting dates');
     final int diff = controller.end.difference(controller.start).inDays;
     dateRange.clear();
-    for (int i = 0; i < diff; i++) {
+    for (int i = 0; i <= diff; i++) {
       final DateTime date = controller.start.add(Duration(days: i));
       if (widget.fullWeek) {
         dateRange.add(date);
@@ -287,8 +287,10 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
       return;
     }
     if (box.hasSize) {
-      Size size = box.size;
-      size = widget.size ?? size;
+      log('box resize');
+      final Size size = widget.size ?? box.size;
+      // size = widget.size ?? size;
+
       final double layoutWidth = size.width;
       final double width = layoutWidth < 550
           ? ((layoutWidth - controller.timelineWidth) / controller.columns)
@@ -311,7 +313,7 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
       builder: (BuildContext context) {
         adjustColumnWidth();
         final Size size = widget.size ?? MediaQuery.of(context).size;
-        log('width $size');
+        log('render box size $size');
 
         return Screenshot<Widget>(
           controller: screenshotController,

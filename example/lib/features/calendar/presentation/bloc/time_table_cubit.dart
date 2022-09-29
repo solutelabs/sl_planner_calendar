@@ -230,15 +230,15 @@ class TimeTableCubit extends Cubit<TimeTableState> {
   }
 
   ///save time table as image
-  Future<void> saveTomImage(Uint8List image) async {
+  Future<void> saveTomImage(Uint8List image, {String? filename}) async {
     final Directory? path = Platform.isAndroid
         ? await getExternalStorageDirectory() //FOR ANDROID
         : Platform.isIOS
             ? await getApplicationSupportDirectory()
             : await getDownloadsDirectory(); //FOR iOS
-
-    final File file =
-        File('${path!.path}/${viewType.name}-${DateTime.now()}.png');
+    final String fileName =
+        '${path!.path}/${viewType.name}-${filename ?? DateTime.now().toString()}';
+    final File file = File('$fileName.png');
     await file.writeAsBytes(image);
     log('image Path:${file.path}');
     return;
@@ -249,5 +249,26 @@ class TimeTableCubit extends Cubit<TimeTableState> {
     this.viewType = viewType;
     nativeCallBack.sendViewChangedToNativeApp(viewType);
     emit(ViewUpdated(events, viewType, periods));
+  }
+
+  ///this function changed
+  void jumpToCurrentDate() {
+    final DateTime now = DateTime.now();
+
+    if (startDate.isBefore(now) && endDate.isAfter(now)) {
+      emit(ChangeToCurrentDate(periods, events, viewType, <PlannerEvent>[]));
+    }
+    {
+      startDate = DateTime(now.year, now.month);
+      endDate =
+          DateTime(now.year, now.month + 1).subtract(const Duration(days: 2));
+      bool isViewChanged = false;
+      if (viewType == CalendarViewType.termView) {
+        viewType = CalendarViewType.weekView;
+        isViewChanged = true;
+      }
+      emit(ChangeToCurrentDate(periods, events, viewType, <PlannerEvent>[],
+          isDateChanged: true, isViewChanged: isViewChanged));
+    }
   }
 }

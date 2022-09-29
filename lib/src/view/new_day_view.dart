@@ -284,6 +284,8 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
   Map<Key, double> eventMargin = <Key, double>{};
 
   ValueNotifier<bool> notifier = ValueNotifier<bool>(false);
+  bool isDragEnable(CalendarEvent<T> event) =>
+      widget.isCellDraggable == null || widget.isCellDraggable!(event);
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -494,11 +496,8 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
                                                   minVertical: minVertical,
                                                   child: TimeTableEvent<T>(
                                                     initialHeight: height,
-                                                    isDraggable: widget
-                                                                .isCellDraggable ==
-                                                            null ||
-                                                        widget.isCellDraggable!(
-                                                            event),
+                                                    isDraggable:
+                                                        isDragEnable(event),
                                                     onAcceptWithDetails:
                                                         (DragTargetDetails<
                                                                 CalendarEvent<
@@ -559,11 +558,8 @@ class _NewSlDayViewState<T> extends State<NewSlDayView<T>> {
                                                         controller.breakHeight,
                                                         event.endTime),
                                                 child: TimeTableEvent<T>(
-                                                  isDraggable: widget
-                                                              .isCellDraggable ==
-                                                          null ||
-                                                      widget.isCellDraggable!(
-                                                          event),
+                                                  isDraggable:
+                                                      isDragEnable(event),
                                                   onAcceptWithDetails:
                                                       (DragTargetDetails<
                                                               CalendarEvent<T>>

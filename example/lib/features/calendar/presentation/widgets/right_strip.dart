@@ -24,8 +24,10 @@ class RightStrip extends StatelessWidget {
         width: width,
         child: BlocBuilder<TimeTableCubit, TimeTableState>(
           builder: (BuildContext context, TimeTableState state) {
-            final CalendarViewType viewType =
-                BlocProvider.of<TimeTableCubit>(context).viewType;
+            final TimeTableCubit cubit =
+                BlocProvider.of<TimeTableCubit>(context);
+            final DateTime startDate = cubit.startDate;
+            final CalendarViewType viewType = cubit.viewType;
             return Column(
               children: <Widget>[
                 Expanded(
@@ -64,6 +66,8 @@ class RightStrip extends StatelessWidget {
                 Expanded(
                     child: RightSideButton(
                   title: S.of(context).term1,
+                  selected: viewType == CalendarViewType.termView &&
+                      startDate.month == 1,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)
@@ -80,6 +84,8 @@ class RightStrip extends StatelessWidget {
                 )),
                 Expanded(
                     child: RightSideButton(
+                  selected: viewType == CalendarViewType.termView &&
+                      startDate.month == 4,
                   title: S.of(context).term2,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
@@ -98,6 +104,8 @@ class RightStrip extends StatelessWidget {
                 Expanded(
                     child: RightSideButton(
                   title: S.of(context).term3,
+                  selected: viewType == CalendarViewType.termView &&
+                      startDate.month == 7,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)
@@ -115,6 +123,8 @@ class RightStrip extends StatelessWidget {
                 Expanded(
                     child: RightSideButton(
                   title: S.of(context).term4,
+                  selected: viewType == CalendarViewType.termView &&
+                      startDate.month == 10,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)

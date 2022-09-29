@@ -40,9 +40,12 @@ dependencies:
     sdk: flutter
   sl_planner_calendar:
     path: /Users/Jemis/Desktop/plugins/sl_planner_calendar
-  screenshot: ^1.2.3
+  # screenshot: ^1.2.3
   path: ^1.8.2
   path_provider: ^2.0.11
+  screenshot:
+    git:
+      url: https://github.com/SachinGanesh/screenshot
 
 dev_dependencies:
   flutter_test:

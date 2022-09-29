@@ -26,6 +26,9 @@ class ReceiveMethods {
 
   ///deleteEvent called from native app
   static const String deleteEvent = 'deleteEvent';
+
+  ///jumpToCurrentDate
+  static const String jumpToCurrentDate = 'jumpToCurrentDate';
 }
 
 ///class which contain static method name which used to send data to native app
