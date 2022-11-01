@@ -53,12 +53,13 @@ class Preview {
       final Iterable<CalendarDay> myDateRange = dates.skip(skip).take(7);
       final DateTime first = myDateRange.first.dateTime;
       final DateTime last = myDateRange.last.dateTime;
-      final TimetableController simpleController = TimetableController(
-          start: first,
-          end: last,
-          timelineWidth: timeLineWidth,
-          breakHeight: bw,
-          cellHeight: ch);
+      final TimetableController<EventData> simpleController =
+          TimetableController<EventData>(
+              start: first,
+              end: last,
+              timelineWidth: timeLineWidth,
+              breakHeight: bw,
+              cellHeight: ch);
 
       log('startDate: $first and endDate: $last');
       await ScreenshotController()
@@ -76,12 +77,11 @@ class Preview {
                         size: size,
                         columnWidth: 130,
                         showNowIndicator: false,
-                        onImageCapture: (Uint8List data) {},
                         fullWeek: true,
                         timelines: timelines,
                         onEventDragged: (CalendarEvent<EventData> old,
                             CalendarEvent<EventData> newEvent,
-                            Period period) {},
+                            Period? period) {},
                         onWillAccept:
                             (CalendarEvent<EventData>? event, Period period) =>
                                 true,
@@ -89,7 +89,6 @@ class Preview {
                         cornerBuilder: (DateTime current) => Container(
                           color: white,
                         ),
-                        items: event,
                         onTap: (DateTime date, Period period,
                             CalendarEvent<EventData>? event) {},
                         headerHeight: 40,
@@ -133,7 +132,7 @@ class Preview {
                           final TimeOfDay end = period.endTime;
                           return Container(
                             color: white,
-                            child: period.isBreak
+                            child: period.isCustomeSlot
                                 ? Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: <Widget>[
@@ -156,13 +155,8 @@ class Preview {
                                   ),
                           );
                         },
-                        isCellDraggable: (CalendarEvent<EventData> event) {
-                          if (event.eventData!.period.isBreak) {
-                            return false;
-                          } else {
-                            return true;
-                          }
-                        },
+                        isCellDraggable: (CalendarEvent<EventData> event) =>
+                            event.eventData!.isDraggable,
                         controller: simpleController,
                         itemBuilder:
                             (CalendarEvent<EventData> item, double width) =>
@@ -170,13 +164,13 @@ class Preview {
                           margin: const EdgeInsets.all(4),
                           child: Container(
                               padding: const EdgeInsets.all(6),
-                              height: item.eventData!.period.isBreak
+                              height: item.eventData!.isDuty
                                   ? simpleController.breakHeight
                                   : simpleController.cellHeight,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(6),
                                   color: item.eventData!.color),
-                              child: item.eventData!.period.isBreak
+                              child: item.eventData!.isDuty
                                   ? SizedBox(
                                       height: simpleController.breakHeight,
                                       child: Center(
@@ -187,19 +181,20 @@ class Preview {
                                     )
                                   : EventTile(
                                       item: item,
-                                      height: item.eventData!.period.isBreak
+                                      height: item.eventData!.isDuty
                                           ? simpleController.breakHeight
                                           : simpleController.cellHeight,
                                       width: width,
                                     )),
                         ),
-                        cellBuilder: (Period period) => Container(
-                          height: period.isBreak
+                        cellBuilder: (Period period, DateTime dateTime) =>
+                            Container(
+                          height: period.isCustomeSlot
                               ? simpleController.breakHeight
                               : simpleController.cellHeight,
                           decoration: BoxDecoration(
                               border: Border.all(color: grey),
-                              color: period.isBreak
+                              color: period.isCustomeSlot
                                   ? lightGrey
                                   : Colors.transparent),
                         ),

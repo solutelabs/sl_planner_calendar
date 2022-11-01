@@ -6,6 +6,9 @@ class ReceiveMethods {
   ///data from native app to flutter
   static const String sendToFlutter = 'sendToFlutter';
 
+  ///method using to show loading indcator from the ui
+  static const String setLoading = 'setLoading';
+
   ///date from native app to flutter
   static const String setDates = 'setDates';
 
@@ -14,6 +17,10 @@ class ReceiveMethods {
 
   ///setPeriods called from native aoo
   static const String setPeriods = 'setPeriods';
+
+  ///setTerms called when we recived custom term from the native app fro the
+  ///term view
+  static const String setTerms = 'setTerms';
 
   ///set events called from native ios
   static const String setEvents = 'setEvents';
@@ -25,10 +32,34 @@ class ReceiveMethods {
   static const String updateEvent = 'updateEvent';
 
   ///deleteEvent called from native app
-  static const String deleteEvent = 'deleteEvent';
+  static const String removeEvent = 'removeEvent';
 
   ///jumpToCurrentDate
   static const String jumpToCurrentDate = 'jumpToCurrentDate';
+
+  ///nextday
+  static const String nextDay = 'nextDay';
+
+  ///prvious day
+  static const String previousDay = 'previousDay';
+
+  ///next month
+  static const String nextMonth = 'nextMonth';
+
+  ///previous month
+  static const String previousMonth = 'previousMonth';
+
+  ///next term
+  static const String nextTerm = 'nextTerm';
+
+  ///previous term
+  static const String previousTerm = 'previousTerm';
+
+  ///next week
+  static const String nextWeek = 'nextWeek';
+
+  ///previous week
+  static const String previousWeek = 'previousWeek';
 }
 
 ///class which contain static method name which used to send data to native app
@@ -44,6 +75,10 @@ class SendMethods {
   /// showEvent method called when user tan on cell which have events
 
   static const String showEvent = 'showEvent';
+
+  /// showEvent method called when user tan on cell which have events
+
+  static const String visibleDateChanged = 'visibleDateChanged';
 
   ///dateChanged method called when user ch tap on the side strips
 
@@ -61,4 +96,8 @@ class SendMethods {
   /// the right side strip on tablet view
 
   static const String showRecord = 'showRecord';
+
+  ///this is newaly generated method for fetching data termwise
+  ///specificaly used for edgar planner project
+  static const String fetchData = 'fetchData';
 }

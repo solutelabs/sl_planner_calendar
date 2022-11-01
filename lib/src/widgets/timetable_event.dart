@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
+import 'package:sl_planner_calendar/src/core/app_log.dart';
 import 'package:sl_planner_calendar/src/core/colors.dart';
 import 'package:sl_planner_calendar/src/core/text_styles.dart';
 
@@ -75,29 +76,40 @@ class _TimeTableEventState<T> extends State<TimeTableEvent<T>> {
   bool isSlotAvailable = false;
 
   @override
-  Widget build(BuildContext context) => Draggable<CalendarEvent<T>>(
-        // Data is the value this Draggable
-        // stores.
-        data: widget.event,
-        maxSimultaneousDrags: widget.isDraggable ? 1 : 0,
-        ignoringFeedbackSemantics: false,
-
-        feedback: Container(
-            width: widget.columnWidth,
-            height: widget.initialHeight,
-            child: BuildEvent<T>(
-                event: widget.event,
-                columnWidth: widget.columnWidth,
-                itemBuilder: widget.itemBuilder)),
-        childWhenDragging: Container(
-            decoration: BoxDecoration(
-                color: transparent,
-                border: Border.all(width: 2, color: transparent),
-                borderRadius: BorderRadius.circular(6))),
-        child: BuildEvent<T>(
-            event: widget.event,
-            columnWidth: widget.columnWidth,
-            itemBuilder: widget.itemBuilder),
+  Widget build(BuildContext context) => DragTarget<CalendarEvent<T>>(
+        builder: (
+          BuildContext context,
+          List<dynamic> accepted,
+          List<dynamic> rejected,
+        ) =>
+            Draggable<CalendarEvent<T>>(
+          data: widget.event,
+          maxSimultaneousDrags: widget.isDraggable ? 1 : 0,
+          ignoringFeedbackSemantics: false,
+          feedback: SizedBox(
+              width: widget.columnWidth,
+              height: widget.initialHeight,
+              child: BuildEvent<T>(
+                  event: widget.event,
+                  columnWidth: widget.columnWidth,
+                  itemBuilder: widget.itemBuilder)),
+          childWhenDragging: Container(
+              decoration: BoxDecoration(
+                  color: transparent,
+                  border: Border.all(width: 2, color: transparent),
+                  borderRadius: BorderRadius.circular(6))),
+          child: BuildEvent<T>(
+              event: widget.event,
+              columnWidth: widget.columnWidth,
+              itemBuilder: widget.itemBuilder),
+        ),
+        onAcceptWithDetails: widget.onAcceptWithDetails,
+        onWillAccept: (CalendarEvent<T>? data) => true,
+        onAccept: (CalendarEvent<T> data) {
+          appLog(data.toMap.toString());
+        },
+        onLeave: (CalendarEvent<T>? value) {},
+        onMove: (DragTargetDetails<CalendarEvent<T>> value) {},
       );
 
 // DragTarget<CalendarEvent<T>>(

@@ -19,6 +19,7 @@ dependencies:
   screenshot:
     git:
       url: https://github.com/SachinGanesh/screenshot
+  scrollable_positioned_list: ^0.3.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

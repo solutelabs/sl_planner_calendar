@@ -1,13 +1,13 @@
+import 'dart:async';
 import 'dart:developer';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:screenshot/screenshot.dart';
+import 'package:sl_planner_calendar/src/core/constants.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/widgets/cell.dart';
 import 'package:sl_planner_calendar/src/widgets/corner_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/header_cell.dart';
 import 'package:sl_planner_calendar/src/widgets/hour_cell.dart';
+import 'package:sl_planner_calendar/src/widgets/linked_group_controller.dart';
 import 'package:sl_planner_calendar/src/widgets/time_indicator.dart';
 import 'package:sl_planner_calendar/src/widgets/timetable_event.dart';
 
@@ -20,40 +20,38 @@ class SlWeekView<T> extends StatefulWidget {
   const SlWeekView({
     required this.timelines,
     required this.onWillAccept,
-    required this.onImageCapture,
+    this.onDateChanged,
     this.columnWidth,
     this.size,
     this.backgroundColor = Colors.transparent,
     Key? key,
     this.onEventDragged,
+    this.onEventToEventDragged,
     this.controller,
     this.cellBuilder,
     this.headerCellBuilder,
     this.isCellDraggable,
-    this.items = const <CalendarEvent<Never>>[],
     this.itemBuilder,
     this.fullWeek = false,
     this.headerHeight = 45,
     this.hourLabelBuilder,
     this.nowIndicatorColor,
     this.showNowIndicator = true,
+    this.showActiveDateIndicator = true,
     this.cornerBuilder,
     this.snapToDay = true,
     this.onTap,
   }) : super(key: key);
 
   /// [TimetableController] is the controller that also initialize the timetable
-  final TimetableController? controller;
+  final TimetableController<T>? controller;
 
   /// Renders for the cells the represent each hour that provides
   /// that [DateTime] for that hour
-  final Widget Function(Period)? cellBuilder;
+  final Widget Function(Period, DateTime dateTime)? cellBuilder;
 
   /// Renders for the header that provides the [DateTime] for the day
   final Widget Function(DateTime)? headerCellBuilder;
-
-  /// Timetable items to display in the timetable
-  final List<CalendarEvent<T>> items;
 
   /// Renders event card from `TimetableItem<T>` for each item
   final Widget Function(CalendarEvent<T>, double width)? itemBuilder;
@@ -70,6 +68,9 @@ class SlWeekView<T> extends StatefulWidget {
   ///show now indicator,default is true
   final bool showNowIndicator;
 
+  ///show active/current date indicator
+  final bool showActiveDateIndicator;
+
   /// Color of indicator line that shows the current time.
 
   ///  Default is `Theme.indicatorColor`.
@@ -82,9 +83,6 @@ class SlWeekView<T> extends StatefulWidget {
   /// height  of the header
   final double headerHeight;
 
-  ///onTap
-  final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
-
   /// The [SlWeekView] widget displays calendar like view
   /// of the events that scrolls
 
@@ -94,11 +92,19 @@ class SlWeekView<T> extends StatefulWidget {
   ///double column width
   final double? columnWidth;
 
+  ///onTap
+  final Function(DateTime dateTime, Period, CalendarEvent<T>?)? onTap;
+
   ///return new and okd event
 
   final Function(
-          CalendarEvent<T> old, CalendarEvent<T> newEvent, Period period)?
+          CalendarEvent<T> old, CalendarEvent<T> newEvent, Period? period)?
       onEventDragged;
+
+  ///return existing ,old and new event when used drag and drop
+  ///the event on the existing event
+  final Function(CalendarEvent<T> existing, CalendarEvent<T> old,
+      CalendarEvent<T> newEvent, Period? periodModel)? onEventToEventDragged;
 
   /// Called to determine whether this widget is interested in receiving a given
   /// piece of data being dragged over this drag target.
@@ -111,9 +117,9 @@ class SlWeekView<T> extends StatefulWidget {
   ///function will handle if event is draggable
   final bool Function(CalendarEvent<T> event)? isCellDraggable;
 
-  ///function return unit8List when user ask for screenshot
+  ///provide callabck when date changed
 
-  final Function(Uint8List data) onImageCapture;
+  final Function(DateTime dateTime)? onDateChanged;
 
   ///background color
   final Color backgroundColor;
@@ -125,11 +131,14 @@ class SlWeekView<T> extends StatefulWidget {
 }
 
 class _SlWeekViewState<T> extends State<SlWeekView<T>> {
-  final ScrollController _dayScrollController = ScrollController();
-  final ScrollController _dayHeadingScrollController = ScrollController();
-  final ScrollController _timeScrollController = ScrollController();
+  final ScrollController timeScrollController = ScrollController();
   double columnWidth = 50;
-  TimetableController controller = TimetableController();
+  TimetableController<T> controller = TimetableController<T>();
+
+  LinkedScrollControllerGroup groupController = LinkedScrollControllerGroup();
+
+  ScrollController headerController = ScrollController();
+  ScrollController dayScrolController = ScrollController();
   final GlobalKey<State<StatefulWidget>> _key = GlobalKey();
 
   Color get nowIndicatorColor =>
@@ -138,16 +147,66 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
 
   List<DateTime> dateRange = <DateTime>[];
 
+  /// Timetable items to display in the timetable
+  List<CalendarEvent<T>> items = <CalendarEvent<T>>[];
+  StreamController<List<CalendarEvent<T>>> eventNotifier =
+      StreamController<List<CalendarEvent<T>>>.broadcast();
+  static DateTime dateForHeader = DateTime.now();
+  DateTime dateTime = DateTime.now();
+  IndexedScrollController indexdController = IndexedScrollController();
+  IndexedScrollController indexdHeaderController = IndexedScrollController();
   @override
   void initState() {
+    controller = widget.controller ?? controller;
+    headerController = groupController.addAndGet();
+    dayScrolController = groupController.addAndGet();
+    final int index = dateTime.difference(controller.start).inDays;
+    log('Initial Scroll index $index');
+    indexdController = IndexedScrollController(
+        initialIndex: controller.start.difference(dateTime).inDays);
+    indexdHeaderController = IndexedScrollController(
+        initialIndex: controller.start.difference(dateTime).inDays);
+    setState(() {});
+    if (controller.infiniteScrolling) {
+      indexdController.addListener(() {
+        if (dateTime.year == dateForHeader.year &&
+            dateTime.month == dateForHeader.month &&
+            dateTime.day == dateForHeader.day) {
+        } else {
+          dateTime = dateForHeader;
+          if (!isScrolling) {
+            widget.onDateChanged!(dateTime);
+          }
+        }
+        if (indexdHeaderController.hasClients) {
+          indexdHeaderController
+              .jumpToWithSameOriginIndex(indexdController.offset);
+        }
+      });
+    } else {
+      dayScrolController.addListener(() {
+        if (dateTime.year == dateForHeader.year &&
+            dateTime.month == dateForHeader.month &&
+            dateTime.day == dateForHeader.day) {
+        } else {
+          dateTime = dateForHeader;
+          if (!isScrolling) {
+            widget.onDateChanged!(dateTime);
+          }
+        }
+      });
+    }
+
+    _listenerId = controller.addListener(_eventHandler);
+    if (controller.events.isNotEmpty) {
+      items = controller.events;
+      items.sort((CalendarEvent<T> a, CalendarEvent<T> b) =>
+          a.startTime.compareTo(b.startTime));
+      eventNotifier.sink.add(items);
+    }
     columnWidth = widget.columnWidth ?? columnWidth;
     setState(() {});
-    controller = widget.controller ?? controller;
-    _listenerId = controller.addListener(_eventHandler);
-    if (widget.items.isNotEmpty) {
-      widget.items.sort((CalendarEvent<T> a, CalendarEvent<T> b) =>
-          a.startTime.compareTo(b.startTime));
-    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) => adjustColumnWidth());
     initDate();
     super.initState();
@@ -210,13 +269,17 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
     if (_listenerId != null) {
       controller.removeListener(_listenerId!);
     }
-    _dayScrollController.dispose();
-    _dayHeadingScrollController.dispose();
-    _timeScrollController.dispose();
+    indexdController.dispose();
+    indexdHeaderController.dispose();
+    timeScrollController.dispose();
+    dayScrolController.dispose();
+    headerController.dispose();
+    eventNotifier.close();
     super.dispose();
   }
 
   Future<void> _eventHandler(TimetableControllerEvent event) async {
+    log('No of events${widget.controller!.events.length}');
     if (event is TimetableJumpToRequested) {
       appLog('jumping to ${event.date}');
       await _jumpTo(event.date);
@@ -224,31 +287,69 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
 
     if (event is TimetableVisibleDateChanged) {
       appLog('visible data changed');
-      final DateTime prev = controller.visibleDateStart;
-      final DateTime now = DateTime.now();
       await adjustColumnWidth();
-      await _jumpTo(
-          DateTime(prev.year, prev.month, prev.day, now.hour, now.minute));
+      indexdController = IndexedScrollController(
+          initialIndex: controller.start.difference(dateTime).inDays);
+      indexdHeaderController = IndexedScrollController(
+          initialIndex: controller.start.difference(dateTime).inDays);
+      // await _jumpTo(
+      //     DateTime(prev.year, prev.month, prev.day, now.hour, now.minute));
       return;
     }
     if (event is TimetableDateChanged) {
       appLog('date changed');
+      appLog('date changed');
+      final int index = dateTime.difference(controller.start).inDays;
+      log('Initial Scroll index $index');
+      indexdController = IndexedScrollController(
+          initialIndex: controller.start.difference(dateTime).inDays);
+      setState(() {});
       initDate();
     }
     if (event is TimetableMaxColumnsChanged) {
       appLog('max column changed');
       await adjustColumnWidth();
     }
-
-    if (event is TimeTableSave) {
-      log('Time table save');
-      await screenshotController
-          .capture(pixelRatio: 10)
-          .then((Uint8List? value) {
-        log('image captured');
-        widget.onImageCapture(value!);
-      });
+    if (event is AddEventToTable<T>) {
+      List<CalendarEvent<T>> myevents = items;
+      final List<CalendarEvent<T>> tempEvetnts = event.events;
+      if (event.replace) {
+        myevents = tempEvetnts;
+      } else {
+        myevents.addAll(tempEvetnts);
+      }
+      items = myevents;
+      eventNotifier.sink.add(items);
+      log('adding events  ${items.length}');
     }
+
+    if (event is RemoveEventFromCalendar<T>) {
+      if (items.isNotEmpty) {
+        for (final CalendarEvent<T> element in event.events) {
+          if (items.contains(element)) {
+            items.remove(element);
+          }
+        }
+        eventNotifier.sink.add(items);
+        log('total events  ${items.length}');
+      }
+    }
+    if (event is UpdateEventInCalendar<T>) {
+      log('updating calendar');
+
+      if (items.contains(event.oldEvent)) {
+        final int index = items.indexOf(event.oldEvent);
+        items
+          ..removeAt(index)
+          ..insert(index, event.newEvent);
+      } else {
+        log('old event is not present in the list');
+      }
+
+      eventNotifier.sink.add(items);
+      log('total events  ${items.length}');
+    }
+    if (event is TimeTableSave) {}
     if (mounted) {
       setState(() {});
     }
@@ -273,12 +374,15 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
 
     for (final Period element in periods) {
       h = h +
-          (element.isBreak ? controller.breakHeight : controller.cellHeight);
+          (element.isCustomeSlot
+              ? controller.breakHeight
+              : controller.cellHeight);
     }
     return h;
   }
 
   double maxColumn = 5;
+  bool isMobile = true;
 
   Future<dynamic> adjustColumnWidth() async {
     final RenderBox? box =
@@ -292,6 +396,7 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
       // size = widget.size ?? size;
 
       final double layoutWidth = size.width;
+      isMobile = layoutWidth < 550;
       final double width = layoutWidth < 550
           ? ((layoutWidth - controller.timelineWidth) / controller.columns)
           : (layoutWidth - controller.timelineWidth) / controller.maxColumn;
@@ -304,352 +409,383 @@ class _SlWeekViewState<T> extends State<SlWeekView<T>> {
     }
   }
 
-  bool _isTableScrolling = false;
-  bool _isHeaderScrolling = false;
-  ScreenshotController screenshotController = ScreenshotController();
+  bool isScrolling = false;
+  bool isDragEnable(CalendarEvent<T> event) =>
+      widget.isCellDraggable == null || widget.isCellDraggable!(event);
+  bool headerIsScrolling = false;
+  bool tabIsScrolling = false;
+  // bool syncWithHeader(ScrollNotification notification) {
+  //   if (tabIsScrolling || isScrolling) {
+  //   } else if (notification is ScrollStartNotification) {
+  //     headerIsScrolling = true;
+  //   } else if (notification is ScrollEndNotification) {
+  //     _snapToCloset();
+  //     headerIsScrolling = false;
+  //   } else if (notification is ScrollUpdateNotification) {
+  //     if (controller.infiniteScrolling) {
+  //       indexdController.jumpTo(indexdHeaderController.position.pixels);
+  //     }
+  //   }
+  //   return false;
+  // }
+
+  bool syncWithTab(ScrollNotification notification) => true;
+
   @override
-  Widget build(BuildContext context) => Builder(
+  Widget build(BuildContext context) => LayoutBuilder(
       key: _key,
-      builder: (BuildContext context) {
+      builder: (BuildContext context, BoxConstraints contraints) {
         adjustColumnWidth();
         final Size size = widget.size ?? MediaQuery.of(context).size;
         log('render box size $size');
-
-        return Screenshot<Widget>(
-          controller: screenshotController,
-          child: Container(
-            color: widget.backgroundColor,
-            width: size.width,
-            height: size.height,
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  height: widget.headerHeight,
-                  width: size.width,
-                  child: Row(
-                    children: <Widget>[
-                      CornerCell(
-                          controller: controller,
-                          cornerBuilder: widget.cornerBuilder,
-                          headerHeight: widget.headerHeight),
-                      Expanded(
-                        child: NotificationListener<ScrollNotification>(
-                          onNotification: (ScrollNotification notification) {
-                            if (_isTableScrolling) {
-                              return false;
-                            }
-                            if (notification is ScrollEndNotification) {
-                              _snapToCloset();
-                              // _updateVisibleDate();
-                              _isHeaderScrolling = false;
-                              return true;
-                            }
-                            _isHeaderScrolling = true;
-                            _dayScrollController.jumpTo(
-                                _dayHeadingScrollController.position.pixels);
-                            return false;
-                          },
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            controller: _dayHeadingScrollController,
-                            itemExtent: columnWidth,
-                            itemCount: dateRange.length,
-                            padding: EdgeInsets.zero,
-                            itemBuilder: (BuildContext context, int index) =>
-                                HeaderCell(
-                              dateTime: dateRange[index],
-                              columnWidth: columnWidth,
-                              headerCellBuilder: widget.headerCellBuilder,
+        final double height = getTimelineHeight(
+            widget.timelines, controller.cellHeight, controller.breakHeight);
+        return Container(
+          color: widget.backgroundColor,
+          width: size.width,
+          height: size.height,
+          child: Column(
+            children: <Widget>[
+              SizedBox(
+                height: widget.headerHeight,
+                width: size.width,
+                child: Row(
+                  children: <Widget>[
+                    CornerCell<T>(
+                        controller: controller,
+                        cornerBuilder: widget.cornerBuilder,
+                        headerHeight: widget.headerHeight),
+                    Expanded(
+                      child: controller.infiniteScrolling
+                          ? IndexedListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              controller: indexdHeaderController,
+                              itemExtent: columnWidth,
+                              pageSnapping: false,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              cacheExtent: columnWidth * 7,
+                              itemBuilder: (BuildContext context, int index) =>
+                                  HeaderCell(
+                                    dateTime: controller.start
+                                        .add(Duration(days: index)),
+                                    columnWidth: columnWidth,
+                                    headerCellBuilder: widget.headerCellBuilder,
+                                  ))
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              controller: headerController,
+                              itemExtent: columnWidth,
+                              itemCount: dateRange.length,
+                              padding: EdgeInsets.zero,
+                              itemBuilder: (BuildContext context, int index) =>
+                                  HeaderCell(
+                                    dateTime: dateRange[index],
+                                    columnWidth: columnWidth,
+                                    headerCellBuilder: widget.headerCellBuilder,
+                                  )),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(
+                thickness: 2,
+                height: 2,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: timeScrollController,
+                  child: SizedBox(
+                      height: height,
+                      child: Row(
+                        children: <Widget>[
+                          SizedBox(
+                            width: controller.timelineWidth,
+                            child: Column(
+                              children: <Widget>[
+                                // SizedBox(height: controller.cellHeight / 2),
+                                for (Period item in widget.timelines)
+                                  HourCell<T>(
+                                    backgroundColor: widget.backgroundColor,
+                                    controller: controller,
+                                    period: item,
+                                    hourLabelBuilder: widget.hourLabelBuilder,
+                                  ),
+                              ],
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(
-                  thickness: 2,
-                  height: 2,
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: _timeScrollController,
-                    child: SizedBox(
-                      height: getTimelineHeight(widget.timelines,
-                          controller.cellHeight, controller.breakHeight),
-                      child: NotificationListener<ScrollNotification>(
-                        onNotification: (ScrollNotification notification) {
-                          if (_isHeaderScrolling) {
-                            return false;
-                          }
+                          Expanded(
+                            child: NotificationListener<ScrollNotification>(
+                              onNotification:
+                                  (ScrollNotification notification) =>
+                                      syncWithTab(notification),
+                              child: controller.infiniteScrolling
+                                  ? IndexedListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      // cacheExtent: 10000.0,
 
-                          if (notification is ScrollEndNotification) {
-                            _snapToCloset();
+                                      itemExtent: columnWidth,
 
-                            _isTableScrolling = false;
-                            return true;
-                          }
-                          _isTableScrolling = true;
-                          _dayHeadingScrollController
-                              .jumpTo(_dayScrollController.position.pixels);
-                          return true;
-                        },
-                        child: Row(
-                          children: <Widget>[
-                            SizedBox(
-                              width: controller.timelineWidth,
-                              child: Column(
-                                children: <Widget>[
-                                  // SizedBox(height: controller.cellHeight / 2),
-                                  for (Period item in widget.timelines)
-                                    HourCell(
-                                      backgroundColor: widget.backgroundColor,
-                                      controller: controller,
-                                      period: item,
-                                      hourLabelBuilder: widget.hourLabelBuilder,
+                                      controller: indexdController,
+                                      cacheExtent: 0,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                        final DateTime date = controller.start
+                                            .add(Duration(days: index));
+                                        dateForHeader = date;
+                                        // dateForHeader =
+                                        // date.subtract(Duration(
+                                        //     days:
+                                        // index.isNegative ? -7 : 7));
+
+                                        // if (date.isBefore(dateForHeader)) {
+                                        //   dateForHeader = date
+                                        //.subtract(const Duration(days: -2));
+                                        // } else {
+                                        //   dateForHeader = date
+                                        //.subtract(const Duration(days: 4));
+                                        // }
+                                        // dateForHeader = date;
+                                        final DateTime now = DateTime.now();
+                                        final bool isToday =
+                                            DateUtils.isSameDay(date, now);
+                                        final bool showIndicator =
+                                            widget.showNowIndicator && isToday;
+
+                                        return buildView(date,
+                                            showIndicator: showIndicator);
+                                      },
+                                    )
+                                  : ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemExtent: columnWidth,
+                                      itemCount: dateRange.length,
+                                      controller: dayScrolController,
+                                      cacheExtent: columnWidth * 7,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                        final DateTime date = dateRange[index];
+
+                                        dateForHeader = date.subtract(Duration(
+                                            days: index.isNegative ? -7 : 7));
+
+                                        final DateTime now = DateTime.now();
+                                        final bool isToday =
+                                            DateUtils.isSameDay(date, now);
+                                        final bool showIndicator =
+                                            widget.showNowIndicator && isToday;
+
+                                        return buildView(date,
+                                            showIndicator: showIndicator);
+                                      },
                                     ),
-                                ],
-                              ),
                             ),
-                            Expanded(
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                // cacheExtent: 10000.0,
-
-                                itemCount: dateRange.length,
-                                itemExtent: columnWidth,
-                                controller: _dayScrollController,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final DateTime date = dateRange[index];
-                                  final List<CalendarEvent<T>> events = widget
-                                      .items
-                                      .where((CalendarEvent<T> event) =>
-                                          DateUtils.isSameDay(
-                                              date, event.startTime))
-                                      .toList();
-                                  final DateTime now = DateTime.now();
-                                  final bool isToday =
-                                      DateUtils.isSameDay(date, now);
-
-                                  return Container(
-                                    width: columnWidth,
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: <Widget>[
-                                        Column(
-                                          children: <Widget>[
-                                            for (Period period
-                                                in widget.timelines)
-                                              TimeTableCell<T>(
-                                                  columnWidth: columnWidth,
-                                                  period: period,
-                                                  cellBuilder:
-                                                      widget.cellBuilder,
-                                                  breakHeight:
-                                                      controller.breakHeight,
-                                                  cellHeight:
-                                                      controller.cellHeight,
-                                                  dateTime: date,
-                                                  onTap: (DateTime dateTime,
-                                                      Period p1,
-                                                      CalendarEvent<T>? p2) {
-                                                    appLog('data');
-                                                    widget.onTap!(
-                                                        dateTime, p1, p2);
-                                                  },
-                                                  onAcceptWithDetails:
-                                                      (DragTargetDetails<
-                                                              CalendarEvent<T>>
-                                                          details) {
-                                                    appLog('New Period'
-                                                        '${period.toMap}');
-                                                    final CalendarEvent<T>
-                                                        event = details.data;
-                                                    final DateTime
-                                                        newStartTime = DateTime(
-                                                            date.year,
-                                                            date.month,
-                                                            date.day,
-                                                            period
-                                                                .startTime.hour,
-                                                            period.startTime
-                                                                .minute);
-                                                    final DateTime newEndTime =
-                                                        DateTime(
-                                                            date.year,
-                                                            date.month,
-                                                            date.day,
-                                                            period.endTime.hour,
-                                                            period.endTime
-                                                                .minute);
-
-                                                    final CalendarEvent<T>
-                                                        newEvent =
-                                                        CalendarEvent<T>(
-                                                            startTime:
-                                                                newStartTime,
-                                                            endTime: newEndTime,
-                                                            eventData: event
-                                                                .eventData);
-
-                                                    widget.onEventDragged!(
-                                                        details.data,
-                                                        newEvent,
-                                                        period);
-                                                  },
-                                                  onWillAccept:
-                                                      (CalendarEvent<T>? data,
-                                                              Period period) =>
-                                                          widget.onWillAccept(
-                                                              data!, period))
-                                          ],
-                                        ),
-                                        for (final CalendarEvent<T> event
-                                            in events)
-                                          Positioned(
-                                            width: columnWidth,
-                                            top: getEventMarginFromTop(
-                                                widget.timelines,
-                                                controller.cellHeight,
-                                                controller.breakHeight,
-                                                event.startTime),
-                                            bottom: getEventMarginFromBottom(
-                                                widget.timelines,
-                                                controller.cellHeight,
-                                                controller.breakHeight,
-                                                event.endTime),
-                                            child: TimeTableEvent<T>(
-                                              isDraggable: widget
-                                                          .isCellDraggable ==
-                                                      null ||
-                                                  widget
-                                                      .isCellDraggable!(event),
-                                              onAcceptWithDetails:
-                                                  (DragTargetDetails<
-                                                          CalendarEvent<T>>
-                                                      details) {
-                                                appLog(details.data.toMap
-                                                    .toString());
-                                                final CalendarEvent<T>
-                                                    myEvents = details.data;
-                                                final DateTime newStartTime =
-                                                    DateTime(
-                                                        date.year,
-                                                        date.month,
-                                                        date.day,
-                                                        event.startTime.hour,
-                                                        event.startTime.minute);
-                                                final DateTime newEndTime =
-                                                    DateTime(
-                                                        date.year,
-                                                        date.month,
-                                                        date.day,
-                                                        event.endTime.hour,
-                                                        event.endTime.minute);
-                                                myEvents
-                                                  ..startTime = newStartTime
-                                                  ..endTime = newEndTime;
-                                                // widget.onEventDragged!(
-                                                //     details.data, myEvents);
-                                              },
-                                              onWillAccept:
-                                                  (CalendarEvent<T>? data) =>
-                                                      false,
-                                              columnWidth: columnWidth,
-                                              event: event,
-                                              itemBuilder:
-                                                  (CalendarEvent<T> p0) =>
-                                                      widget.itemBuilder!(
-                                                          p0, columnWidth),
-                                            ),
-                                          ),
-                                        if (widget.showNowIndicator && isToday)
-                                          StreamBuilder<DateTime>(
-                                              stream: Stream<DateTime>.periodic(
-                                                  const Duration(seconds: 60),
-                                                  (int count) => DateTime.now()
-                                                      .add(const Duration(
-                                                          minutes: 1))),
-                                              builder: (BuildContext context,
-                                                      AsyncSnapshot<DateTime>
-                                                          snapshot) =>
-                                                  TimeIndicator(
-                                                      controller: controller,
-                                                      columnWidth: columnWidth,
-                                                      nowIndicatorColor:
-                                                          nowIndicatorColor,
-                                                      timelines:
-                                                          widget.timelines)),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                          ),
+                        ],
+                      )),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       });
 
-  bool _isSnapping = false;
-  final Duration _animationDuration = const Duration(milliseconds: 300);
-  final Curve _animationCurve = Curves.linearToEaseOut;
+  Widget buildView(DateTime date, {required bool showIndicator}) =>
+      StreamBuilder<List<CalendarEvent<T>>>(
+          stream: eventNotifier.stream,
+          builder: (BuildContext context,
+              AsyncSnapshot<List<CalendarEvent<T>>> snapshot) {
+            final List<CalendarEvent<T>> events = items
+                .where((CalendarEvent<T> event) =>
+                    DateUtils.isSameDay(date, event.startTime))
+                .toList();
+            final List<List<CalendarEvent<T>>> eventList = getEventList(events);
+            return SizedBox(
+              width: columnWidth,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: <Widget>[
+                  Column(
+                    children: <Widget>[
+                      for (Period period in widget.timelines)
+                        TimeTableCell<T>(
+                            columnWidth: columnWidth,
+                            period: period,
+                            cellBuilder: widget.cellBuilder,
+                            breakHeight: controller.breakHeight,
+                            cellHeight: controller.cellHeight,
+                            dateTime: date,
+                            onTap: (DateTime dateTime, Period p1,
+                                CalendarEvent<T>? p2) {
+                              appLog('data');
+                              widget.onTap!(dateTime, p1, p2);
+                            },
+                            onAcceptWithDetails:
+                                (DragTargetDetails<CalendarEvent<T>> details) {
+                              final CalendarEvent<T> event = details.data;
+                              final DateTime newStartTime = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  period.startTime.hour,
+                                  period.startTime.minute);
+                              final DateTime newEndTime = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  period.endTime.hour,
+                                  period.endTime.minute);
 
-  Future<dynamic> _snapToCloset() async {
-    if (_isSnapping || !widget.snapToDay) {
-      return;
-    }
+                              event
+                                ..startTime = newStartTime
+                                ..endTime = newEndTime;
 
-    _isSnapping = true;
-    await Future<dynamic>.microtask(() => null);
-    final double snapPosition =
-        ((_dayScrollController.offset) / columnWidth).round() * columnWidth;
-    await _dayScrollController.animateTo(
-      snapPosition,
-      duration: _animationDuration,
-      curve: _animationCurve,
-    );
-    await _dayHeadingScrollController.animateTo(
-      snapPosition,
-      duration: _animationDuration,
-      curve: _animationCurve,
-    );
-    _isSnapping = false;
-  }
+                              final int index = items.indexOf(details.data);
 
-  // Future<dynamic> _updateVisibleDate() async {
-  //   final DateTime date = controller.start.add(Duration(
-  //     days: _dayHeadingScrollController.position.pixels ~/ columnWidth,
-  //   ));
-  //   if (date != controller.visibleDateStart) {
-  //     controller.updateVisibleDate(date);
-  //     setState(() {});
-  //   }
-  // }
+                              items
+                                ..removeAt(index)
+                                ..insert(index, event);
+                              eventNotifier.sink.add(items);
 
+                              widget.onEventDragged!(
+                                  details.data, event, period);
+                            },
+                            onWillAccept:
+                                (CalendarEvent<T>? data, Period period) =>
+                                    widget.onWillAccept(data!, period))
+                    ],
+                  ),
+                  for (final List<CalendarEvent<T>> events in eventList)
+                    for (final CalendarEvent<T> event in events)
+                      Builder(builder: (BuildContext context) {
+                        final double top = getEventMarginFromTop(
+                            widget.timelines,
+                            controller.cellHeight,
+                            controller.breakHeight,
+                            event.startTime);
+                        final double bottom = getEventMarginFromBottom(
+                            widget.timelines,
+                            controller.cellHeight,
+                            controller.breakHeight,
+                            event.endTime);
+
+                        final double maxWidth = columnWidth;
+                        final double eventWidth = maxWidth / events.length;
+                        final int index = events.indexOf(event);
+                        return Positioned(
+                          width: maxWidth - index * eventWidth,
+                          left: eventWidth * index,
+                          top: top,
+                          bottom: bottom,
+                          child: TimeTableEvent<T>(
+                            isDraggable: isDragEnable(event),
+                            onAcceptWithDetails:
+                                (DragTargetDetails<CalendarEvent<T>> details) {
+                              final CalendarEvent<T> myEvents = details.data;
+                              final DateTime start = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  event.startTime.hour,
+                                  event.startTime.minute);
+                              final DateTime end = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  event.endTime.hour,
+                                  event.endTime.minute);
+                              myEvents
+                                ..startTime = start
+                                ..endTime = end;
+                              final int index = items.indexOf(details.data);
+
+                              items
+                                ..removeAt(index)
+                                ..insert(index, myEvents);
+                              eventNotifier.sink.add(items);
+
+                              widget.onEventToEventDragged!(
+                                  event, details.data, myEvents, null);
+                            },
+                            onWillAccept: (CalendarEvent<T>? data) => true,
+                            columnWidth: columnWidth,
+                            event: event,
+                            itemBuilder: (CalendarEvent<T> p0) =>
+                                widget.itemBuilder!(p0, columnWidth),
+                          ),
+                        );
+                      }),
+                  if (showIndicator)
+                    StreamBuilder<DateTime>(
+                        stream: Stream<DateTime>.periodic(
+                            const Duration(seconds: 60),
+                            (int count) =>
+                                DateTime.now().add(const Duration(minutes: 1))),
+                        builder: (BuildContext context,
+                                AsyncSnapshot<DateTime> snapshot) =>
+                            TimeIndicator<T>(
+                                controller: controller,
+                                columnWidth: columnWidth,
+                                nowIndicatorColor: nowIndicatorColor,
+                                timelines: widget.timelines)),
+                ],
+              ),
+            );
+          });
+
+
+
+  ///jump to given date
   Future<dynamic> _jumpTo(DateTime date) async {
-    final double datePosition =
-        (date.difference(controller.start).inDays) * columnWidth;
-    final double hourPosition =
-        ((date.hour) * controller.cellHeight) - (controller.cellHeight / 2);
-    await Future.wait<void>(<Future<void>>[
-      _dayScrollController.animateTo(
-        datePosition,
-        duration: _animationDuration,
-        curve: _animationCurve,
-      ),
-      _timeScrollController.animateTo(
-        hourPosition,
-        duration: _animationDuration,
-        curve: _animationCurve,
-      ),
-    ]);
+    isScrolling = true;
+    final double hourPosition = getTimeIndicatorFromTop(
+        widget.timelines, controller.cellHeight, controller.breakHeight);
+    final double height = getTimelineHeight(
+        widget.timelines, controller.cellHeight, controller.breakHeight);
+
+    final double maxScroll = timeScrollController.position.maxScrollExtent;
+    final double scrollTo = hourPosition * maxScroll / height;
+    log('height $height hour $hourPosition '
+        'max $maxScroll scrollTo $scrollTo');
+
+    if (controller.infiniteScrolling) {
+      final int index = date.difference(controller.start).inDays;
+      unawaited(
+          indexdHeaderController.animateToIndex(index, curve: animationCurve));
+      await indexdController
+          .animateToIndex(index, curve: animationCurve)
+          .then((void value) async {
+        /// Scrolling to the current time.
+        await Future<void>.delayed(const Duration(milliseconds: 150))
+            .then((void value) => timeScrollController
+                    .animateTo(
+                  scrollTo,
+                  duration: animationDuration,
+                  curve: animationCurve,
+                )
+                    .then((dynamic value) {
+                  isScrolling = false;
+                }));
+      });
+    } else {
+      try {
+        isScrolling = true;
+        final DateTime d = dateRange.firstWhere(
+            (DateTime element) => DateUtils.isSameDay(date, element));
+        int index = dateRange.indexOf(d);
+        final int rm = (controller.maxColumn / 2).floor();
+        index = index < rm ? index : index - rm;
+        log(index.toString());
+        await (groupController.animateTo(
+                columnWidth * (index + (isMobile ? 1 : 0)),
+                curve: animationCurve,
+                duration: animationDuration))
+            .then((dynamic value) {
+          isScrolling = false;
+        });
+      } on Exception catch (e) {
+        log(e.toString());
+      }
+    }
   }
 }

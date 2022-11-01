@@ -1,13 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:sl_planner_calendar/src/core/enum.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 /// A controller for the timetable.
 ///
 /// The controller allow initialization of the timetable and to expose
 /// timetable functionality to the outside.
-class TimetableController {
+class TimetableController<T> {
   ///   /// initialize timetableController
   TimetableController({
     /// The number of day columns to show.
@@ -37,6 +37,12 @@ class TimetableController {
     /// type of the calendar view
     CalendarViewType? viewType,
 
+    ///List of the events
+    List<CalendarEvent<T>>? events,
+
+    ///pass false if you want strinct calendar between two dates
+    bool? infiniteScrolling,
+
     /// Controller event listener.
     Function(TimetableControllerEvent)? onEvent,
   }) {
@@ -51,6 +57,8 @@ class TimetableController {
     _timelineWidth = timelineWidth ?? 50;
     _breakHeight = breakHeight ?? 35;
     _visibleDateStart = _start;
+    _infiniteScrolling = infiniteScrolling ?? true;
+    _events = events ?? <CalendarEvent<T>>[];
     _viewType = viewType ?? CalendarViewType.scheduleView;
     if (onEvent != null) {
       addListener(onEvent);
@@ -60,6 +68,11 @@ class TimetableController {
   late DateTime _start;
 
   late DateTime _end;
+  bool _infiniteScrolling = true;
+
+  ///return true if calendar is in infinite scrolling
+  ///
+  bool get infiniteScrolling => _infiniteScrolling;
 
   /// The [start] date (first column) of the timetable.
   DateTime get start => _start;
@@ -126,6 +139,13 @@ class TimetableController {
 
   /// The first date of the visible area of the timetable.
   DateTime get visibleDateStart => _visibleDateStart;
+
+  ///List of the events
+  // ignore: always_specify_types
+  late List<CalendarEvent<T>> _events;
+
+  ///list of the events
+  List<CalendarEvent<T>> get events => _events;
 
   /// Allows listening to events dispatched from the timetable
   int addListener(Function(TimetableControllerEvent)? listener) {
@@ -210,6 +230,43 @@ class TimetableController {
 
   void saveToImage(double pixelRatio) {
     dispatch(TimeTableSave(pixelRatio));
+  }
+
+  ///add event to calendar
+
+  void addEvent(List<CalendarEvent<T>> events, {bool replace = false}) {
+    if (replace) {
+      _events.clear();
+      _events = events;
+    } else {
+      _events.addAll(events);
+    }
+    dispatch(AddEventToTable<T>(events: events, replace: replace));
+  }
+
+  ///add event to calendar
+
+  void removeEvent(List<CalendarEvent<T>> events) {
+    if (events.isNotEmpty) {
+      for (final CalendarEvent<T> element in events) {
+        if (_events.contains(element)) {
+          _events.remove(element);
+        }
+      }
+    }
+  }
+
+  ///update event
+
+  void updateEvent(CalendarEvent<T> oldEvent, CalendarEvent<T> newEvent) {
+    if (_events.contains(oldEvent)) {
+      final int index = _events.indexOf(oldEvent);
+      _events
+        ..removeAt(index)
+        ..insert(index, newEvent);
+    }
+
+    dispatch(UpdateEventInCalendar<T>(oldEvent: oldEvent, newEvent: newEvent));
   }
 
   ///reload table
@@ -310,4 +367,41 @@ class TimeTableSave extends TimetableControllerEvent {
 class TimeTableRefresh extends TimetableControllerEvent {
   ///
   TimeTableRefresh();
+}
+
+///add event event
+class AddEventToTable<T> extends TimetableControllerEvent {
+  ///initilize the event
+  AddEventToTable({required this.events, this.replace = false});
+
+  ///add events to the list
+
+  List<CalendarEvent<T>> events;
+
+  ///bool replace all
+  bool replace;
+}
+
+///updatee event
+class UpdateEventInCalendar<T> extends TimetableControllerEvent {
+  ///initilioze the event
+  UpdateEventInCalendar({required this.oldEvent, required this.newEvent});
+
+  ///add events to the list
+
+  CalendarEvent<T> oldEvent;
+
+  ///new events to the list
+
+  CalendarEvent<T> newEvent;
+}
+
+///remove event from calender
+class RemoveEventFromCalendar<T> extends TimetableControllerEvent {
+  ///initilize constructor
+  RemoveEventFromCalendar({required this.events});
+
+  ///add events to the list
+
+  List<CalendarEvent<T>> events;
 }

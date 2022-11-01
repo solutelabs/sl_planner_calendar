@@ -33,30 +33,30 @@ class _MainWidgetState extends State<MainWidget> {
               height: 150,
               maxVertical: 500,
               minVertical: 350,
-              child: Text('Event 2'),
               left: 0,
+              child: Text('Event 2'),
             ),
           ),
           Positioned(
             child: ResizableCell(
               width: 200,
               top: 500,
-              child: Text('Event 3'),
               minVertical: 500,
               maxVertical: 750,
               height: 150,
               left: 0,
+              child: Text('Event 3'),
             ),
           ),
           Positioned(
             child: ResizableCell(
               width: 200,
-              child: Text('Event 4'),
               top: 750,
               height: 150,
               maxVertical: 900,
               minVertical: 750,
               left: 0,
+              child: Text('Event 4'),
             ),
           )
         ],
@@ -156,7 +156,7 @@ class ResizableCellState extends State<ResizableCell> {
             top: top,
             left: left,
             right: 0,
-            child: Container(
+            child: SizedBox(
               height: height,
               width: width,
               child: Center(child: widget.child),

@@ -3,7 +3,7 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/text_styles.dart';
 
 ///Hour Cell widget build the widget for the hour label
-class HourCell extends StatelessWidget {
+class HourCell<T> extends StatelessWidget {
   /// initialized hourCell
   const HourCell(
       {required this.controller,
@@ -14,7 +14,7 @@ class HourCell extends StatelessWidget {
       : super(key: key);
 
   ///timetable  controller
-  final TimetableController controller;
+  final TimetableController<T> controller;
 
   ///period of the even
   final Period period;
@@ -38,7 +38,9 @@ class HourCell extends StatelessWidget {
     );
     return Container(
         color: backgroundColor,
-        height: period.isBreak ? controller.breakHeight : controller.cellHeight,
+        height: period.isCustomeSlot
+            ? controller.breakHeight
+            : controller.cellHeight,
         child: Center(
             child: hourLabelBuilder != null
                 ? hourLabelBuilder!(period)

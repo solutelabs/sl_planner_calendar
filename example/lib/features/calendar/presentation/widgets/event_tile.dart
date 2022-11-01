@@ -1,4 +1,5 @@
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
+import 'package:edgar_planner_calendar_flutter/core/url.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
@@ -21,21 +22,38 @@ class EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.all(4),
+        margin: EdgeInsets.all(item.eventData!.isDutyTime ? 0 : 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: item.eventData!.isDutyTime
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.start,
           children: <Widget>[
             Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: item.eventData!.isDutyTime
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
+              mainAxisAlignment: item.eventData!.isDutyTime
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: <Widget>[
-                const Icon(
-                  Icons.circle,
-                  color: Colors.black,
-                  size: 4,
-                ),
-                const SizedBox(
-                  width: 4,
-                ),
+                item.eventData!.isDutyTime
+                    ? const SizedBox.shrink()
+                    : SizedBox(
+                        height: 10 * MediaQuery.of(context).textScaleFactor,
+                        child: const Center(
+                          child: Icon(
+                            Icons.circle,
+                            color: Colors.black,
+                            size: 4,
+                          ),
+                        ),
+                      ),
+                item.eventData!.isDutyTime
+                    ? const SizedBox.shrink()
+                    : const SizedBox(
+                        width: 6,
+                      ),
                 Flexible(
                   child: Text(
                     item.eventData!.title,
@@ -45,38 +63,46 @@ class EventTile extends StatelessWidget {
                 ),
               ],
             ),
-            item.eventData!.freeTime
+            item.eventData!.freeTime || item.eventData!.isDutyTime
                 ? const SizedBox.shrink()
                 : Flexible(
                     child: Text(
-                      item.eventData!.description,
+                      item.eventData!.location ?? '',
                       overflow: TextOverflow.ellipsis,
                       style: context.subtitle,
                     ),
                   ),
-            item.eventData!.freeTime ? const SizedBox.shrink() : const Spacer(),
-            item.eventData!.freeTime
+            // Text(
+            //   item.eventData!.period.id,
+            //   overflow: TextOverflow.ellipsis,
+            //   style: context.subtitle,
+            // ),
+            item.eventData!.freeTime || item.eventData!.isDutyTime
                 ? const SizedBox.shrink()
-                : item.eventData!.documents.isNotEmpty
-                    ? Wrap(
-                        runSpacing: 8,
-                        spacing: 8,
-                        children: <String>[
-                          item.eventData!.documents.first.documentName
-                        ]
-                            .map((String e) => Container(
-                                width: MediaQuery.of(context).size.width,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 2),
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: Text(
-                                  e,
-                                  style: context.subtitle,
-                                )))
-                            .toList())
-                    : const SizedBox.shrink(),
+                : const Spacer(),
+            item.eventData!.freeTime ||
+                    item.eventData!.eventLinks == null ||
+                    item.eventData!.eventLinks.toString() == ''
+                ? const SizedBox.shrink()
+                : GestureDetector(
+                    onTap: () {
+                      launchLink(item.eventData!.eventLinks);
+                    },
+                    child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Center(
+                          child: Text(
+                            '${item.eventData!.eventLinks}',
+                            overflow: TextOverflow.ellipsis,
+                            style: context.subtitle,
+                          ),
+                        )),
+                  )
           ],
         ),
       );

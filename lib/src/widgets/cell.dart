@@ -25,7 +25,7 @@ class TimeTableCell<T> extends StatelessWidget {
 
   /// Renders for the cells the represent each hour that provides
   /// that [DateTime] for that hour
-  final Widget Function(Period)? cellBuilder;
+  final Widget Function(Period, DateTime)? cellBuilder;
 
   ///column Width
   final double columnWidth;
@@ -89,15 +89,15 @@ class TimeTableCell<T> extends StatelessWidget {
             List<dynamic> accepted,
             List<dynamic> rejected,
           ) =>
-              Container(
+              SizedBox(
             // color: Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
             //     .withOpacity(1.0),
             // color: Colors.blue,
             width: columnWidth,
-            height: period.isBreak ? breakHeight : cellHeight,
+            height: period.isCustomeSlot ? breakHeight : cellHeight,
             child: Center(
               child: cellBuilder != null
-                  ? cellBuilder!(period)
+                  ? cellBuilder!(period, dateTime)
                   : Container(
                       decoration: BoxDecoration(
                         border: Border.all(

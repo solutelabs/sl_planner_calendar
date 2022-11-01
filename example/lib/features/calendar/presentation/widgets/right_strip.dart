@@ -1,5 +1,6 @@
 import 'package:edgar_planner_calendar_flutter/core/colors.dart';
 import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/term_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
 import 'package:edgar_planner_calendar_flutter/generated/l10n.dart';
@@ -10,7 +11,8 @@ import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 ///right strip for the tablet view
 class RightStrip extends StatelessWidget {
   /// initialize the constructor
-  const RightStrip({Key? key, this.width = 48, this.height = 60})
+  const RightStrip(
+      {required this.termModel, Key? key, this.width = 48, this.height = 60})
       : super(key: key);
 
   ///const double width
@@ -19,15 +21,19 @@ class RightStrip extends StatelessWidget {
   ///const double height
   final double height;
 
+  ///Term Model
+  final TermModel termModel;
+
   @override
   Widget build(BuildContext context) => SizedBox(
         width: width,
-        child: BlocBuilder<TimeTableCubit, TimeTableState>(
+        child: BlocConsumer<TimeTableCubit, TimeTableState>(
+          listener: (BuildContext context, TimeTableState state) {},
           builder: (BuildContext context, TimeTableState state) {
             final TimeTableCubit cubit =
                 BlocProvider.of<TimeTableCubit>(context);
-            final DateTime startDate = cubit.startDate;
             final CalendarViewType viewType = cubit.viewType;
+            final Term crTerm = cubit.term;
             return Column(
               children: <Widget>[
                 Expanded(
@@ -35,8 +41,9 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).day,
                   onTap: () {
                     if (viewType != CalendarViewType.dayView) {
-                      BlocProvider.of<TimeTableCubit>(context)
-                          .changeViewType(CalendarViewType.dayView);
+                      cubit
+                        ..setDate(cubit.date)
+                        ..changeViewType(CalendarViewType.dayView);
                     }
                   },
                   selected: viewType == CalendarViewType.dayView,
@@ -46,8 +53,9 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).week,
                   onTap: () {
                     if (viewType != CalendarViewType.weekView) {
-                      BlocProvider.of<TimeTableCubit>(context)
-                          .changeViewType(CalendarViewType.weekView);
+                      cubit
+                        ..setDate(cubit.date)
+                        ..changeViewType(CalendarViewType.weekView);
                     }
                   },
                   selected: viewType == CalendarViewType.weekView,
@@ -57,8 +65,11 @@ class RightStrip extends StatelessWidget {
                   title: S.of(context).month,
                   onTap: () {
                     if (viewType != CalendarViewType.monthView) {
-                      BlocProvider.of<TimeTableCubit>(context)
-                          .changeViewType(CalendarViewType.monthView);
+                      final TimeTableCubit cubit =
+                          BlocProvider.of<TimeTableCubit>(context);
+                      cubit
+                        ..changeViewType(CalendarViewType.monthView)
+                        ..setMonthFromDate(cubit.date);
                     }
                   },
                   selected: viewType == CalendarViewType.monthView,
@@ -67,75 +78,72 @@ class RightStrip extends StatelessWidget {
                     child: RightSideButton(
                   title: S.of(context).term1,
                   selected: viewType == CalendarViewType.termView &&
-                      startDate.month == 1,
+                      crTerm.type == 'term1',
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
-                    final DateTime e = DateTime.now();
-                    final DateTime firstDate = DateTime(e.year);
-                    final DateTime lastDate =
-                        DateTime(e.year, 4).subtract(const Duration(days: 1));
+                    BlocProvider.of<TimeTableCubit>(context).setTerm('term1');
+                    // final DateTime firstDate = term.startDate;
+                    // final DateTime lastDate = term.endDate;
 
-                    BlocProvider.of<TimeTableCubit>(context)
-                        .changeDate(firstDate, lastDate);
+                    // BlocProvider.of<TimeTableCubit>(context)
+                    //     .changeDate(firstDate, lastDate);
                   },
                 )),
                 Expanded(
                     child: RightSideButton(
                   selected: viewType == CalendarViewType.termView &&
-                      startDate.month == 4,
+                      crTerm.type == 'term2',
                   title: S.of(context).term2,
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
-                    final DateTime e = DateTime.now();
-                    final DateTime firstDate = DateTime(e.year, 4);
-                    final DateTime lastDate =
-                        DateTime(e.year, 7).subtract(const Duration(days: 1));
+                    BlocProvider.of<TimeTableCubit>(context).setTerm('term2');
+                    // final DateTime firstDate = term.startDate;
+                    // final DateTime lastDate = term.endDate;
 
-                    BlocProvider.of<TimeTableCubit>(context)
-                        .changeDate(firstDate, lastDate);
+                    // BlocProvider.of<TimeTableCubit>(context)
+                    //     .changeDate(firstDate, lastDate);
                   },
                 )),
                 Expanded(
                     child: RightSideButton(
                   title: S.of(context).term3,
                   selected: viewType == CalendarViewType.termView &&
-                      startDate.month == 7,
+                      crTerm.type == 'term3',
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
-                    final DateTime e = DateTime.now();
-                    final DateTime firstDate = DateTime(e.year, 7);
-                    final DateTime lastDate =
-                        DateTime(e.year, 10).subtract(const Duration(days: 1));
+                    BlocProvider.of<TimeTableCubit>(context).setTerm('term3');
+                    // final DateTime firstDate = term.startDate;
+                    // final DateTime lastDate = term.endDate;
 
-                    BlocProvider.of<TimeTableCubit>(context)
-                        .changeDate(firstDate, lastDate);
+                    // BlocProvider.of<TimeTableCubit>(context)
+                    //     .changeDate(firstDate, lastDate);
                   },
                 )),
                 Expanded(
                     child: RightSideButton(
                   title: S.of(context).term4,
                   selected: viewType == CalendarViewType.termView &&
-                      startDate.month == 10,
+                      crTerm.type == 'term4',
                   onTap: () {
                     if (viewType != CalendarViewType.termView) {
                       BlocProvider.of<TimeTableCubit>(context)
                           .changeViewType(CalendarViewType.termView);
                     }
-                    final DateTime e = DateTime.now();
-                    final DateTime firstDate = DateTime(e.year, 10);
-                    final DateTime lastDate = DateTime(e.year, 12, 31);
+                    BlocProvider.of<TimeTableCubit>(context).setTerm('term4');
+                    // final DateTime firstDate = term.startDate;
+                    // final DateTime lastDate = term.endDate;
 
-                    BlocProvider.of<TimeTableCubit>(context)
-                        .changeDate(firstDate, lastDate);
+                    // BlocProvider.of<TimeTableCubit>(context)
+                    //     .changeDate(firstDate, lastDate);
                   },
                 )),
                 Expanded(

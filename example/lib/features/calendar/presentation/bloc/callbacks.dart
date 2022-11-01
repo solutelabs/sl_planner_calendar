@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
+import 'package:edgar_planner_calendar_flutter/core/calendar_utils.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/date_change_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/term_model.dart';
 import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/method_name.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
@@ -33,7 +37,7 @@ class NativeCallBack {
   Future<bool> onTap(DateTime dateTime, List<PlannerEvent> events) async {
     final Map<String, dynamic> data = <String, dynamic>{
       'events': events.toString(),
-      'date': dateTime.toString()
+      'date': dateTime.toString().substring(0, 10),
     };
     await sendToNativeApp(SendMethods.onTap, data);
     return true;
@@ -41,15 +45,24 @@ class NativeCallBack {
 
   ///send addEvent callback to native app
   Future<bool> sendAddEventToNativeApp(
-      DateTime dateTime, CalendarViewType viewType, Period? period) async {
+      DateTime dateTime, CalendarViewType viewType, Period? period,
+      {bool jsonEcoded = false}) async {
     final Map<String, dynamic> data = <String, dynamic>{
       'viewType': viewType.toString(),
-      'date': dateTime.toString(),
+      'date': dateTime.toString().substring(0, 10),
     };
     if (period != null) {
-      data.putIfAbsent('period', () => period.toJson().toString());
+      data
+        ..putIfAbsent('period', () => period.toJson())
+        ..putIfAbsent('slotId', () => period.id.toString());
     }
-    await sendToNativeApp(SendMethods.addEvent, data);
+    debugPrint('data: $data');
+    if (jsonEcoded) {
+      final String string = jsonEncode(data);
+      await sendToNativeApp(SendMethods.addEvent, string);
+    } else {
+      await sendToNativeApp(SendMethods.addEvent, data);
+    }
     return true;
   }
 
@@ -74,27 +87,100 @@ class NativeCallBack {
   }
 
   ///send eventDragged  to native app
-  Future<bool> sendEventDraggedToNativeApp(PlannerEvent old,
-      PlannerEvent newEvent, CalendarViewType viewType) async {
+  Future<bool> sendEventDraggedToNativeApp(
+      CalendarEvent<EventData> old,
+      CalendarEvent<EventData> newEvent,
+      CalendarViewType viewType,
+      Period? periodModel) async {
+    final Period? period = periodModel;
+
+    final String sid = period == null ? newEvent.eventData!.slots : period.id;
+    log(periodModel.toString());
+    final int id = int.parse(sid);
+    final int eventId = int.parse(newEvent.eventData!.id);
+    bool isRec = false;
+    if (newEvent.eventData!.event != null) {
+      isRec = newEvent.eventData!.event!.isRecurringEvent;
+    }
+
     final Map<String, dynamic> data = <String, dynamic>{
-      'oldEvent': old.toJson(),
-      'newEvent': newEvent.toJson(),
-      'viewType': viewType.toString(),
-    };
+      'start_date': newEvent.startTime.toString().substring(0, 10),
+      'end_date': newEvent.startTime.toString().substring(0, 10),
+      'start_time': newEvent.startTime.toString().substring(11, 19),
+      'end_time': newEvent.endTime.toString().substring(11, 19),
+      'eventId': eventId,
+      'is_recurring_event': isRec,
+      'reminder_start_time': DateTime(
+              2022, 10, 19, newEvent.startTime.hour, newEvent.startTime.minute)
+          .toUtc()
+          .toIso8601String()
+    }..putIfAbsent('slotId', () => id);
+    debugPrint('Data: $data');
     await sendToNativeApp(SendMethods.eventDragged, data);
+    return true;
+  }
+
+  ///send visible date changed to native app
+  Future<bool> sendVisibleDateChnged(DateTime dateTime) async {
+    log(dateTime.toString().substring(0, 10));
+    await sendToNativeApp(SendMethods.visibleDateChanged,
+        <String, String>{'date': dateTime.toString().substring(0, 10)});
     return true;
   }
 
   ///send showEvent callback to native app
   Future<bool> sendShowEventToNativeApp(DateTime dateTime,
       List<CalendarEvent<EventData>> events, CalendarViewType viewType) async {
-    final Map<String, dynamic> data = <String, dynamic>{
-      'viewType': viewType.toString(),
-      'date': dateTime.toString(),
-      'events': events.toString()
+    if (events.length == 1) {
+      if (isOnTapEnable(events.first)) {
+        final int eventID = int.parse(events.first.eventData!.id.toString());
+        final Map<String, dynamic> data = <String, dynamic>{
+          'viewType': viewType.toString(),
+          'date': dateTime.toString().substring(0, 10),
+          'events': events.toString(),
+          'eventId': eventID,
+          'eventIds': List<String>.from(events.map<String>(
+              (CalendarEvent<EventData> e) => e.eventData!.id.toString()))
+        };
+        log(data.toString());
+        await sendToNativeApp(SendMethods.showEvent, data);
+      }
+    } else {
+      final Map<String, dynamic> data = <String, dynamic>{
+        'viewType': viewType.toString(),
+        'date': dateTime.toString().substring(0, 10),
+        'events': events.toString(),
+        'eventId': events.first.eventData!.id.toString(),
+        'eventIds': List<String>.from(events.map<String>(
+            (CalendarEvent<EventData> e) => e.eventData!.id.toString()))
+      };
+      log(data.toString());
+      await sendToNativeApp(SendMethods.showEvent, data);
+    }
+
+    return true;
+  }
+
+  ///ask native app to fetch more data between speceffic date
+
+  Future<bool> sendFetchDataToNativeApp(Term term) async {
+    final Map<String, String> data = <String, String>{
+      'startDate': term.startDate.toString().substring(0, 10),
+      'endDate': term.endDate.toString().substring(0, 10)
     };
-    log(data.toString());
-    await sendToNativeApp(SendMethods.showEvent, data);
+    await sendToNativeApp(SendMethods.fetchData, data);
+    return true;
+  }
+
+  ///ask native app to fetch more data between speceffic date
+
+  Future<bool> sendFetchDataDatesToNativeApp(
+      DateTime startDate, DateTime endDate) async {
+    final Map<String, String> data = <String, String>{
+      'startDate': startDate.toString().substring(0, 10),
+      'endDate': endDate.toString().substring(0, 10)
+    };
+    await sendToNativeApp(SendMethods.fetchData, data);
     return true;
   }
 
@@ -110,14 +196,15 @@ class NativeCallBack {
 
   ///send data to native app
   Future<bool> sendToNativeApp(String methodName, dynamic data) {
-    log('MethodName: $methodName');
-    log('Data: $data');
     platform
         .invokeMethod<dynamic>(
-          methodName,
-          data,
-        )
-        .then((dynamic value) {});
+      methodName,
+      data,
+    )
+        .then((dynamic value) {
+      debugPrint('MethodName: $methodName');
+      debugPrint('Data: $data');
+    });
 
     return Future<bool>.value(true);
   }
