@@ -1,6 +1,6 @@
-///
+/// Events of the calendar
 class CalendarEvent<T> {
-  ///Pass starttime and endtime along with evet data
+  ///Pass startTime and endTime along with event data
   CalendarEvent(
       {required this.startTime, required this.endTime, this.eventData});
 
@@ -13,10 +13,12 @@ class CalendarEvent<T> {
   ///extra data for the event
   T? eventData;
 
+///id of the event
+
   ///return map object of the parameter
   Map<String, dynamic> get toMap => <String, dynamic>{
         'starTime': startTime.toString(),
         'endTime': endTime.toString(),
-        'eventData': eventData.toString()
+        'eventData': eventData.toString(),
       };
 }

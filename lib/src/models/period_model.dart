@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
-/// period class
+/// period class for the calendar, it can be use for define custom timeslot in
+/// the calendar.period class must be impliment this class to user functionality
 class Period {
-  ///
+  /// Period for the timetable
   Period(
       {required this.startTime,
       required this.endTime,
       this.title,
-      this.isBreak = false});
+      this.id = 'None',
+      this.isCustomeSlot = false}) {
+    if (id == 'None') {
+      id = startTime.toString();
+    }
+  }
+
+  ///   objet from the from the json
+  factory Period.fromJson(Map<String, dynamic> json) => Period(
+        startTime: parseTimeOfDay(json['startTime']),
+        endTime: parseTimeOfDay(json['endTime']),
+        title: json['title'],
+        isCustomeSlot: json['isBreak'],
+      );
 
   ///Start Time
-  ///
   TimeOfDay startTime;
 
   ///End Time
@@ -21,7 +35,10 @@ class Period {
 
   /// if this period is break then make this variable true
   /// and pass title of the break
-  bool isBreak = false;
+  bool isCustomeSlot = false;
+
+  ///id of the period,in cas eof customization
+  String id;
 
   ///to map functionality
 
@@ -29,7 +46,16 @@ class Period {
         'startTime': startTime,
         'endTime': endTime,
         'title': title,
-        'isBreak': isBreak
+        'isBreak': isCustomeSlot
+      };
+
+  /// return json object
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'startTime': startTime.toString(),
+        'endTime': endTime.toString(),
+        'title': title,
+        'isBreak': isCustomeSlot
       };
 
 // DateTime get nowDate{

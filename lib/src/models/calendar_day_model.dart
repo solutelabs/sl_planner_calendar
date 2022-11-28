@@ -1,4 +1,4 @@
-/// month ckass
+/// month class
 class Month {
   ///month constructor
   Month(

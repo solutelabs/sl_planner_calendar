@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 /// Current time indicator widget
-class TimeIndicator extends StatelessWidget {
-  ///time indicator
+class TimeIndicator<T> extends StatelessWidget {
+  ///initialized timeIndicator
   const TimeIndicator({
     required this.controller,
     required this.columnWidth,
@@ -13,7 +13,7 @@ class TimeIndicator extends StatelessWidget {
   }) : super(key: key);
 
   ///timetable controller
-  final TimetableController controller;
+  final TimetableController<T> controller;
 
   ///column width
   final double columnWidth;
@@ -38,13 +38,13 @@ class TimeIndicator extends StatelessWidget {
               width: columnWidth + 1,
             ),
             Positioned(
-              top: -2,
-              left: -2,
+              top: -8,
+              left: -8,
               child: Container(
                 decoration: BoxDecoration(
                     shape: BoxShape.circle, color: nowIndicatorColor),
-                height: 6,
-                width: 6,
+                height: 16,
+                width: 16,
               ),
             ),
           ],

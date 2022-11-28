@@ -1,17 +1,25 @@
 import 'dart:developer';
 
-import 'package:example/core/date_extension.dart';
-import 'package:example/core/month_picker.dart';
-import 'package:example/features/calendar/data/event_model.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_cubit.dart';
-import 'package:example/features/calendar/presentation/bloc/time_table_event_state.dart';
-import 'package:example/features/calendar/presentation/pages/add_plan.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:edgar_planner_calendar_flutter/core/constants.dart';
+import 'package:edgar_planner_calendar_flutter/core/static.dart';
+import 'package:edgar_planner_calendar_flutter/core/text_styles.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/get_events_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/data/models/term_model.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/method_name.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_cubit.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/bloc/time_table_event_state.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/month_planner.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/day_planner.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/schedule_planner.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/setting_dialog.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/term_planner.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/pages/week_planner.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/left_strip.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/linear_indicator.dart';
+import 'package:edgar_planner_calendar_flutter/features/calendar/presentation/widgets/right_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
 ///planner
@@ -19,7 +27,7 @@ class Planner extends StatefulWidget {
   ///
   const Planner({Key? key, this.id}) : super(key: key);
 
-  ///id that we will recived from native ios
+  ///id that we will received from native ios
   final String? id;
 
   @override
@@ -29,437 +37,648 @@ class Planner extends StatefulWidget {
 ///current date time
 DateTime now = DateTime.now().subtract(const Duration(days: 1));
 
-///custom timeperiods for the timetable
-List<Period> customPeriods = <Period>[
-  Period(
-    startTime: const TimeOfDay(hour: 9, minute: 30),
-    endTime: const TimeOfDay(hour: 9, minute: 45),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 9, minute: 45),
-    endTime: const TimeOfDay(hour: 10, minute: 30),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 10, minute: 30),
-    endTime: const TimeOfDay(hour: 11, minute: 0),
-    isBreak: true,
-    title: 'Recess',
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 11, minute: 0),
-    endTime: const TimeOfDay(hour: 11, minute: 45),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 11, minute: 45),
-    endTime: const TimeOfDay(hour: 12, minute: 30),
-  ),
-  Period(
-      startTime: const TimeOfDay(hour: 12, minute: 30),
-      endTime: const TimeOfDay(hour: 13, minute: 30),
-      isBreak: true,
-      title: 'Lunch'),
-  Period(
-    startTime: const TimeOfDay(hour: 13, minute: 30),
-    endTime: const TimeOfDay(hour: 14, minute: 15),
-  ),
-  Period(
-    startTime: const TimeOfDay(hour: 14, minute: 15),
-    endTime: const TimeOfDay(hour: 15, minute: 0),
-  ),
-];
-
-///return true if date is same
-bool isSameDate(DateTime date) {
-  final DateTime now = DateTime.now();
-  if (now.year == date.year && now.month == date.month && now.day == date.day) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 class _PlannerState extends State<Planner> {
-  TimetableController simpleController = TimetableController(
-      start:
-          DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1)),
-      end: dateTime.lastDayOfMonth,
-      timelineWidth: 60,
-      breakHeight: 35,
-      cellHeight: 120);
-  static DateTime dateTime = DateTime.now();
+  static DateTime startDate = DateTime.now();
+  static DateTime endDate = DateTime(2022, 12, 31);
+  TimetableController<EventData> timeTableController =
+      TimetableController<EventData>(
+          start: startDate,
+          end: endDate,
+          timelineWidth: 60,
+          breakHeight: 35,
+          cellHeight: 110);
+  TimetableController<EventData> scheduleController =
+      TimetableController<EventData>(
+          start: startDate,
+          end: endDate,
+          timelineWidth: 60,
+          breakHeight: 35,
+          cellHeight: 110);
+  TimetableController<EventData> monthController =
+      TimetableController<EventData>(
+          start: startDate,
+          end: endDate,
+          timelineWidth: 60,
+          breakHeight: 35,
+          cellHeight: 110);
+  TimetableController<EventData> termController =
+      TimetableController<EventData>(
+          start: startDate,
+          end: endDate,
+          timelineWidth: 60,
+          breakHeight: 35,
+          cellHeight: 110);
+
+  /// Used to display the current month in the app bar.
+  DateTime dateTime = DateTime.now();
+
+  static bool isMobile = true;
+
+  GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
+  static DateTime dateForHeader = DateTime.now();
+  ValueNotifier<DateTime> headerDateNotifier =
+      ValueNotifier<DateTime>(dateForHeader);
+  int index = 0;
+  bool showAppbar = true;
+
+  void onDateChange(DateTime dateTime) {
+    log('date changed $dateTime');
+    BlocProvider.of<TimeTableCubit>(context).setDate(dateTime);
+  }
 
   @override
   void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      currentMonth = simpleController.visibleDateStart;
-      setState(() {});
-      Future<dynamic>.delayed(const Duration(milliseconds: 100), () {
-        simpleController.jumpTo(now);
-      });
+    final TimeTableCubit cubit = BlocProvider.of<TimeTableCubit>(context);
+    cubit.stream.listen((TimeTableState event) {
+      if (event is DateUpdated) {
+        debugPrint('Date is updating in calendar: date updaed');
+        dateForHeader = event.startDate;
+        headerDateNotifier.value = dateForHeader;
+
+        // timeTableController.jumpTo(dateForHeader);
+      }
+      if (event is CurrrentDateUpdated) {
+        dateForHeader = event.currentDate;
+        headerDateNotifier.value = dateForHeader;
+      } else if (event is ViewUpdated) {
+        debugPrint('view updated in calendar');
+
+        final CalendarViewType requstedView = event.viewType;
+        viewTypeNotifer.value = requstedView;
+        timeTableController.jumpTo(cubit.date);
+        scheduleController.jumpTo(cubit.date);
+        monthController.jumpTo(cubit.date);
+        termController.jumpTo(cubit.date);
+        // if (currentView == CalendarViewType.dayView) {
+        //   if (requstedView == CalendarViewType.weekView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   } else if (requstedView == CalendarViewType.scheduleView) {
+        //     timeTableController.jumpTo(dateForHeader);
+        //     viewTypeNotifer.value = requstedView;
+        //   } else if (requstedView == CalendarViewType.monthView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.setMonthFromDate(cubit.date);
+        //   } else if (requstedView == CalendarViewType.termView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   }
+        // } else if (currentView == CalendarViewType.weekView) {
+        //   if (requstedView == CalendarViewType.dayView) {
+        //     timeTableController.jumpTo(dateForHeader);
+        //     viewTypeNotifer.value = requstedView;
+        //   } else if (requstedView == CalendarViewType.scheduleView) {
+        //     timeTableController.jumpTo(dateForHeader);
+        //     viewTypeNotifer.value = requstedView;
+        //   } else if (requstedView == CalendarViewType.monthView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.setMonthFromDate(cubit.date);
+        //   } else if (requstedView == CalendarViewType.termView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   }
+        // } else if (currentView == CalendarViewType.monthView) {
+        //   if (requstedView == CalendarViewType.weekView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   } else if (requstedView == CalendarViewType.scheduleView) {
+        //     timeTableController.jumpTo(dateForHeader);
+        //     viewTypeNotifer.value = requstedView;
+        //   } else if (requstedView == CalendarViewType.monthView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.setMonthFromDate(cubit.date);
+        //   } else if (requstedView == CalendarViewType.termView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   }
+        // } else if (currentView == CalendarViewType.termView) {
+        //   if (requstedView == CalendarViewType.weekView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   } else if (requstedView == CalendarViewType.scheduleView) {
+        //     timeTableController.jumpTo(dateForHeader);
+        //     viewTypeNotifer.value = requstedView;
+        //   } else if (requstedView == CalendarViewType.monthView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.setMonthFromDate(cubit.date);
+        //   } else if (requstedView == CalendarViewType.termView) {
+        //     viewTypeNotifer.value = requstedView;
+        //     cubit.snapToCloseMonday(cubit.date);
+        //   }
+        // }
+      } else if (event is JumpToDateState) {
+        debugPrint('jumping to date in calendar ${event.dateTime}');
+        timeTableController.jumpTo(event.dateTime);
+        scheduleController.jumpTo(event.dateTime);
+        dateForHeader = event.dateTime;
+        headerDateNotifier.value = dateForHeader;
+        monthController.jumpTo(event.dateTime);
+        termController.jumpTo(event.dateTime);
+        // final bool isToday = isSameDate(event.dateTime);
+        // if (isToday) {
+        //   if (viewTypeNotifer.value == CalendarViewType.monthView ||
+        //       viewTypeNotifer.value == CalendarViewType.termView) {
+        //     viewTypeNotifer.value = CalendarViewType.weekView;
+        //     dateForHeader = event.dateTime;
+        //     BlocProvider.of<TimeTableCubit>(context)
+        //         .changeViewType(CalendarViewType.weekView);
+        //   }
+        // } else {
+        //   timeTableController.jumpTo(event.dateTime);
+        //   dateForHeader = event.dateTime;
+        //   headerDateNotifier.value = dateForHeader;
+        // }
+      } else if (event is LoadedState) {
+        debugPrint('Setting event in calendar');
+
+        if (event.events.isNotEmpty) {
+          timeTableController.addEvent(event.events, replace: true);
+          final List<PlannerEvent> e = event.events;
+          scheduleController.addEvent(
+              e
+                  .where((PlannerEvent element) => element.eventData!.isLesson)
+                  .toList(),
+              replace: true);
+          monthController.addEvent(event.events, replace: true);
+          termController.addEvent(event.events, replace: true);
+        }
+      } else if (event is EventUpdatedState) {
+        debugPrint('updating events in calendar');
+        timeTableController.updateEvent(event.oldEvent, event.newEvent);
+        scheduleController.updateEvent(event.oldEvent, event.newEvent);
+      } else if (event is EventsAdded) {
+        debugPrint('adding events in calendar');
+        timeTableController.addEvent(event.events, replace: true);
+        final List<PlannerEvent> e = event.events;
+        scheduleController.addEvent(
+            e
+                .where((PlannerEvent element) => element.eventData!.isLesson)
+                .toList(),
+            replace: true);
+
+        monthController.addEvent(event.events, replace: true);
+        termController.addEvent(event.events, replace: true);
+      } else if (event is PeriodsUpdated) {
+        periods = event.periods;
+        setState(() {
+          debugPrint('Setting periods in calendar');
+        });
+      } else if (event is DeletedEvents) {
+        timeTableController.removeEvent(event.deletedEvents);
+        scheduleController.removeEvent(event.deletedEvents);
+        monthController.removeEvent(event.deletedEvents);
+        termController.removeEvent(event.deletedEvents);
+        debugPrint('removing events from calendar');
+      } else if (event is TermsUpdated) {
+        final Term term = BlocProvider.of<TimeTableCubit>(context).term;
+        debugPrint('Current Term:$term');
+        termController.changeDate(term.startDate, term.endDate);
+        monthController.changeDate(term.startDate, term.endDate);
+        // timeTableController.jumpTo(term.startDate);
+      } else if (event is MonthUpdated) {
+        debugPrint('Month Updated');
+        dateForHeader = event.startDate;
+        monthController.changeDate(event.startDate, event.endDate);
+        timeTableController.jumpTo(event.startDate);
+        scheduleController.jumpTo(event.startDate);
+        headerDateNotifier.value = dateForHeader;
+      }
     });
+    super.initState();
   }
 
-  DateTime currentMonth = DateTime.now();
+  List<Period> periods = customStaticPeriods;
 
-  ValueNotifier<DateTime> dateTimeNotifier = ValueNotifier<DateTime>(dateTime);
+  ValueNotifier<CalendarViewType> viewTypeNotifer =
+      ValueNotifier<CalendarViewType>(CalendarViewType.weekView);
+
+  bool sendJsonEcnoded = false;
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        centerTitle: true,
-        title: GestureDetector(
-          onTap: () {
-            DatePicker.showPicker(context,
-                    pickerModel: CustomMonthPicker(
-                        minTime: DateTime(
-                          2020,
-                        ),
-                        maxTime: DateTime.now(),
-                        currentTime: dateTime))
-                .then((DateTime? value) {
-              if (value != null) {
-                log(dateTime.toString());
-                dateTime = value;
-
-                setState(() {});
-                simpleController.changeDate(
-                    DateTime(dateTime.year, dateTime.month),
-                    dateTime.lastDayOfMonth);
-              }
+        key: scaffoldKey,
+        appBar: showAppbar
+            ? AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                systemOverlayStyle: SystemUiOverlayStyle.dark,
+                centerTitle: true,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        final CalendarViewType view = viewTypeNotifer.value;
+                        final TimeTableCubit cubit =
+                            BlocProvider.of<TimeTableCubit>(context);
+                        if (view == CalendarViewType.dayView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.previousDay, null);
+                        } else if (view == CalendarViewType.weekView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.previousWeek, null);
+                        } else if (view == CalendarViewType.monthView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.previousMonth, null);
+                        } else if (view == CalendarViewType.termView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.previousTerm, null);
+                        }
+                      },
+                    ),
+                    ValueListenableBuilder<DateTime>(
+                        valueListenable: headerDateNotifier,
+                        builder: (BuildContext context, DateTime value,
+                                Widget? child) =>
+                            GestureDetector(
+                              onTap: () {},
+                              child: Text(
+                                BlocProvider.of<TimeTableCubit>(context)
+                                    .date
+                                    .toString()
+                                    .substring(0, 10),
+                                style: context.termPlannerTitle,
+                              ),
+                            )),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        final CalendarViewType view = viewTypeNotifer.value;
+                        final TimeTableCubit cubit =
+                            BlocProvider.of<TimeTableCubit>(context);
+                        if (view == CalendarViewType.dayView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.nextDay, null);
+                        } else if (view == CalendarViewType.weekView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.nextWeek, null);
+                        } else if (view == CalendarViewType.monthView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.nextMonth, null);
+                        } else if (view == CalendarViewType.termView) {
+                          cubit.mockObject
+                              .invokeMethod(ReceiveMethods.nextTerm, null);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.menu,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    scaffoldKey.currentState!.openEndDrawer();
+                  },
+                ),
+                actions: <Widget>[
+                  IconButton(
+                    icon: const Icon(
+                      Icons.search,
+                      color: Colors.black,
+                    ),
+                    onPressed: () async {
+                      //   final List<PlannerEvent> events = dummyEventData;
+                      //   timeTableController.addEvent(
+                      //     events,
+                      //   );
+                    },
+                  ),
+                  IconButton(
+                      icon: const Icon(
+                        Icons.calendar_month,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        BlocProvider.of<TimeTableCubit>(context)
+                            .mockObject
+                            .invokeMethod(
+                                ReceiveMethods.jumpToCurrentDate, null);
+                      }),
+                ],
+              )
+            : null,
+        endDrawer: SettingDrawer(
+          startDate: startDate,
+          isMobile: isMobile,
+          endDate: endDate,
+          onDateChange: (DateTime start, DateTime end) {
+            setState(() {
+              startDate = start;
+              endDate = end;
+              timeTableController.changeDate(startDate, endDate);
+              scheduleController.changeDate(startDate, endDate);
             });
           },
-          child: Text(
-            DateFormat('MMMM-y').format(dateTime),
-            style: const TextStyle(color: Colors.black),
-          ),
         ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.menu,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            showDialog<Widget>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                      title: const Text('Your id is'),
-                      content: Text(BlocProvider.of<TimeTableCubit>(context,
-                                  listen: false)
-                              .id ??
-                          'No  id recived'),
-                    ));
-          },
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(
-              Icons.search,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              simpleController.setColumns(5);
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.calendar_month,
-              color: Colors.black,
-            ),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body:
-          LayoutBuilder(builder: (BuildContext context, BoxConstraints value) {
-        final bool isMobile = value.maxWidth < 600;
-        return BlocBuilder<TimeTableCubit, TimeTableState>(
-            builder: (BuildContext context, TimeTableState state) {
-          if (state is ErrorState) {
-            return const Center(
-              child: Icon(Icons.close),
-            );
-          } else {
-            return Column(
+        body: SafeArea(
+          child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints value) {
+            isMobile = value.maxWidth < mobileThreshold;
+            debugPrint('building calenda rgain');
+            return Row(
               children: <Widget>[
-                state is LoadingState
-                    ? const LinearProgressIndicator()
-                    : const SizedBox.shrink(),
+                isMobile ? const SizedBox.shrink() : const LeftStrip(),
                 Expanded(
-                  child: SlCalendar<Event>(
-                    timelines: customPeriods,
-                    onEventDragged: (CalendarEvent<Event> old,
-                        CalendarEvent<Event> newEvent) {
-                      BlocProvider.of<TimeTableCubit>(context, listen: false)
-                          .updateEvent(old, newEvent);
-                    },
-                    onWillAccept: (CalendarEvent<Event>? event) {
-                      if (event != null) {
-                        if (state is LoadingState) {
-                          final List<CalendarEvent<dynamic>> ovelapingEvents =
-                              BlocProvider.of<TimeTableCubit>(context,
-                                      listen: false)
-                                  .events
-                                  .where((CalendarEvent<dynamic> element) =>
-                                      !isTimeIsEqualOrLess(
-                                          element.startTime, event.startTime) &&
-                                      isTimeIsEqualOrLess(
-                                          element.endTime, event.endTime))
-                                  .toList();
-                          if (ovelapingEvents.isEmpty) {
-                            log('Slot available: ${event.toMap}');
-                            return true;
-                          } else {
-                            log('Slot Not available-> Start Time: '
-                                '${ovelapingEvents.first.startTime}'
-                                'End Time: ${ovelapingEvents.first.endTime}');
-
-                            return false;
-                          }
-                        } else {
-                          return false;
-                        }
-                      } else {
-                        return false;
-                      }
-                    },
-                    nowIndicatorColor: Colors.red,
-                    fullWeek: true,
-                    cornerBuilder: (DateTime current) =>
-                        const SizedBox.shrink(),
-                    items: state is LoadedState
-                        ? state.events
-                        : <CalendarEvent<Event>>[],
-                    onTap: (DateTime date, Period period,
-                        CalendarEvent<Event>? event) {
-                      log(date.toString());
-                      log(period.toMap.toString());
-                      log(event.toString());
-
-                      Navigator.push<Widget>(
-                          context,
-                          CupertinoPageRoute<Widget>(
-                              builder: (BuildContext context) => AddPlan(
-                                    date: date,
-                                    periods: customPeriods,
-                                    period: period,
-                                    timetableItem: event,
-                                  )));
-                    },
-                    headerHeight: isMobile ? 38 : 40,
-                    headerCellBuilder: (DateTime date) => isMobile
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                DateFormat('E').format(date),
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                              Container(
-                                  width: 25,
-                                  height: 25,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.5),
-                                      color: isSameDate(date)
-                                          ? Colors.pink
-                                          : Colors.transparent),
-                                  child: Center(
-                                    child: Text(
-                                      date.day.toString(),
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          color: isSameDate(date)
-                                              ? Colors.white
-                                              : null),
-                                    ),
-                                  ))
-                            ],
-                          )
-                        : Column(
-                            children: <Widget>[
-                              Expanded(
-                                child: Container(
-                                    height: 15,
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            width: 0.5),
-                                        // borderRadius:
-                                        //     BorderRadius.circular(12.5),
-                                        color: isSameDate(date)
-                                            ? Colors.black87
-                                            : Colors.transparent),
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Flexible(
-                                            child: Text(
-                                              DateFormat('E')
-                                                  .format(date)
-                                                  .toUpperCase(),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Icon(
-                                            Icons.circle,
-                                            color: isSameDate(date)
-                                                ? Colors.white
-                                                : null,
-                                            size: 6,
-                                          ),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Flexible(
-                                            child: Text(
-                                              DateFormat('d MMM').format(date),
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: isSameDate(date)
-                                                      ? Colors.white
-                                                      : null),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )),
-                              )
-                            ],
-                          ),
-                    hourLabelBuilder: (Period period) {
-                      final TimeOfDay start = period.startTime;
-
-                      final TimeOfDay end = period.endTime;
-                      return Container(
-                        child: period.isBreak
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(period.title ?? '',
-                                      style: const TextStyle(fontSize: 10)),
-                                ],
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(start.format(context).substring(0, 5),
-                                      style: const TextStyle(fontSize: 10)),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Text(end.format(context).substring(0, 5),
-                                      style: const TextStyle(fontSize: 10)),
-                                ],
-                              ),
-                      );
-                    },
-                    controller: simpleController,
-                    itemBuilder: (CalendarEvent<Event> item) => Container(
-                      margin: const EdgeInsets.all(4),
-                      padding: const EdgeInsets.all(6),
-                      height: item.eventData!.period.isBreak
-                          ? simpleController.breakHeight
-                          : simpleController.cellHeight,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: item.eventData!.color),
-                      child: item.eventData!.period.isBreak
-                          ? Container(
-                              height: simpleController.breakHeight,
-                              child: Center(
-                                  child: Text(
-                                item.eventData!.title,
-                                style: const TextStyle(color: Colors.white),
-                              )),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
+                    child: Column(
+                  children: <Widget>[
+                    const LinearIndicator(),
+                    Expanded(
+                      child: ValueListenableBuilder<CalendarViewType>(
+                          valueListenable: viewTypeNotifer,
+                          builder: (BuildContext context,
+                                  CalendarViewType viewType, Widget? child) =>
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 500),
+                                transitionBuilder: (Widget child,
+                                        Animation<double> animation) =>
+                                    ScaleTransition(
+                                        scale: animation, child: child),
+                                child: IndexedStack(
+                                  index: getIndex(viewType),
                                   children: <Widget>[
-                                    const Icon(
-                                      Icons.circle,
-                                      color: Colors.black,
-                                      size: 10,
+                                    DayPlanner(
+                                      customPeriods: periods,
+                                      timetableController: timeTableController,
+                                      onDateChanged: (DateTime dateTime) {
+                                        dateForHeader = dateTime;
+                                        headerDateNotifier.value =
+                                            dateForHeader;
+                                        onDateChange(dateTime);
+                                      },
+                                      onEventDragged:
+                                          (CalendarEvent<EventData> old,
+                                              CalendarEvent<EventData> newEvent,
+                                              Period? period) {
+                                        BlocProvider.of<TimeTableCubit>(context)
+                                            .onEventDragged(
+                                                old, newEvent, period);
+                                      },
+                                      onEventToEventDragged:
+                                          (CalendarEvent<EventData> existing,
+                                              CalendarEvent<EventData> old,
+                                              CalendarEvent<EventData> newEvent,
+                                              Period? periodModel) {
+                                        final CalendarEvent<EventData>
+                                            eventToUpdate = newEvent
+                                              ..eventData!.slots =
+                                                  existing.eventData!.slots;
+                                        BlocProvider.of<TimeTableCubit>(context)
+                                            .onEventDragged(old, eventToUpdate,
+                                                periodModel);
+                                      },
+                                      onTap: (DateTime dateTime, Period? period,
+                                          CalendarEvent<EventData>? event) {
+                                        final TimeTableCubit cubit =
+                                            BlocProvider.of<TimeTableCubit>(
+                                                context);
+                                        if (event == null && period != null) {
+                                          if (!period.isCustomeSlot) {
+                                            cubit.nativeCallBack
+                                                .sendAddEventToNativeApp(
+                                                    dateTime,
+                                                    cubit.viewType,
+                                                    period,
+                                                    jsonEcoded:
+                                                        sendJsonEcnoded);
+                                          }
+                                        } else if (event != null) {
+                                          cubit.nativeCallBack
+                                              .sendShowEventToNativeApp(
+                                                  dateTime,
+                                                  <CalendarEvent<EventData>>[
+                                                    event
+                                                  ],
+                                                  cubit.viewType);
+                                        }
+                                      },
                                     ),
-                                    const SizedBox(
-                                      width: 4,
+                                    WeekPlanner<EventData>(
+                                      customPeriods: periods,
+                                      timetableController: timeTableController,
+                                      onDateChanged: (DateTime dateTime) {
+                                        dateForHeader = dateTime;
+                                        headerDateNotifier.value =
+                                            dateForHeader;
+                                        onDateChange(dateTime);
+                                      },
+                                      onTap: (DateTime dateTime, Period? period,
+                                          CalendarEvent<EventData>? event) {
+                                        final TimeTableCubit cubit =
+                                            BlocProvider.of<TimeTableCubit>(
+                                                context);
+                                        if (event == null && period != null) {
+                                          if (!period.isCustomeSlot) {
+                                            cubit.nativeCallBack
+                                                .sendAddEventToNativeApp(
+                                                    dateTime,
+                                                    cubit.viewType,
+                                                    period,
+                                                    jsonEcoded:
+                                                        sendJsonEcnoded);
+                                          }
+                                        } else if (event != null) {
+                                          cubit.nativeCallBack
+                                              .sendShowEventToNativeApp(
+                                                  dateTime,
+                                                  <CalendarEvent<EventData>>[
+                                                    event
+                                                  ],
+                                                  cubit.viewType);
+                                        }
+                                      },
+                                      onEventDragged:
+                                          (CalendarEvent<EventData> old,
+                                              CalendarEvent<EventData> newEvent,
+                                              Period? period) {
+                                        log(old.toMap.toString());
+                                        log(newEvent.toMap.toString());
+
+                                        BlocProvider.of<TimeTableCubit>(context)
+                                            .onEventDragged(
+                                                old, newEvent, period);
+                                      },
+                                      onEventToEventDragged:
+                                          (CalendarEvent<EventData> existing,
+                                              CalendarEvent<EventData> old,
+                                              CalendarEvent<EventData> newEvent,
+                                              Period? periodModel) {
+                                        final CalendarEvent<EventData>
+                                            eventToUpdate = newEvent
+                                              ..eventData!.slots =
+                                                  existing.eventData!.slots;
+                                        BlocProvider.of<TimeTableCubit>(context)
+                                            .onEventDragged(old, eventToUpdate,
+                                                periodModel);
+                                      },
                                     ),
-                                    Flexible(
-                                      child: Text(
-                                        item.eventData!.title,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                    SchedulePlanner<EventData>(
+                                      customPeriods: periods,
+                                      timetableController: scheduleController,
+                                      isMobile: isMobile,
+                                      onDateChanged: (DateTime dateTime) {
+                                        dateForHeader = dateTime;
+                                        headerDateNotifier.value =
+                                            dateForHeader;
+                                        onDateChange(dateTime);
+                                      },
+                                      onEventDragged: (CalendarEvent<EventData>
+                                              old,
+                                          CalendarEvent<EventData> newEvent) {
+                                        BlocProvider.of<TimeTableCubit>(context)
+                                            .onEventDragged(
+                                                old, newEvent, null);
+                                      },
+                                      onTap: (DateTime dateTime,
+                                          Period? period,
+                                          List<CalendarEvent<EventData>>?
+                                              events) {
+                                        final TimeTableCubit cubit =
+                                            BlocProvider.of<TimeTableCubit>(
+                                                context);
+                                        if (events == null && period == null) {
+                                          cubit.nativeCallBack
+                                              .sendAddEventToNativeApp(dateTime,
+                                                  cubit.viewType, period,
+                                                  jsonEcoded: sendJsonEcnoded);
+                                        } else if (events != null) {
+                                          cubit.nativeCallBack
+                                              .sendShowEventToNativeApp(
+                                                  dateTime,
+                                                  events,
+                                                  cubit.viewType);
+
+                                          // cubit.nativeCallBack
+                                          //     .sendShowEventToNativeApp(
+                                          //         dateTime,
+                                          //        ,events,
+                                          //         cubit.viewType);
+                                        }
+                                      },
+                                      onEventToEventDragged:
+                                          (CalendarEvent<EventData> existing,
+                                              CalendarEvent<EventData> old,
+                                              CalendarEvent<EventData> newEvent,
+                                              Period? periodModel) {
+                                        final CalendarEvent<EventData>
+                                            eventToUpdate = newEvent
+                                              ..eventData!.slots =
+                                                  existing.eventData!.slots;
+                                        BlocProvider.of<TimeTableCubit>(context)
+                                            .onEventDragged(old, eventToUpdate,
+                                                periodModel);
+                                      },
+                                    ),
+                                    MonthPlanner(
+                                      timetableController: monthController,
+                                      onMonthChanged: (Month month) {
+                                        setState(() {
+                                          dateTime = DateTime(
+                                              month.year, month.month, 15);
+                                        });
+                                      },
+                                      onTap: (DateTime dateTime,
+                                          List<CalendarEvent<EventData>>
+                                              event) {
+                                        final TimeTableCubit cubit =
+                                            BlocProvider.of<TimeTableCubit>(
+                                                context);
+                                        if (event.isEmpty) {
+                                          cubit.nativeCallBack
+                                              .sendAddEventToNativeApp(dateTime,
+                                                  cubit.viewType, null,
+                                                  jsonEcoded: sendJsonEcnoded);
+                                        } else {
+                                          cubit.nativeCallBack
+                                              .sendShowEventToNativeApp(
+                                                  dateTime,
+                                                  event,
+                                                  cubit.viewType);
+                                        }
+                                      },
+                                    ),
+                                    TermPlanner(
+                                      timetableController: termController,
+                                      onMonthChanged: (Month month) {
+                                        setState(() {
+                                          dateTime = DateTime(
+                                              month.year, month.month, 15);
+                                        });
+                                      },
+                                      onTap: (DateTime dateTime,
+                                          List<CalendarEvent<EventData>>
+                                              event) {
+                                        final TimeTableCubit cubit =
+                                            BlocProvider.of<TimeTableCubit>(
+                                                context);
+                                        if (event.isEmpty) {
+                                          cubit.nativeCallBack
+                                              .sendAddEventToNativeApp(dateTime,
+                                                  cubit.viewType, null);
+                                        } else {
+                                          cubit.nativeCallBack
+                                              .sendShowEventToNativeApp(
+                                                  dateTime,
+                                                  event,
+                                                  cubit.viewType);
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : Flexible(
-                                        child: Text(
-                                          item.eventData!.description,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : const Spacer(),
-                                item.eventData!.freeTime
-                                    ? const SizedBox.shrink()
-                                    : item.eventData!.documents.isNotEmpty
-                                        ? Wrap(
-                                            runSpacing: 8,
-                                            spacing: 8,
-                                            children: item.eventData!.documents
-                                                .map((String e) => Container(
-                                                    padding: const EdgeInsets
-                                                            .symmetric(
-                                                        horizontal: 4,
-                                                        vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20)),
-                                                    child: Text(
-                                                      e,
-                                                      style: const TextStyle(
-                                                          fontSize: 10),
-                                                    )))
-                                                .toList())
-                                        : const SizedBox.shrink(),
-                              ],
-                            ),
+                              )),
                     ),
-                    cellBuilder: (Period period) => Container(
-                      height: period.isBreak
-                          ? simpleController.breakHeight
-                          : simpleController.cellHeight,
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.grey.withOpacity(0.5), width: 0.5),
-                          color: period.isBreak
-                              ? Colors.grey.withOpacity(0.2)
-                              : Colors.transparent),
-                    ),
-                  ),
-                ),
+                  ],
+                )),
+                isMobile
+                    ? const SizedBox.shrink()
+                    : BlocConsumer<TimeTableCubit, TimeTableState>(
+                        listener:
+                            (BuildContext context, TimeTableState state) {},
+                        builder: (BuildContext context, TimeTableState state) {
+                          final TermModel termModel =
+                              BlocProvider.of<TimeTableCubit>(context)
+                                  .termModel;
+                          return RightStrip(
+                            termModel: termModel,
+                          );
+                        }),
               ],
             );
-          }
-        });
-      }));
+          }),
+        ),
+      );
+}
+
+///get index of the index stack
+int getIndex(CalendarViewType viewType) {
+  switch (viewType) {
+    case CalendarViewType.dayView:
+      return 0;
+    case CalendarViewType.weekView:
+      return 1;
+    case CalendarViewType.scheduleView:
+      return 2;
+    case CalendarViewType.monthView:
+      return 3;
+    case CalendarViewType.termView:
+      return 4;
+    case CalendarViewType.glScheduleView:
+      return 5;
+    default:
+      return 2;
+  }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 
-///
-class CornerCell extends StatelessWidget {
-  ///
+/// Rendeer corner celll,it place beside the header and above the timelines
+class CornerCell<T> extends StatelessWidget {
+  /// initialized the corner cell
   const CornerCell(
       {required this.controller,
       required this.headerHeight,
@@ -18,7 +18,7 @@ class CornerCell extends StatelessWidget {
   final Widget Function(DateTime current)? cornerBuilder;
 
   ///timetable controller
-  final TimetableController controller;
+  final TimetableController<T> controller;
 
   @override
   Widget build(BuildContext context) => SizedBox(

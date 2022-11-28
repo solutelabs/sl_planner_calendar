@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sl_planner_calendar/src/core/text_styles.dart';
 
 ///headerCell widget build the label for the header of the timetable
 class HeaderCell extends StatelessWidget {
-  ///headerCell
+  ///initialized headerCell
   const HeaderCell({
     required this.dateTime,
     required this.columnWidth,
@@ -14,27 +15,22 @@ class HeaderCell extends StatelessWidget {
   /// Renders for the header that provides the [DateTime] for the day
   final Widget Function(DateTime)? headerCellBuilder;
 
-  ///dateTime
+  /// A variable that is used to store the dateTime.
   final DateTime dateTime;
 
-  ///columnWidth
+  /// The width of the column.
   final double columnWidth;
 
   @override
-  Widget build(BuildContext context) {
-    final FontWeight weight = DateUtils.isSameDay(dateTime, DateTime.now()) //
-        ? FontWeight.bold
-        : FontWeight.normal;
-    return SizedBox(
-        width: columnWidth,
-        child: headerCellBuilder != null
-            ? headerCellBuilder!(dateTime)
-            : Center(
-                child: Text(
-                  DateFormat('MMM\nd').format(dateTime),
-                  style: TextStyle(fontSize: 12, fontWeight: weight),
-                  textAlign: TextAlign.center,
-                ),
-              ));
-  }
+  Widget build(BuildContext context) => SizedBox(
+      width: columnWidth,
+      child: headerCellBuilder != null
+          ? headerCellBuilder!(dateTime)
+          : Center(
+              child: Text(
+                DateFormat('MMM\nd').format(dateTime),
+                style: context.headline1,
+                textAlign: TextAlign.center,
+              ),
+            ));
 }

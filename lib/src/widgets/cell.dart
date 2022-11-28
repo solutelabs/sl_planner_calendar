@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:sl_planner_calendar/sl_planner_calendar.dart';
 import 'package:sl_planner_calendar/src/core/app_log.dart';
 
-///time table cell
+/// A cell that is used to render the time table.
+
 class TimeTableCell<T> extends StatelessWidget {
-  ///
+  /// initialized the timetable cell for the calendar views
   const TimeTableCell({
     required this.columnWidth,
     required this.period,
@@ -14,6 +15,7 @@ class TimeTableCell<T> extends StatelessWidget {
     required this.onTap,
     required this.onWillAccept,
     required this.onAcceptWithDetails,
+    this.isDragEnable = true,
     this.onAccept,
     this.onLeave,
     this.onMove,
@@ -23,7 +25,7 @@ class TimeTableCell<T> extends StatelessWidget {
 
   /// Renders for the cells the represent each hour that provides
   /// that [DateTime] for that hour
-  final Widget Function(Period)? cellBuilder;
+  final Widget Function(Period, DateTime)? cellBuilder;
 
   ///column Width
   final double columnWidth;
@@ -71,6 +73,10 @@ class TimeTableCell<T> extends StatelessWidget {
   /// Note that this includes entering and leaving the target.
   final DragTargetMove<T>? onMove;
 
+  ///bool true if drag Enable
+
+  final bool isDragEnable;
+
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: () {
@@ -84,31 +90,31 @@ class TimeTableCell<T> extends StatelessWidget {
             List<dynamic> rejected,
           ) =>
               SizedBox(
+            // color: Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
+            //     .withOpacity(1.0),
+            // color: Colors.blue,
             width: columnWidth,
-            height: period.isBreak ? breakHeight : cellHeight,
-            child: GestureDetector(
-              onTap: () {
-                appLog('onTap');
-                onTap!(dateTime, period, null);
-              },
-              child: Center(
-                child: cellBuilder != null
-                    ? cellBuilder!(period)
-                    : Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).dividerColor,
-                            width: 0.5,
-                          ),
+            height: period.isCustomeSlot ? breakHeight : cellHeight,
+            child: Center(
+              child: cellBuilder != null
+                  ? cellBuilder!(period, dateTime)
+                  : Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                          width: 0.5,
                         ),
                       ),
-              ),
+                    ),
             ),
           ),
           onAcceptWithDetails: onAcceptWithDetails,
           onWillAccept: (CalendarEvent<T>? data) {
             appLog('Cell  Dragged:${data!.toMap}');
-            return onWillAccept(data, period);
+            if (isDragEnable) {
+              return onWillAccept(data, period);
+            }
+            return false;
           },
           onAccept: (CalendarEvent<T> data) {
             appLog(data.toMap.toString());
